@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { EB_Garamond, Inter } from "next/font/google";
 import { LayoutWrapper } from "@/components/LayoutWrapper";
+import { Analytics } from "@vercel/analytics/next";
 
 const garamond = EB_Garamond({
   subsets: ["latin"],
@@ -22,6 +23,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${garamond.variable} ${inter.variable}`}>
+        <Analytics />
         <LayoutWrapper>{children}</LayoutWrapper>
       </body>
     </html>
