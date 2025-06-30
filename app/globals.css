@@ -152,3 +152,148 @@ h5,
 h6 {
   font-family: var(--font-heading);
 }
+
+button {
+  @apply cursor-pointer;
+}
+
+/* Custom Datepicker styles for Reparation Road */
+.custom-datepicker {
+  background: var(--color-brand-tan) !important;
+  border-radius: 1rem !important;
+  border: 1.5px solid var(--color-brand-green) !important;
+  box-shadow: 0 8px 32px 0 rgba(44, 38, 27, 0.16) !important;
+  padding: 1rem !important;
+}
+
+.custom-datepicker .react-datepicker__header {
+  background: var(--color-brand-green) !important;
+  color: var(--color-brand-tan) !important;
+  border-radius: 0.8rem 0.8rem 0 0 !important;
+  border-bottom: none !important;
+  padding-top: 0.5rem !important;
+}
+
+.custom-datepicker .react-datepicker__current-month,
+.custom-datepicker .react-datepicker-time__header,
+.custom-datepicker .react-datepicker__day-name {
+  color: var(--color-brand-tan) !important;
+  font-weight: 700;
+  font-family: var(--font-garamond), serif !important;
+  letter-spacing: 0.04em;
+}
+
+.custom-datepicker .react-datepicker__day,
+.custom-datepicker .react-datepicker__day--keyboard-selected {
+  border-radius: 100% !important;
+  width: 2.2rem;
+  line-height: 2.2rem;
+  font-size: 1rem;
+  font-family: var(--font-inter), sans-serif !important;
+  transition:
+    background 0.18s,
+    color 0.18s;
+}
+
+.custom-datepicker .react-datepicker__day:hover {
+  background: var(--color-brand-brown) !important;
+  color: var(--color-brand-tan) !important;
+}
+
+.custom-datepicker .react-datepicker__day--selected,
+.custom-datepicker
+  .react-datepicker__day--keyboard-selected.react-datepicker__day--selected {
+  background: var(--color-brand-green) !important;
+  color: var(--color-brand-tan) !important;
+  font-weight: 700;
+  border-radius: 100%;
+  box-shadow: 0 2px 8px 0 rgba(39, 106, 53, 0.12);
+}
+
+.custom-datepicker
+  .react-datepicker__day--today:not(.react-datepicker__day--selected) {
+  border: 1.5px solid var(--color-brand-green) !important;
+  background: transparent !important;
+  color: var(--color-brand-brown) !important;
+}
+
+.custom-datepicker .react-datepicker__time-container {
+  border-radius: 0 1rem 1rem 0 !important;
+}
+
+.custom-datepicker .react-datepicker__time-list {
+  background: var(--color-brand-tan) !important;
+  border-radius: 0 1rem 1rem 0 !important;
+  font-size: 1rem !important;
+}
+
+.custom-datepicker .react-datepicker__time-list-item {
+  border-radius: 8px !important;
+  margin: 2px 0 !important;
+  transition:
+    background 0.18s,
+    color 0.18s;
+}
+
+.custom-datepicker .react-datepicker__time-list-item--selected {
+  background: var(--color-brand-green) !important;
+  color: var(--color-brand-tan) !important;
+  font-weight: 600;
+}
+.custom-datepicker
+  .react-datepicker__time-list-item:hover:not(
+    .react-datepicker__time-list-item--selected
+  ) {
+  background: var(--color-brand-brown) !important;
+  color: var(--color-brand-tan) !important;
+}
+
+/* Remove arrows' blocky backgrounds */
+.custom-datepicker .react-datepicker__navigation {
+  top: 1.5rem;
+}
+.custom-datepicker .react-datepicker__navigation--previous,
+.custom-datepicker .react-datepicker__navigation--next {
+  background: transparent !important;
+}
+.custom-datepicker .react-datepicker__navigation-icon::before {
+  border-color: var(--color-brand-tan) !important;
+  border-width: 3px 3px 0 0 !important;
+}
+
+/* Smaller datepicker for mobile */
+@media (max-width: 500px) {
+  .custom-datepicker {
+    max-width: 98vw !important;
+    padding: 0.25rem !important;
+  }
+  .custom-datepicker .react-datepicker__day,
+  .custom-datepicker .react-datepicker__day--keyboard-selected {
+    width: 1.8rem;
+    line-height: 1.8rem;
+    font-size: 0.93rem;
+  }
+}
+
+/* Bolder, closer React DatePicker chevrons */
+.react-datepicker__navigation {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 0;
+  min-height: 0;
+  margin: 0 2px;
+  top: 12px;
+}
+.react-datepicker__navigation-icon {
+  width: 24px !important;
+  height: 24px !important;
+}
+.react-datepicker__navigation--previous,
+.react-datepicker__navigation--next {
+  font-size: 2rem !important;
+  color: var(--color-brand-green) !important;
+  opacity: 1 !important;
+}
+.react-datepicker__header {
+  padding: 0.5rem 0.5rem !important;
+}
