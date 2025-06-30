@@ -182,7 +182,7 @@ export async function POST(req: NextRequest) {
       <tr>
         <td align="center">
           <!-- Inner table for main content, centered and max-width -->
-          <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;border-radius:16px;box-shadow:0 4px 20px #ead9bc2c;padding:0;margin:32px 0;">
+          <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;background:#fffbe6;border-radius:16px;box-shadow:0 4px 20px #ead9bc2c;padding:0;margin:32px 0;">
             <tr>
               <td style="padding:40px 32px 32px 32px;font-family:Inter,Arial,sans-serif;color:#2d230f;">
                 <img src="${ICO_URL}" width="56" height="56" alt="Reparation Road" style="display:block;margin-bottom:24px;margin-left:auto;margin-right:auto;" />
