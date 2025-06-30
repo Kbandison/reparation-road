@@ -3,7 +3,7 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const FROM_EMAIL = "<onboarding@resend.dev>"; // Use your verified sender for testing
+const FROM_EMAIL = "<inquiry@reparationroad.org>"; // Use your verified sender for testing
 const OWNER_EMAIL = "kevin@reparationroad.org"; // Your email
 const SITE_URL = "https://reparationroad.org";
 const ICO_URL = `${SITE_URL}/Reparation Road-01.png`;

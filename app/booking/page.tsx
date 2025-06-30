@@ -82,6 +82,9 @@ function DateTimeModal({
     if (!open) setStep(1);
   }, [open]);
 
+  console.log("bookedSlots", bookedSlots); // E.g., ["1:30 PM", "12:30 PM"]
+  console.log("TIME_SLOTS", TIME_SLOTS); // E.g., ["9:00 AM", ..., "1:30 PM"]
+
   // For SSR safety
   if (typeof window === "undefined" || !open) return null;
 
@@ -154,19 +157,28 @@ function DateTimeModal({
                 {TIME_SLOTS.map((slot) => (
                   <button
                     key={slot}
+                    type="button"
                     disabled={bookedSlots.includes(slot)}
-                    className={`px-2 py-2 rounded text-sm font-semibold border transition
-                  ${
-                    bookedSlots.includes(slot)
-                      ? "opacity-50 cursor-not-allowed bg-gray-200 border-gray-300 text-gray-400"
-                      : time === slot
-                        ? "bg-[var(--color-brand-green)] text-white border-[var(--color-brand-green)]"
-                        : "bg-white text-[var(--color-brand-brown)] border-[var(--color-brand-green)] hover:bg-[var(--color-brand-green)] hover:text-white"
-                  }`}
-                    onClick={() => setTime(slot)}
+                    aria-disabled={bookedSlots.includes(slot)}
+                    tabIndex={bookedSlots.includes(slot) ? -1 : 0}
+                    className={`px-2 py-2 rounded text-sm font-semibold border transition flex items-center justify-center
+        ${
+          bookedSlots.includes(slot)
+            ? "bg-gray-200 border-gray-300 text-gray-400 opacity-70 cursor-not-allowed"
+            : time === slot
+              ? "bg-[var(--color-brand-green)] text-white border-[var(--color-brand-green)]"
+              : "bg-white text-[var(--color-brand-brown)] border-[var(--color-brand-green)] hover:bg-[var(--color-brand-green)] hover:text-white"
+        }`}
+                    onClick={() => !bookedSlots.includes(slot) && setTime(slot)}
                   >
-                    {slot}
-                    {bookedSlots.includes(slot) && " (Booked)"}
+                    <span>
+                      {slot}
+                      {bookedSlots.includes(slot) && (
+                        <span className="ml-1 text-xs font-normal">
+                          (Booked)
+                        </span>
+                      )}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -251,7 +263,7 @@ export default function BookingPage() {
       time: time ?? "",
     };
 
-    const res = await fetch("/api/booking", {
+    const res = await fetch("/api/bookings", {
       method: "POST",
       body: JSON.stringify(body),
       headers: { "Content-Type": "application/json" },

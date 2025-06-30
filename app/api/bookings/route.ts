@@ -11,7 +11,7 @@ const supabase = createClient(
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const FROM_EMAIL = "<onboarding@resend.dev>"; // Use your verified sender
+const FROM_EMAIL = "<booking@reparationroad.org>"; // Use your verified sender
 const OWNER_EMAIL = "kevin@reparationroad.org"; // Where you receive bookings
 const SITE_URL = "https://reparationroad.org";
 const ICO_URL = `${SITE_URL}/Reparation Road-01.png`;
@@ -75,13 +75,15 @@ export async function GET(req: NextRequest) {
   const dateParam = req.nextUrl.searchParams.get("date"); // format: YYYY-MM-DD
   if (!dateParam) return NextResponse.json({ times: [] });
 
-  const { data, error } = await supabase.from("bookings").select("date, time");
+  // Efficient: Only get bookings for this date
+  const { data, error } = await supabase
+    .from("bookings")
+    .select("time")
+    .eq("date", dateParam);
+
   if (error) return NextResponse.json({ times: [] });
 
-  // Only bookings for that date
-  const times = data
-    .filter((row) => row.date && row.date.startsWith(dateParam))
-    .map((row) => row.time);
+  const times = (data ?? []).map((row) => row.time);
 
   return NextResponse.json({ times });
 }
