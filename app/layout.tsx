@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     title: "Reparation Road",
     description:
       "Uncover your family history and explore Black heritage with Reparation Road’s research, genealogy, and cultural resources.",
-    images: ["/og-image.png"],
+    images: ["/Reparation Road-01.png"],
   },
   icons: {
     icon: "/Reparation Road-01.png",
