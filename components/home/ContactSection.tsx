@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { ScrollReveal } from "../ScrollReveal";
 
@@ -8,6 +8,7 @@ export const ContactSection = () => {
   const [status, setStatus] = useState<
     "idle" | "loading" | "success" | "error"
   >("idle");
+  const formRef = useRef<HTMLFormElement>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -28,7 +29,8 @@ export const ContactSection = () => {
 
     if (res.ok) {
       setStatus("success");
-      e.currentTarget.reset();
+      // Always safe: works even if component re-renders during submit
+      formRef.current?.reset();
     } else {
       setStatus("error");
     }
@@ -46,7 +48,11 @@ export const ContactSection = () => {
             from you.
           </p>
 
-          <form onSubmit={handleSubmit} className="space-y-6 text-left">
+          <form
+            ref={formRef}
+            onSubmit={handleSubmit}
+            className="space-y-6 text-left"
+          >
             <div>
               <label
                 htmlFor="name"

@@ -244,7 +244,7 @@ export async function POST(req: NextRequest) {
     const ownerRes = await resend.emails.send({
       from: `RR New Appt ${FROM_EMAIL}`,
       to: [OWNER_EMAIL],
-      subject: "New Booking Request (Reparation Road)",
+      subject: "New Booking Received",
       headers: { "X-Entity-Ref-ID": ICO_URL },
       html: ownerHtml,
       attachments: [
