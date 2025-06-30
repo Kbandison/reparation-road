@@ -1,6 +1,6 @@
 import { CoreValues } from "@/components/about/CoreValues";
 import { FounderSpotlight } from "@/components/about/FounderSpotlight";
-import { GetInvolved } from "@/components/about/GetInvolved";
+// import { GetInvolved } from "@/components/about/GetInvolved";
 import { OurJourney } from "@/components/about/OurJourney";
 
 export default function Home() {
@@ -9,7 +9,7 @@ export default function Home() {
       <FounderSpotlight />
       <CoreValues />
       <OurJourney />
-      <GetInvolved />
+      {/* <GetInvolved /> */}
     </div>
   );
 }
