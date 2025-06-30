@@ -9,11 +9,12 @@ export const Header = () => {
   const [open, setOpen] = useState(false);
 
   const navLinks = [
+    { label: "Home", href: "/" },
     { label: "Our Story", href: "/about" },
     // { label: "Genealogy", href: "/booking" },
     { label: "Collection", href: "/library" },
     { label: "Shop", href: "/shop" },
-    { label: "Contact", href: "/contact" },
+    { label: "Booking", href: "/booking" },
   ];
 
   return (
