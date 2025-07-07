@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 import { books } from "@/data";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -50,9 +51,11 @@ const SearchPage = () => {
                 key={book.id}
                 className="border rounded-lg p-4 flex flex-col"
               >
-                <img
+                <Image
                   src={book.coverImage}
                   alt={book.title}
+                  width={300}
+                  height={200}
                   className="w-full h-48 object-cover rounded-md mb-4"
                 />
                 <h3 className="text-xl font-semibold">{book.title}</h3>

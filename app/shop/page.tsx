@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 import { shopItems } from "@/data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -104,9 +105,11 @@ const ShopPage = () => {
             <button className="absolute top-4 right-4 text-gray-800 hover:text-red-500">
               <HeartIcon />
             </button>
-            <img
+            <Image
               src={item.image}
               alt={item.name}
+              width={300}
+              height={200}
               className="w-full h-48 object-contain mb-4 rounded-md"
             />
             <h2 className="text-2xl font-semibold mb-2 text-gray-800">
