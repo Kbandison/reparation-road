@@ -11,14 +11,6 @@ export const FounderSpotlight = () => {
         <div className="flex flex-col sm:flex-row gap-6">
           <div className="relative w-60 h-80 rounded-xl overflow-hidden shadow-lg border border-[var(--color-brand-green)]">
             <Image
-              src="/adam 6.jpg"
-              alt="Adam Jacoby Paul standing in suit"
-              fill
-              className="object-cover"
-            />
-          </div>
-          <div className="relative w-60 h-80 rounded-xl overflow-hidden shadow-lg border border-[var(--color-brand-green)]">
-            <Image
               src="/adam 2 (1).jpg"
               alt="Adam Jacoby Paul smiling in front of mural"
               fill

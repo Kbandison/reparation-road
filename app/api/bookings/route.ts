@@ -12,7 +12,7 @@ const supabase = createClient(
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const FROM_EMAIL = "<booking@reparationroad.org>"; // Use your verified sender
-const OWNER_EMAIL = "kevin@reparationroad.org, apaul@reparationroad.org"; // Where you receive bookings
+const OWNER_EMAIL = "apaul@reparationroad.org"; // Where you receive bookings
 const SITE_URL = "https://reparationroad.org";
 const ICO_URL = `${SITE_URL}/Reparation Road-01.png`;
 
