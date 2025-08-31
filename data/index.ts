@@ -1,38 +1,5 @@
 
-export const books = [
-  {
-    id: 1,
-    title: "The Road to Reparation",
-    author: "Jane Doe",
-    isFree: false,
-    description: "A story of healing and reconciliation.",
-    coverImage: "/placeholder.svg",
-  },
-  {
-    id: 2,
-    title: "A Legacy of Hope",
-    author: "John Smith",
-    isFree: false,
-    description: "Finding light in the darkest of times.",
-    coverImage: "/placeholder.svg",
-  },
-  {
-    id: 3,
-    title: "The First Step",
-    author: "Emily White",
-    isFree: true,
-    description: "A guide to starting your journey.",
-    coverImage: "/placeholder.svg",
-  },
-  {
-    id: 4,
-    title: "Echoes of the Past",
-    author: "Michael Brown",
-    isFree: true,
-    description: "Understanding history to build a better future.",
-    coverImage: "/placeholder.svg",
-  },
-];
+
 
 export const shopItems = [
   {
