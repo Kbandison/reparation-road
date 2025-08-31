@@ -35,6 +35,19 @@ const AfricanColonizationSocietyPage = () => {
           </Link>
         </div>
 
+        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
+          <h2 className="text-xl font-semibold text-brand-brown mb-3">
+            Liberian Census Rolls
+          </h2>
+          <p className="text-gray-600 mb-4">
+            Census records of Liberian demographics, origins, and conditions in
+            post-emancipation communities.
+          </p>
+          <Link href="/collections/acs/liberation-census-rolls">
+            <Button className="w-full">View Census Records</Button>
+          </Link>
+        </div>
+
         <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 opacity-50">
           <h2 className="text-xl font-semibold text-brand-brown mb-3">
             Society Documents
