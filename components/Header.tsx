@@ -4,15 +4,23 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Menu, X } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { UserDropdown } from "@/components/auth/UserDropdown";
+import { LoginForm } from "@/components/auth/LoginForm";
+import { SignupForm } from "@/components/auth/SignupForm";
+import { Button } from "@/components/ui/button";
 
 export const Header = () => {
   const [open, setOpen] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+  const [showSignup, setShowSignup] = useState(false);
+  const { user, loading } = useAuth();
 
   const navLinks = [
     { label: "Home", href: "/" },
     { label: "Our Story", href: "/about" },
     { label: "Collection", href: "/collection" },
-    // { label: "Shop", href: "/shop" },
+    { label: "Membership", href: "/membership" },
     { label: "Booking", href: "/booking" },
   ];
 
@@ -46,11 +54,22 @@ export const Header = () => {
             </Link>
           ))}
         </nav>
-        {/* <div>
-          <button className="border border-[var(--color-brand-brown)] px-10 py-2 rounded-xl bg-[var(--color-brand-green)] text-white font-bold hover:bg-[var(--color-brand-brown)] hover:text-[var(--color-brand-tan)] hover:font-semibold duration-200 cursor-pointer">
-            Log In
-          </button>
-        </div> */}
+
+        {/* Authentication Section */}
+        <div className="hidden md:flex items-center">
+          {loading ? (
+            <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse" />
+          ) : user ? (
+            <UserDropdown />
+          ) : (
+            <Button
+              onClick={() => setShowLogin(true)}
+              className="bg-brand-green text-white hover:bg-brand-darkgreen"
+            >
+              Sign In
+            </Button>
+          )}
+        </div>
 
         {/* Mobile Toggle */}
         <button
@@ -75,6 +94,37 @@ export const Header = () => {
               {label}
             </Link>
           ))}
+          
+          {/* Mobile Auth */}
+          <div className="mt-4">
+            {loading ? (
+              <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse mx-auto" />
+            ) : user ? (
+              <div className="text-center">
+                <p className="text-brand-brown font-medium">
+                  {user.email?.split('@')[0]}
+                </p>
+                <Link
+                  href="/profile"
+                  className="text-brand-green hover:text-brand-darkgreen"
+                  onClick={() => setOpen(false)}
+                >
+                  View Profile
+                </Link>
+              </div>
+            ) : (
+              <Button
+                onClick={() => {
+                  setShowLogin(true);
+                  setOpen(false);
+                }}
+                className="bg-brand-green text-white hover:bg-brand-darkgreen"
+              >
+                Sign In
+              </Button>
+            )}
+          </div>
+
           <button
             className="absolute top-4 right-4 text-[var(--color-brand-green)]"
             onClick={() => setOpen(false)}
@@ -83,6 +133,27 @@ export const Header = () => {
             <X size={28} />
           </button>
         </div>
+      )}
+
+      {/* Auth Modals */}
+      {showLogin && (
+        <LoginForm
+          onClose={() => setShowLogin(false)}
+          onSwitchToSignup={() => {
+            setShowLogin(false);
+            setShowSignup(true);
+          }}
+        />
+      )}
+
+      {showSignup && (
+        <SignupForm
+          onClose={() => setShowSignup(false)}
+          onSwitchToLogin={() => {
+            setShowSignup(false);
+            setShowLogin(true);
+          }}
+        />
       )}
     </header>
   );

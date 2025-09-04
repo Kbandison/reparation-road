@@ -3,6 +3,7 @@ import "./globals.css";
 import { EB_Garamond, Inter } from "next/font/google";
 import { LayoutWrapper } from "@/components/LayoutWrapper";
 import { Analytics } from "@vercel/analytics/next";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const garamond = EB_Garamond({
   subsets: ["latin"],
@@ -73,7 +74,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${garamond.variable} ${inter.variable}`}>
         <Analytics />
-        <LayoutWrapper>{children}</LayoutWrapper>
+        <AuthProvider>
+          <LayoutWrapper>{children}</LayoutWrapper>
+        </AuthProvider>
       </body>
     </html>
   );

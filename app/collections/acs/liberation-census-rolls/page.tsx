@@ -5,6 +5,109 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { useRouter } from "next/navigation";
+import { LoginForm } from "@/components/auth/LoginForm";
+import { SignupForm } from "@/components/auth/SignupForm";
+
+const UpgradePrompt = () => {
+  const router = useRouter();
+  const [showLogin, setShowLogin] = useState(false);
+  const [showSignup, setShowSignup] = useState(false);
+
+  return (
+    <div className="min-h-screen bg-brand-beige flex items-center justify-center">
+      <div className="text-center max-w-lg mx-auto p-8">
+        <div className="mb-6">
+          <div className="w-20 h-20 bg-brand-green rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+          <h2 className="text-3xl font-bold text-brand-brown mb-4">
+            Premium Access Required
+          </h2>
+          <p className="text-gray-600 mb-6">
+            Access to Liberation Census Rolls requires a premium membership. 
+            Explore demographics and conditions of liberated African communities.
+          </p>
+        </div>
+
+        <div className="space-y-4 mb-6">
+          <div className="flex items-center justify-center">
+            <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span className="text-gray-700">Complete census records by town</span>
+          </div>
+          <div className="flex items-center justify-center">
+            <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span className="text-gray-700">Demographics and family information</span>
+          </div>
+          <div className="flex items-center justify-center">
+            <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span className="text-gray-700">Professional and health records</span>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <Button
+            onClick={() => router.push('/membership')}
+            className="w-full bg-brand-green text-white hover:bg-brand-darkgreen"
+            size="lg"
+          >
+            Upgrade to Premium - $19.99/month
+          </Button>
+          
+          <div className="text-center">
+            <p className="text-sm text-gray-600 mb-2">Don't have an account?</p>
+            <div className="space-x-2">
+              <Button
+                onClick={() => setShowSignup(true)}
+                variant="outline"
+                size="sm"
+              >
+                Sign Up Free
+              </Button>
+              <Button
+                onClick={() => setShowLogin(true)}
+                variant="outline" 
+                size="sm"
+              >
+                Sign In
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Auth Modals */}
+      {showLogin && (
+        <LoginForm
+          onClose={() => setShowLogin(false)}
+          onSwitchToSignup={() => {
+            setShowLogin(false);
+            setShowSignup(true);
+          }}
+        />
+      )}
+
+      {showSignup && (
+        <SignupForm
+          onClose={() => setShowSignup(false)}
+          onSwitchToLogin={() => {
+            setShowSignup(false);
+            setShowLogin(true);
+          }}
+        />
+      )}
+    </div>
+  );
+};
 
 interface CensusRecord {
   id: number;
@@ -343,4 +446,12 @@ const LiberationCensusRollsPage = () => {
   );
 };
 
-export default LiberationCensusRollsPage;
+const WrappedLiberationCensusRollsPage = () => {
+  return (
+    <ProtectedRoute requiresPaid={true} fallback={<UpgradePrompt />}>
+      <LiberationCensusRollsPage />
+    </ProtectedRoute>
+  );
+};
+
+export default WrappedLiberationCensusRollsPage;
