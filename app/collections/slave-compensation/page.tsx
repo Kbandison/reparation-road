@@ -1,5 +1,4 @@
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -66,7 +65,7 @@ const UpgradePrompt = () => {
           </Button>
           
           <div className="text-center">
-            <p className="text-sm text-gray-600 mb-2">Don't have an account?</p>
+            <p className="text-sm text-gray-600 mb-2">Don&apos;t have an account?</p>
             <div className="space-x-2">
               <Button
                 onClick={() => setShowSignup(true)}

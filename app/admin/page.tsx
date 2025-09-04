@@ -183,7 +183,7 @@ const AdminDashboard = () => {
   }: { 
     title: string; 
     value: number; 
-    icon: any; 
+    icon: React.ComponentType<{ className?: string }>; 
     color: string;
     change?: number;
   }) => (
@@ -215,7 +215,7 @@ const AdminDashboard = () => {
             <h1 className="text-4xl font-bold text-brand-brown">Admin Dashboard</h1>
           </div>
           <p className="text-gray-600">
-            Welcome back, {profile.first_name || 'Admin'}. Here's your platform overview.
+            Welcome back, {profile.first_name || 'Admin'}. Here&apos;s your platform overview.
           </p>
           <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
             <p className="text-green-800 text-sm font-medium">

@@ -74,7 +74,7 @@ const MembershipPage = () => {
             </div>
 
             <div className="border-t pt-6">
-              <h4 className="font-semibold text-brand-brown mb-3">What's limited:</h4>
+              <h4 className="font-semibold text-brand-brown mb-3">What&apos;s limited:</h4>
               <div className="space-y-2">
                 <div className="flex items-center text-gray-500">
                   <X className="w-4 h-4 mr-2" />

@@ -79,7 +79,7 @@ export async function PATCH(request: NextRequest) {
 
     // Validate updates object
     const allowedFields = ['subscription_status', 'role', 'first_name', 'last_name'];
-    const validUpdates: any = {};
+    const validUpdates: Record<string, unknown> = {};
 
     for (const [key, value] of Object.entries(updates)) {
       if (allowedFields.includes(key)) {
