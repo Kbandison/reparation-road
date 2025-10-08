@@ -52,30 +52,7 @@ const BookmarksPage = () => {
     }
   }, [user, authLoading, router]);
 
-  useEffect(() => {
-    if (user) {
-      fetchBookmarks();
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (searchTerm) {
-      const filtered = bookmarks.filter((bookmark) => {
-        const page = bookmark.archive_pages;
-        return (
-          page.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          page.ocr_text?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          page.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          page.tags?.some((tag) => tag.toLowerCase().includes(searchTerm.toLowerCase()))
-        );
-      });
-      setFilteredBookmarks(filtered);
-    } else {
-      setFilteredBookmarks(bookmarks);
-    }
-  }, [searchTerm, bookmarks]);
-
-  const fetchBookmarks = async () => {
+  const fetchBookmarks = React.useCallback(async () => {
     if (!user) return;
 
     try {
@@ -112,7 +89,30 @@ const BookmarksPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      fetchBookmarks();
+    }
+  }, [user, fetchBookmarks]);
+
+  useEffect(() => {
+    if (searchTerm) {
+      const filtered = bookmarks.filter((bookmark) => {
+        const page = bookmark.archive_pages;
+        return (
+          page.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          page.ocr_text?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          page.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          page.tags?.some((tag) => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+        );
+      });
+      setFilteredBookmarks(filtered);
+    } else {
+      setFilteredBookmarks(bookmarks);
+    }
+  }, [searchTerm, bookmarks]);
 
   const handlePageClick = (page: ArchivePage) => {
     // Navigate to the collection page with the specific page highlighted

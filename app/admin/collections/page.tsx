@@ -53,13 +53,7 @@ const AdminCollectionsPage = () => {
     }
   }, [user, profile, loading, router]);
 
-  useEffect(() => {
-    if (profile?.role === 'admin') {
-      fetchCollections();
-    }
-  }, [profile]);
-
-  const fetchCollections = async () => {
+  const fetchCollections = React.useCallback(async () => {
     try {
       setLoadingData(true);
       const { data, error } = await supabase
@@ -89,7 +83,13 @@ const AdminCollectionsPage = () => {
     } finally {
       setLoadingData(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (profile?.role === 'admin') {
+      fetchCollections();
+    }
+  }, [profile, fetchCollections]);
 
   const fetchPages = async (collectionSlug: string) => {
     try {

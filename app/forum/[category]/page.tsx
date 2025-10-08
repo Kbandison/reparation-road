@@ -54,14 +54,7 @@ const CategoryPage = () => {
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<'latest' | 'popular' | 'views'>('latest');
 
-  useEffect(() => {
-    if (categorySlug) {
-      fetchCategory();
-      fetchThreads();
-    }
-  }, [categorySlug, sortBy]);
-
-  const fetchCategory = async () => {
+  const fetchCategory = React.useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('forum_categories')
@@ -75,9 +68,9 @@ const CategoryPage = () => {
       console.error('Error fetching category:', error);
       router.push('/forum');
     }
-  };
+  }, [categorySlug, router]);
 
-  const fetchThreads = async () => {
+  const fetchThreads = React.useCallback(async () => {
     try {
       setLoading(true);
 
@@ -147,7 +140,14 @@ const CategoryPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [categorySlug, sortBy]);
+
+  useEffect(() => {
+    if (categorySlug) {
+      fetchCategory();
+      fetchThreads();
+    }
+  }, [categorySlug, sortBy, fetchCategory, fetchThreads]);
 
   if (loading || !category) {
     return (

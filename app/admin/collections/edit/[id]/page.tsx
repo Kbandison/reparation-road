@@ -16,19 +16,6 @@ import {
   Save
 } from 'lucide-react';
 
-interface ArchivePage {
-  id: string;
-  collection_slug: string;
-  book_no: number;
-  page_no: number;
-  slug: string;
-  image_path: string;
-  title: string | null;
-  year: number | null;
-  location: string | null;
-  tags: string[];
-  ocr_text: string;
-}
 
 const EditArchivePagePage = () => {
   const router = useRouter();
@@ -65,13 +52,7 @@ const EditArchivePagePage = () => {
     }
   }, [user, profile, authLoading, router]);
 
-  useEffect(() => {
-    if (pageId && profile?.role === 'admin') {
-      fetchPageData();
-    }
-  }, [pageId, profile]);
-
-  const fetchPageData = async () => {
+  const fetchPageData = React.useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('archive_pages')
@@ -101,7 +82,13 @@ const EditArchivePagePage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [pageId]);
+
+  useEffect(() => {
+    if (pageId && profile?.role === 'admin') {
+      fetchPageData();
+    }
+  }, [pageId, profile, fetchPageData]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -205,7 +192,7 @@ const EditArchivePagePage = () => {
       console.log('Public URL:', data.publicUrl);
 
       return data.publicUrl;
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error in uploadImageToStorage:', error);
       throw error;
     }
@@ -279,14 +266,13 @@ const EditArchivePagePage = () => {
       setTimeout(() => {
         router.push(`/admin/collections?collection=${formData.collection_slug}`);
       }, 2000);
-    } catch (error: any) {
+    } catch (error) {
       console.error('=== ERROR UPDATING PAGE ===');
       console.error('Error details:', error);
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update page. Check console for details.';
       setMessage({
         type: 'error',
-        text: error.message || 'Failed to update page. Check console for details.'
+        text: errorMessage
       });
     } finally {
       console.log('=== UPDATE PROCESS COMPLETE ===');
@@ -510,6 +496,7 @@ const EditArchivePagePage = () => {
               {imagePreview && (
                 <div className="border border-gray-200 rounded-lg p-4">
                   <p className="text-sm font-medium text-brand-brown mb-2">Current/Preview</p>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={imagePreview}
                     alt="Preview"

@@ -171,7 +171,7 @@ const NewArchivePagePage = () => {
       console.log('Public URL:', data.publicUrl);
 
       return data.publicUrl;
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error in uploadImageToStorage:', error);
       throw error;
     }
@@ -247,11 +247,12 @@ const NewArchivePagePage = () => {
       setTimeout(() => {
         router.push(`/admin/collections?collection=${formData.collection_slug}`);
       }, 2000);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error saving page:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save page. Check console for details.';
       setMessage({
         type: 'error',
-        text: error.message || 'Failed to save page. Check console for details.'
+        text: errorMessage
       });
     } finally {
       setSaving(false);
@@ -474,6 +475,7 @@ const NewArchivePagePage = () => {
               {(imagePreview || imageUrl) && (
                 <div className="border border-gray-200 rounded-lg p-4">
                   <p className="text-sm font-medium text-brand-brown mb-2">Preview</p>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={imagePreview || imageUrl}
                     alt="Preview"
