@@ -10,10 +10,81 @@ import ClaimModal from "@/components/ClaimModal";
 
 const collections = [
   { name: "African Colonization Society", href: "/collections/acs" },
-  { name: "Slave Compensation", href: "/collections/slave-compensation" },
-  { name: "Inspection Roll of Negroes", href: "/collections/inspection-roll" },
+  {
+    name: "African-American Revolutionary Soldiers",
+    href: "/collections/revolutionary-soldiers",
+  },
+  { name: "Bibles and Churches Records", href: "/collections/bibles-churches" },
+  {
+    name: "British/Spanish/French Florida and Louisiana",
+    href: "/collections/florida-louisiana",
+  },
+  { name: "Clubs and Organizations", href: "/collections/clubs-organizations" },
   { name: "Confederate Payrolls", href: "/collections/confederate-payrolls" },
+  {
+    name: "East Indians and Native Americans in Maryland and Virginia",
+    href: "/collections/east-indians-native-americans",
+  },
+  { name: "English Bills of Exchange", href: "/collections/bills-of-exchange" },
+  {
+    name: "Ex-slave Pension and Fraud Files",
+    href: "/collections/ex-slave-pension",
+  },
+  {
+    name: "Free Black Heads of Household, First US Census 1790",
+    href: "/collections/free-black-census-1790",
+  },
+  {
+    name: "Freedmen, Refugee and Contraband Records",
+    href: "/collections/freedmen-refugee-contraband",
+  },
+  {
+    name: "Fugitive and Slave Case Files",
+    href: "/collections/fugitive-slave-cases",
+  },
+  { name: "Inspection Roll of Negroes", href: "/collections/inspection-roll" },
+  { name: "Inspection Roll of New Rules", href: "/collections/new-rules" },
+  { name: "Lost Friends in Last Seen Ads", href: "/collections/lost-friends" },
+  {
+    name: "Native American Records",
+    href: "/collections/native-american-records",
+  },
+  {
+    name: "Passports Issued by Governors of Georgia 1785-1809",
+    href: "/collections/georgia-passports",
+  },
+  {
+    name: "Records of Slave Claims Commission",
+    href: "/collections/slave-claims-commission",
+  },
+  { name: "Records of the RAC and VOC", href: "/collections/rac-vlc" },
+  {
+    name: "Registers of Formerly Enslaved Tennessee",
+    href: "/collections/tennessee-registers",
+  },
+  {
+    name: "Registers of Formerly Enslaved Mississippi",
+    href: "/collections/mississippi-registers",
+  },
+  { name: "Slave Compensation", href: "/collections/slave-compensation" },
+  {
+    name: "Slave Importation Declaration",
+    href: "/collections/slave-importation",
+  },
+  { name: "Slave Narratives", href: "/collections/slave-narratives" },
   { name: "Slave Voyages", href: "/collections/slave-voyages" },
+  {
+    name: "Southwest Georgia Obits and Burials",
+    href: "/collections/southwest-georgia",
+  },
+  {
+    name: "Virginia Order Books. Negro Adjudgments",
+    href: "/collections/virginia-order-books",
+  },
+  {
+    name: "Virginia Personal Property and Tithes Tables",
+    href: "/collections/virginia-property-tithes",
+  },
 ];
 
 const SearchPage = () => {
@@ -88,7 +159,7 @@ const SearchPage = () => {
         {isLoggedIn && (
           <aside className="w-full md:w-1/4">
             <div className="sticky top-8 border rounded-lg p-4">
-              <h2 className="text-2xl font-bold mb-4">Random Claims</h2>
+              <h2 className="text-2xl font-bold mb-4">Recent Activity</h2>
               <div className="space-y-4">
                 {claims?.map((claim) => (
                   <div

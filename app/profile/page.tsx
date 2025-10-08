@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ChangePasswordForm } from '@/components/auth/ChangePasswordForm';
 import { User, Settings, Star, Calendar, BookOpen } from 'lucide-react';
 
 const ProfilePage = () => {
@@ -142,6 +143,11 @@ const ProfilePage = () => {
               </p>
             </div>
           </div>
+        </div>
+
+        {/* Password Change Section */}
+        <div className="mb-8">
+          <ChangePasswordForm />
         </div>
 
         <div className="grid md:grid-cols-2 gap-8">

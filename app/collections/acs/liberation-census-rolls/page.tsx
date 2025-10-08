@@ -19,51 +19,100 @@ const UpgradePrompt = () => {
       <div className="text-center max-w-lg mx-auto p-8">
         <div className="mb-6">
           <div className="w-20 h-20 bg-brand-green rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            <svg
+              className="w-10 h-10 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+              />
             </svg>
           </div>
           <h2 className="text-3xl font-bold text-brand-brown mb-4">
             Premium Access Required
           </h2>
           <p className="text-gray-600 mb-6">
-            Access to Liberation Census Rolls requires a premium membership. 
-            Explore demographics and conditions of liberated African communities.
+            Access to Liberation Census Rolls requires a premium membership.
+            Explore demographics and conditions of liberated African
+            communities.
           </p>
         </div>
 
         <div className="space-y-4 mb-6">
           <div className="flex items-center justify-center">
-            <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+            <svg
+              className="w-5 h-5 text-green-500 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M5 13l4 4L19 7"
+              />
             </svg>
-            <span className="text-gray-700">Complete census records by town</span>
+            <span className="text-gray-700">
+              Complete census records by town
+            </span>
           </div>
           <div className="flex items-center justify-center">
-            <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+            <svg
+              className="w-5 h-5 text-green-500 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M5 13l4 4L19 7"
+              />
             </svg>
-            <span className="text-gray-700">Demographics and family information</span>
+            <span className="text-gray-700">
+              Demographics and family information
+            </span>
           </div>
           <div className="flex items-center justify-center">
-            <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+            <svg
+              className="w-5 h-5 text-green-500 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M5 13l4 4L19 7"
+              />
             </svg>
-            <span className="text-gray-700">Professional and health records</span>
+            <span className="text-gray-700">
+              Professional and health records
+            </span>
           </div>
         </div>
 
         <div className="space-y-3">
           <Button
-            onClick={() => router.push('/membership')}
+            onClick={() => router.push("/membership")}
             className="w-full bg-brand-green text-white hover:bg-brand-darkgreen"
             size="lg"
           >
             Upgrade to Premium - $19.99/month
           </Button>
-          
+
           <div className="text-center">
-            <p className="text-sm text-gray-600 mb-2">Don&apos;t have an account?</p>
+            <p className="text-sm text-gray-600 mb-2">
+              Don&apos;t have an account?
+            </p>
             <div className="space-x-2">
               <Button
                 onClick={() => setShowSignup(true)}
@@ -74,7 +123,7 @@ const UpgradePrompt = () => {
               </Button>
               <Button
                 onClick={() => setShowLogin(true)}
-                variant="outline" 
+                variant="outline"
                 size="sm"
               >
                 Sign In
@@ -116,7 +165,7 @@ interface CensusRecord {
   family_count?: string;
   date?: string;
   where_born?: string;
-  connexions?: string;
+  connections?: string;
   profession?: string;
   education?: string;
   health?: string;
@@ -168,7 +217,7 @@ const LiberationCensusRollsPage = () => {
         record.where_born?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         record.profession?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         record.education?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        record.connexions?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        record.connections?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         record.health?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         record.date?.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -265,7 +314,7 @@ const LiberationCensusRollsPage = () => {
                   <th className="px-4 py-3 font-semibold">Family Count</th>
                   <th className="px-4 py-3 font-semibold">Date</th>
                   <th className="px-4 py-3 font-semibold">Where Born</th>
-                  <th className="px-4 py-3 font-semibold">Connexions</th>
+                  <th className="px-4 py-3 font-semibold">Connections</th>
                   <th className="px-4 py-3 font-semibold">Profession</th>
                   <th className="px-4 py-3 font-semibold">Education</th>
                   <th className="px-4 py-3 font-semibold">Health</th>
@@ -286,7 +335,7 @@ const LiberationCensusRollsPage = () => {
                     <td className="px-4 py-3">{record.family_count || "—"}</td>
                     <td className="px-4 py-3">{record.date || "—"}</td>
                     <td className="px-4 py-3">{record.where_born || "—"}</td>
-                    <td className="px-4 py-3">{record.connexions || "—"}</td>
+                    <td className="px-4 py-3">{record.connections || "—"}</td>
                     <td className="px-4 py-3">{record.profession || "—"}</td>
                     <td className="px-4 py-3">{record.education || "—"}</td>
                     <td className="px-4 py-3">{record.health || "—"}</td>
@@ -409,10 +458,10 @@ const LiberationCensusRollsPage = () => {
               </div>
               <div>
                 <span className="font-semibold text-brand-brown">
-                  Connexions:
+                  Connections:
                 </span>
                 <span className="ml-2 text-gray-700">
-                  {selectedRecord.connexions || "Not recorded"}
+                  {selectedRecord.connections || "Not recorded"}
                 </span>
               </div>
               <div>
