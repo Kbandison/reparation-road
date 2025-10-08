@@ -6,6 +6,7 @@ import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { BookmarkButton } from "@/components/ui/BookmarkButton";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useRouter } from "next/navigation";
 import { LoginForm } from "@/components/auth/LoginForm";
@@ -143,9 +144,12 @@ const ArchivePageModal: React.FC<ArchivePageModalProps> = ({ page, onClose }) =>
             {page.year && <p className="text-sm text-gray-600">Year: {page.year}</p>}
             {page.location && <p className="text-sm text-gray-600">Location: {page.location}</p>}
           </div>
-          <Button onClick={onClose} variant="outline" size="sm">
-            Close
-          </Button>
+          <div className="flex items-center gap-3">
+            <BookmarkButton pageId={page.id} size={24} showLabel={true} />
+            <Button onClick={onClose} variant="outline" size="sm">
+              Close
+            </Button>
+          </div>
         </div>
 
         <div className="p-6">
@@ -385,8 +389,13 @@ const InspectionRollOfNegroesPage = () => {
               <div
                 key={page.id}
                 onClick={() => handlePageClick(page)}
-                className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer border"
+                className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer border relative"
               >
+                {/* Bookmark Button */}
+                <div className="absolute top-3 right-3 z-10 bg-white rounded-full p-2 shadow-md">
+                  <BookmarkButton pageId={page.id} size={18} />
+                </div>
+
                 {page.image_path && (
                   <div className="h-48 overflow-hidden rounded-t-lg relative">
                     <Image

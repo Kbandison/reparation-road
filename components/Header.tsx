@@ -3,8 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Heart } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBookmarks } from "@/contexts/BookmarkContext";
 import { UserDropdown } from "@/components/auth/UserDropdown";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { SignupForm } from "@/components/auth/SignupForm";
@@ -17,6 +18,7 @@ export const Header = () => {
   const [showSignup, setShowSignup] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const { user, loading } = useAuth();
+  const { bookmarks } = useBookmarks();
 
   const navLinks = [
     { label: "Home", href: "/" },
@@ -58,7 +60,28 @@ export const Header = () => {
         </nav>
 
         {/* Authentication Section */}
-        <div className="hidden md:flex items-center">
+        <div className="hidden md:flex items-center gap-4">
+          {user && (
+            <Link
+              href="/bookmarks"
+              className="relative group"
+              title="My Bookmarks"
+            >
+              <Heart
+                className={`w-6 h-6 transition-colors ${
+                  bookmarks.size > 0
+                    ? 'fill-red-500 stroke-red-500'
+                    : 'stroke-gray-600 group-hover:stroke-brand-green'
+                }`}
+              />
+              {bookmarks.size > 0 && (
+                <span className="absolute -top-2 -right-2 bg-brand-green text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {bookmarks.size > 9 ? '9+' : bookmarks.size}
+                </span>
+              )}
+            </Link>
+          )}
+
           {loading ? (
             <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse" />
           ) : user ? (
@@ -96,7 +119,24 @@ export const Header = () => {
               {label}
             </Link>
           ))}
-          
+
+          {/* My Bookmarks - Mobile */}
+          {user && (
+            <Link
+              href="/bookmarks"
+              className="flex items-center gap-2 text-xl font-medium text-[var(--color-text)] hover:text-[var(--color-brand-green)] transition"
+              onClick={() => setOpen(false)}
+            >
+              <Heart className={bookmarks.size > 0 ? 'fill-red-500 stroke-red-500' : ''} size={24} />
+              My Bookmarks
+              {bookmarks.size > 0 && (
+                <span className="bg-brand-green text-white text-xs font-bold rounded-full px-2 py-1">
+                  {bookmarks.size}
+                </span>
+              )}
+            </Link>
+          )}
+
           {/* Mobile Auth */}
           <div className="mt-4">
             {loading ? (

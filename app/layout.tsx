@@ -4,6 +4,7 @@ import { EB_Garamond, Inter } from "next/font/google";
 import { LayoutWrapper } from "@/components/LayoutWrapper";
 import { Analytics } from "@vercel/analytics/next";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { BookmarkProvider } from "@/contexts/BookmarkContext";
 
 const garamond = EB_Garamond({
   subsets: ["latin"],
@@ -75,7 +76,9 @@ export default function RootLayout({
       <body className={`${garamond.variable} ${inter.variable}`}>
         <Analytics />
         <AuthProvider>
-          <LayoutWrapper>{children}</LayoutWrapper>
+          <BookmarkProvider>
+            <LayoutWrapper>{children}</LayoutWrapper>
+          </BookmarkProvider>
         </AuthProvider>
       </body>
     </html>

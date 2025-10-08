@@ -60,3 +60,43 @@ USING (
 -- DROP POLICY IF EXISTS "Enable delete for admins" ON archive_pages;
 
 -- Then run the CREATE POLICY commands again
+
+-- =======================
+-- BOOKMARKS TABLE
+-- =======================
+
+-- Create bookmarks table
+CREATE TABLE IF NOT EXISTS bookmarks (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  page_id UUID NOT NULL REFERENCES archive_pages(id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(user_id, page_id)
+);
+
+-- Create index for faster lookups
+CREATE INDEX IF NOT EXISTS idx_bookmarks_user_id ON bookmarks(user_id);
+CREATE INDEX IF NOT EXISTS idx_bookmarks_page_id ON bookmarks(page_id);
+
+-- Enable RLS
+ALTER TABLE bookmarks ENABLE ROW LEVEL SECURITY;
+
+-- Policy: Users can view their own bookmarks
+CREATE POLICY "Users can view their own bookmarks" ON bookmarks
+FOR SELECT
+USING (auth.uid() = user_id);
+
+-- Policy: Users can create their own bookmarks
+CREATE POLICY "Users can create their own bookmarks" ON bookmarks
+FOR INSERT
+WITH CHECK (auth.uid() = user_id);
+
+-- Policy: Users can delete their own bookmarks
+CREATE POLICY "Users can delete their own bookmarks" ON bookmarks
+FOR DELETE
+USING (auth.uid() = user_id);
+
+-- If the bookmark policies already exist, drop them first:
+-- DROP POLICY IF EXISTS "Users can view their own bookmarks" ON bookmarks;
+-- DROP POLICY IF EXISTS "Users can create their own bookmarks" ON bookmarks;
+-- DROP POLICY IF EXISTS "Users can delete their own bookmarks" ON bookmarks;
