@@ -1,13 +1,10 @@
+import { ComingSoon } from '@/components/ComingSoon';
 
-import React from "react";
-
-const SlaveVoyagesPage = () => {
+export default function SlaveVoyagesPage() {
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold">Slave Voyages</h1>
-      <p className="mt-4">This page is under construction.</p>
-    </div>
+    <ComingSoon
+      title="Slave Voyages"
+      description="Comprehensive database of transatlantic slave trade voyages, including ship names, routes, captains, and passenger information from historical records."
+    />
   );
-};
-
-export default SlaveVoyagesPage;
+}
