@@ -14,7 +14,6 @@ import {
   Heart,
   Lightbulb,
   TrendingUp,
-  Edit,
   Trash2,
   Send
 } from 'lucide-react';
@@ -72,12 +71,17 @@ const ThreadPage = () => {
   const [replyContent, setReplyContent] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
+  const fetchAllData = React.useCallback(() => {
     if (categorySlug && threadSlug) {
       fetchThread();
       fetchPosts();
       incrementViewCount();
     }
+  }, [categorySlug, threadSlug]);
+
+  useEffect(() => {
+    fetchAllData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categorySlug, threadSlug]);
 
   const fetchThread = async () => {

@@ -13,7 +13,6 @@ import {
   Settings,
   Shield,
   Calendar,
-  BookOpen,
   Star,
   MessageSquare
 } from 'lucide-react';

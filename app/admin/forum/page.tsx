@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import {
   MessageSquare,
   Plus,
-  Edit,
   Trash2,
   Pin,
   Lock,
@@ -69,6 +68,7 @@ const AdminForumPage = () => {
     if (profile?.role === 'admin') {
       fetchData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile]);
 
   const fetchData = async () => {
@@ -160,9 +160,10 @@ const AdminForumPage = () => {
       setNewCategory({ name: '', description: '', slug: '', icon: 'message-square' });
       setShowAddCategory(false);
       await fetchCategories();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error adding category:', error);
-      alert(error.message || 'Failed to add category');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to add category';
+      alert(errorMessage);
     }
   };
 
@@ -177,9 +178,10 @@ const AdminForumPage = () => {
 
       if (error) throw error;
       await fetchCategories();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error deleting category:', error);
-      alert(error.message || 'Failed to delete category');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete category';
+      alert(errorMessage);
     }
   };
 
