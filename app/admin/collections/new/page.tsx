@@ -131,9 +131,29 @@ const NewArchivePagePage = () => {
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${formData.collection_slug}/book-${formData.book_no}/page-${formData.page_no}.${fileExt}`;
-      const filePath = `archives/${fileName}`;
+      const filePath = fileName; // Direct path without 'archives/' prefix
 
       console.log('Uploading file to:', filePath);
+
+      // Check if bucket exists and create if needed
+      const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+      console.log('Available buckets:', buckets);
+
+      if (listError) {
+        console.error('Error listing buckets:', listError);
+      }
+
+      const bucketExists = buckets?.some(b => b.name === 'archives');
+
+      if (!bucketExists) {
+        console.error('BUCKET ERROR: The "archives" bucket does not exist in Supabase Storage.');
+        throw new Error(
+          'Storage bucket "archives" not found. Please create it in your Supabase dashboard:\n' +
+          '1. Go to Storage in Supabase dashboard\n' +
+          '2. Create a new bucket named "archives"\n' +
+          '3. Make it public or set appropriate RLS policies'
+        );
+      }
 
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('archives')
