@@ -5,11 +5,12 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
-import { 
-  Users, 
-  Database, 
-  TrendingUp, 
-  Settings, 
+import { ChangePasswordForm } from '@/components/auth/ChangePasswordForm';
+import {
+  Users,
+  Database,
+  TrendingUp,
+  Settings,
   Shield,
   Calendar,
   BookOpen,
@@ -251,6 +252,11 @@ const AdminDashboard = () => {
             icon={Calendar}
             color="bg-purple-500"
           />
+        </div>
+
+        {/* Admin Account Security */}
+        <div className="mb-8">
+          <ChangePasswordForm />
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8">
