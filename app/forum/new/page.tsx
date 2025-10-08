@@ -111,9 +111,10 @@ const NewThreadPage = () => {
       if (category && threadData) {
         router.push(`/forum/${category.slug}/${threadData.slug}`);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error creating thread:', error);
-      alert(error.message || 'Failed to create thread');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create thread';
+      alert(errorMessage);
     } finally {
       setSubmitting(false);
     }
