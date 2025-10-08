@@ -137,6 +137,12 @@ const CategoryPage = () => {
       setThreads(threadsWithCounts);
     } catch (error) {
       console.error('Error fetching threads:', error);
+      if (error instanceof Error) {
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+      }
+      // Log the full error object
+      console.error('Full error:', JSON.stringify(error, null, 2));
     } finally {
       setLoading(false);
     }

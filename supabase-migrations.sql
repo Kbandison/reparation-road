@@ -181,7 +181,9 @@ CREATE POLICY "Admins can delete categories" ON forum_categories FOR DELETE USIN
 
 -- Forum Threads Policies
 CREATE POLICY "Anyone can view threads" ON forum_threads FOR SELECT USING (true);
-CREATE POLICY "Authenticated users can create threads" ON forum_threads FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+CREATE POLICY "Authenticated users can create threads" ON forum_threads FOR INSERT WITH CHECK (
+  auth.uid() = user_id
+);
 CREATE POLICY "Authors and admins can update threads" ON forum_threads FOR UPDATE USING (
   auth.uid() = user_id OR
   EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin')
@@ -193,7 +195,9 @@ CREATE POLICY "Authors and admins can delete threads" ON forum_threads FOR DELET
 
 -- Forum Posts Policies
 CREATE POLICY "Anyone can view posts" ON forum_posts FOR SELECT USING (true);
-CREATE POLICY "Authenticated users can create posts" ON forum_posts FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+CREATE POLICY "Authenticated users can create posts" ON forum_posts FOR INSERT WITH CHECK (
+  auth.uid() = user_id
+);
 CREATE POLICY "Authors and admins can update posts" ON forum_posts FOR UPDATE USING (
   auth.uid() = user_id OR
   EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin')
