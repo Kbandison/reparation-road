@@ -8,12 +8,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { UserDropdown } from "@/components/auth/UserDropdown";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { SignupForm } from "@/components/auth/SignupForm";
+import { ForgotPasswordForm } from "@/components/auth/ForgotPasswordForm";
 import { Button } from "@/components/ui/button";
 
 export const Header = () => {
   const [open, setOpen] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const { user, loading } = useAuth();
 
   const navLinks = [
@@ -143,6 +145,10 @@ export const Header = () => {
             setShowLogin(false);
             setShowSignup(true);
           }}
+          onSwitchToForgotPassword={() => {
+            setShowLogin(false);
+            setShowForgotPassword(true);
+          }}
         />
       )}
 
@@ -151,6 +157,16 @@ export const Header = () => {
           onClose={() => setShowSignup(false)}
           onSwitchToLogin={() => {
             setShowSignup(false);
+            setShowLogin(true);
+          }}
+        />
+      )}
+
+      {showForgotPassword && (
+        <ForgotPasswordForm
+          onClose={() => setShowForgotPassword(false)}
+          onBackToLogin={() => {
+            setShowForgotPassword(false);
             setShowLogin(true);
           }}
         />

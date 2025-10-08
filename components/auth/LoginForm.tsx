@@ -9,9 +9,14 @@ import { X } from 'lucide-react';
 interface LoginFormProps {
   onClose: () => void;
   onSwitchToSignup: () => void;
+  onSwitchToForgotPassword?: () => void;
 }
 
-export const LoginForm: React.FC<LoginFormProps> = ({ onClose, onSwitchToSignup }) => {
+export const LoginForm: React.FC<LoginFormProps> = ({
+  onClose,
+  onSwitchToSignup,
+  onSwitchToForgotPassword
+}) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -64,9 +69,20 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onClose, onSwitchToSignup 
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-brand-brown mb-1">
-              Password
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label htmlFor="password" className="block text-sm font-medium text-brand-brown">
+                Password
+              </label>
+              {onSwitchToForgotPassword && (
+                <button
+                  type="button"
+                  onClick={onSwitchToForgotPassword}
+                  className="text-xs text-brand-green hover:text-brand-darkgreen font-medium"
+                >
+                  Forgot password?
+                </button>
+              )}
+            </div>
             <Input
               id="password"
               type="password"

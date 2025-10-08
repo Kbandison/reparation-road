@@ -43,7 +43,6 @@ const collections = [
     href: "/collections/fugitive-slave-cases",
   },
   { name: "Inspection Roll of Negroes", href: "/collections/inspection-roll" },
-  { name: "Inspection Roll of New Rules", href: "/collections/new-rules" },
   { name: "Lost Friends in Last Seen Ads", href: "/collections/lost-friends" },
   {
     name: "Native American Records",
