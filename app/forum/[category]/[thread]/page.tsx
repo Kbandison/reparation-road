@@ -99,25 +99,23 @@ const ThreadPage = () => {
       // Get thread
       const { data: threadData, error } = await supabase
         .from('forum_threads')
-        .select(`
-          *,
-          profiles:user_id (
-            id,
-            first_name,
-            last_name,
-            email,
-            role
-          )
-        `)
+        .select('*')
         .eq('category_id', category.id)
         .eq('slug', threadSlug)
         .single();
 
       if (error) throw error;
 
+      // Get user profile separately
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, email, role')
+        .eq('id', threadData.user_id)
+        .single();
+
       setThread({
         ...threadData,
-        user: Array.isArray(threadData.profiles) ? threadData.profiles[0] : threadData.profiles
+        user: userProfile || { id: threadData.user_id, email: 'Unknown' }
       });
     } catch (error) {
       console.error('Error fetching thread:', error);
@@ -150,24 +148,23 @@ const ThreadPage = () => {
       // Get posts
       const { data: postsData, error } = await supabase
         .from('forum_posts')
-        .select(`
-          *,
-          profiles:user_id (
-            id,
-            first_name,
-            last_name,
-            email,
-            role
-          )
-        `)
+        .select('*')
         .eq('thread_id', threadData.id)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
 
-      // Get reactions for each post
+      // Get reactions and user info for each post
       const postsWithReactions = await Promise.all(
         (postsData || []).map(async (post) => {
+          // Get user profile
+          const { data: userProfile } = await supabase
+            .from('profiles')
+            .select('id, first_name, last_name, email, role')
+            .eq('id', post.user_id)
+            .single();
+
+          // Get reactions
           const { data: reactions } = await supabase
             .from('forum_reactions')
             .select('reaction_type, user_id')
@@ -185,7 +182,7 @@ const ThreadPage = () => {
 
           return {
             ...post,
-            user: Array.isArray(post.profiles) ? post.profiles[0] : post.profiles,
+            user: userProfile || { id: post.user_id, email: 'Unknown' },
             reactions: reactionCounts,
             userReaction
           };

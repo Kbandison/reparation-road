@@ -76,15 +76,7 @@ const CategoryPage = () => {
 
       let query = supabase
         .from('forum_threads')
-        .select(`
-          *,
-          profiles:user_id (
-            id,
-            first_name,
-            last_name,
-            email
-          )
-        `);
+        .select('*');
 
       // Filter by category
       const { data: cat } = await supabase
@@ -110,7 +102,7 @@ const CategoryPage = () => {
 
       if (error) throw error;
 
-      // Get post counts for each thread
+      // Get post counts and user info for each thread
       const threadsWithCounts = await Promise.all(
         (threadsData || []).map(async (thread) => {
           const { count } = await supabase
@@ -118,9 +110,16 @@ const CategoryPage = () => {
             .select('*', { count: 'exact', head: true })
             .eq('thread_id', thread.id);
 
+          // Get user profile
+          const { data: userProfile } = await supabase
+            .from('profiles')
+            .select('id, first_name, last_name, email')
+            .eq('id', thread.user_id)
+            .single();
+
           return {
             ...thread,
-            user: Array.isArray(thread.profiles) ? thread.profiles[0] : thread.profiles,
+            user: userProfile || { id: thread.user_id, email: 'Unknown' },
             post_count: count || 0
           };
         })

@@ -108,28 +108,36 @@ const AdminForumPage = () => {
   const fetchRecentThreads = async () => {
     const { data, error } = await supabase
       .from('forum_threads')
-      .select(`
-        id,
-        title,
-        slug,
-        is_pinned,
-        is_locked,
-        created_at,
-        forum_categories:category_id (name, slug),
-        profiles:user_id (email)
-      `)
+      .select('id, title, slug, is_pinned, is_locked, created_at, category_id, user_id')
       .order('created_at', { ascending: false })
       .limit(10);
 
     if (error) throw error;
 
-    setRecentThreads((data || []).map(thread => ({
-      ...thread,
-      category: Array.isArray(thread.forum_categories)
-        ? thread.forum_categories[0]
-        : thread.forum_categories,
-      user: Array.isArray(thread.profiles) ? thread.profiles[0] : thread.profiles
-    })));
+    // Get category and user info for each thread
+    const threadsWithDetails = await Promise.all(
+      (data || []).map(async (thread) => {
+        const { data: category } = await supabase
+          .from('forum_categories')
+          .select('name, slug')
+          .eq('id', thread.category_id)
+          .single();
+
+        const { data: userProfile } = await supabase
+          .from('profiles')
+          .select('email')
+          .eq('id', thread.user_id)
+          .single();
+
+        return {
+          ...thread,
+          category: category || { name: 'Unknown', slug: '' },
+          user: userProfile || { email: 'Unknown' }
+        };
+      })
+    );
+
+    setRecentThreads(threadsWithDetails);
   };
 
   const handleAddCategory = async (e: React.FormEvent) => {

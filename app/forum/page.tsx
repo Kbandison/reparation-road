@@ -102,33 +102,34 @@ const ForumHomePage = () => {
           // Get latest thread
           const { data: latestThread } = await supabase
             .from('forum_threads')
-            .select(`
-              title,
-              slug,
-              updated_at,
-              profiles:user_id (
-                first_name,
-                last_name,
-                email
-              )
-            `)
+            .select('title, slug, updated_at, user_id')
             .eq('category_id', category.id)
             .order('updated_at', { ascending: false })
             .limit(1)
             .single();
 
+          let latestThreadData = undefined;
+          if (latestThread) {
+            // Get user profile separately
+            const { data: userProfile } = await supabase
+              .from('profiles')
+              .select('first_name, last_name, email')
+              .eq('id', latestThread.user_id)
+              .single();
+
+            latestThreadData = {
+              title: latestThread.title,
+              slug: latestThread.slug,
+              updated_at: latestThread.updated_at,
+              user: userProfile || { email: 'Unknown' }
+            };
+          }
+
           return {
             ...category,
             thread_count: threadCount || 0,
             post_count: postCount || 0,
-            latest_thread: latestThread ? {
-              title: latestThread.title,
-              slug: latestThread.slug,
-              updated_at: latestThread.updated_at,
-              user: Array.isArray(latestThread.profiles)
-                ? latestThread.profiles[0]
-                : latestThread.profiles
-            } : undefined
+            latest_thread: latestThreadData
           };
         })
       );
