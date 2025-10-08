@@ -356,10 +356,10 @@ const AdminDashboard = () => {
                   Collection Management
                 </h3>
                 <p className="text-sm text-gray-600 mb-3">
-                  Manage historical collections and data.
+                  Add, edit, and manage archive pages and documents.
                 </p>
                 <Button
-                  onClick={() => router.push('/collections')}
+                  onClick={() => router.push('/admin/collections')}
                   className="w-full"
                   variant="outline"
                 >
