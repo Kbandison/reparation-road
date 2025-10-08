@@ -14,7 +14,8 @@ import {
   Shield,
   Calendar,
   BookOpen,
-  Star
+  Star,
+  MessageSquare
 } from 'lucide-react';
 
 interface AdminStats {
@@ -367,20 +368,37 @@ const AdminDashboard = () => {
                 </Button>
               </div>
 
-              <div className="p-4 border border-gray-200 rounded-lg">
+              <div className="p-4 border border-brand-green rounded-lg">
                 <h3 className="font-semibold text-brand-brown mb-2 flex items-center">
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  Content Analytics
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  Forum Management
                 </h3>
                 <p className="text-sm text-gray-600 mb-3">
-                  View popular content and usage statistics.
+                  Manage categories, moderate threads, and view activity.
                 </p>
                 <Button
+                  onClick={() => router.push('/admin/forum')}
                   className="w-full"
                   variant="outline"
-                  disabled
                 >
-                  Coming Soon
+                  Manage Forum
+                </Button>
+              </div>
+
+              <div className="p-4 border border-brand-green rounded-lg">
+                <h3 className="font-semibold text-brand-brown mb-2 flex items-center">
+                  <TrendingUp className="w-4 h-4 mr-2" />
+                  Platform Statistics
+                </h3>
+                <p className="text-sm text-gray-600 mb-3">
+                  View platform stats and Supabase usage metrics.
+                </p>
+                <Button
+                  onClick={() => router.push('/admin/stats')}
+                  className="w-full"
+                  variant="outline"
+                >
+                  View Statistics
                 </Button>
               </div>
 
