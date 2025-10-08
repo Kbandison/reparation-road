@@ -217,10 +217,19 @@ const EditArchivePagePage = () => {
     setMessage(null);
 
     try {
+      console.log('=== STARTING UPDATE ===');
+      console.log('Page ID:', pageId);
+      console.log('Current form data:', formData);
+      console.log('Image source:', imageSource);
+      console.log('Image URL:', imageUrl);
+      console.log('Image file:', imageFile?.name);
+
       // Get image path
       let imagePath = imageUrl;
       if (imageSource === 'upload' && imageFile) {
+        console.log('Uploading new image file...');
         imagePath = await uploadImageToStorage(imageFile);
+        console.log('New image path:', imagePath);
       }
 
       if (!imagePath) {
@@ -229,27 +238,41 @@ const EditArchivePagePage = () => {
 
       // Update slug if book/page numbers changed
       const slug = `${formData.collection_slug}-book-${formData.book_no}-page-${formData.page_no}`;
+      console.log('Generated slug:', slug);
+
+      // Prepare update data
+      const updateData = {
+        collection_slug: formData.collection_slug,
+        book_no: formData.book_no,
+        page_no: formData.page_no,
+        slug,
+        image_path: imagePath,
+        title: formData.title || null,
+        year: formData.year || null,
+        location: formData.location || null,
+        tags: formData.tags,
+        ocr_text: formData.ocr_text,
+        updated_at: new Date().toISOString(),
+      };
+
+      console.log('Update data:', updateData);
+      console.log('Updating database...');
 
       // Update in database
-      const { error } = await supabase
+      const { data: updatedData, error } = await supabase
         .from('archive_pages')
-        .update({
-          collection_slug: formData.collection_slug,
-          book_no: formData.book_no,
-          page_no: formData.page_no,
-          slug,
-          image_path: imagePath,
-          title: formData.title || null,
-          year: formData.year || null,
-          location: formData.location || null,
-          tags: formData.tags,
-          ocr_text: formData.ocr_text,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', pageId);
+        .update(updateData)
+        .eq('id', pageId)
+        .select();
 
-      if (error) throw error;
+      console.log('Update response:', { updatedData, error });
 
+      if (error) {
+        console.error('Database error:', error);
+        throw new Error(`Database error: ${error.message}`);
+      }
+
+      console.log('Update successful!');
       setMessage({ type: 'success', text: 'Page updated successfully!' });
 
       // Redirect after success
@@ -257,9 +280,16 @@ const EditArchivePagePage = () => {
         router.push(`/admin/collections?collection=${formData.collection_slug}`);
       }, 2000);
     } catch (error: any) {
-      console.error('Error updating page:', error);
-      setMessage({ type: 'error', text: error.message || 'Failed to update page' });
+      console.error('=== ERROR UPDATING PAGE ===');
+      console.error('Error details:', error);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+      setMessage({
+        type: 'error',
+        text: error.message || 'Failed to update page. Check console for details.'
+      });
     } finally {
+      console.log('=== UPDATE PROCESS COMPLETE ===');
       setSaving(false);
     }
   };
