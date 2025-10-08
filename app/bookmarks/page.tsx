@@ -59,31 +59,42 @@ const BookmarksPage = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('bookmarks')
-        .select(`
-          id,
-          page_id,
-          created_at,
-          archive_pages (
-            id,
-            collection_slug,
-            book_no,
-            page_no,
-            slug,
-            image_path,
-            title,
-            year,
-            location,
-            tags,
-            ocr_text
-          )
-        `)
+        .select('id, page_id, created_at')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      setBookmarks(data as Bookmark[] || []);
-      setFilteredBookmarks(data as Bookmark[] || []);
+      // Fetch archive page data separately for each bookmark
+      const bookmarksWithPages = await Promise.all(
+        (data || []).map(async (bookmark) => {
+          const { data: archivePage } = await supabase
+            .from('archive_pages')
+            .select('id, collection_slug, book_no, page_no, slug, image_path, title, year, location, tags, ocr_text')
+            .eq('id', bookmark.page_id)
+            .single();
+
+          return {
+            ...bookmark,
+            archive_pages: archivePage || {
+              id: bookmark.page_id,
+              collection_slug: '',
+              book_no: 0,
+              page_no: 0,
+              slug: '',
+              image_path: '',
+              title: null,
+              year: null,
+              location: null,
+              tags: [],
+              ocr_text: ''
+            }
+          };
+        })
+      );
+
+      setBookmarks(bookmarksWithPages);
+      setFilteredBookmarks(bookmarksWithPages);
     } catch (error) {
       console.error('Error fetching bookmarks:', error);
       if (error instanceof Error) {

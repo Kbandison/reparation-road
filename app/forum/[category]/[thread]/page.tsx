@@ -71,16 +71,12 @@ const ThreadPage = () => {
   const [replyContent, setReplyContent] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const fetchAllData = React.useCallback(() => {
+  useEffect(() => {
     if (categorySlug && threadSlug) {
       fetchThread();
       fetchPosts();
       incrementViewCount();
     }
-  }, [categorySlug, threadSlug]);
-
-  useEffect(() => {
-    fetchAllData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categorySlug, threadSlug]);
 
