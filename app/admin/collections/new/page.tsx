@@ -128,19 +128,33 @@ const NewArchivePagePage = () => {
   };
 
   const uploadImageToStorage = async (file: File): Promise<string> => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${formData.collection_slug}/book-${formData.book_no}/page-${formData.page_no}.${fileExt}`;
-    const filePath = `archives/${fileName}`;
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${formData.collection_slug}/book-${formData.book_no}/page-${formData.page_no}.${fileExt}`;
+      const filePath = `archives/${fileName}`;
 
-    const { error: uploadError } = await supabase.storage
-      .from('archives')
-      .upload(filePath, file, { upsert: true });
+      console.log('Uploading file to:', filePath);
 
-    if (uploadError) throw uploadError;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('archives')
+        .upload(filePath, file, { upsert: true });
 
-    const { data } = supabase.storage.from('archives').getPublicUrl(filePath);
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw new Error(`Image upload failed: ${uploadError.message}`);
+      }
 
-    return data.publicUrl;
+      console.log('Upload successful:', uploadData);
+
+      const { data } = supabase.storage.from('archives').getPublicUrl(filePath);
+
+      console.log('Public URL:', data.publicUrl);
+
+      return data.publicUrl;
+    } catch (error: any) {
+      console.error('Error in uploadImageToStorage:', error);
+      throw error;
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -149,6 +163,10 @@ const NewArchivePagePage = () => {
     setMessage(null);
 
     try {
+      console.log('Starting form submission...');
+      console.log('Form data:', formData);
+      console.log('Image source:', imageSource);
+
       // Validate required fields
       if (!formData.collection_slug) {
         throw new Error('Collection slug is required');
@@ -157,8 +175,10 @@ const NewArchivePagePage = () => {
       // Get image path
       let imagePath = '';
       if (imageSource === 'url') {
+        console.log('Using image URL:', imageUrl);
         imagePath = imageUrl;
       } else if (imageFile) {
+        console.log('Uploading image file:', imageFile.name);
         imagePath = await uploadImageToStorage(imageFile);
       }
 
@@ -166,11 +186,15 @@ const NewArchivePagePage = () => {
         throw new Error('Please provide an image URL or upload an image file');
       }
 
+      console.log('Final image path:', imagePath);
+
       // Create slug
       const slug = `${formData.collection_slug}-book-${formData.book_no}-page-${formData.page_no}`;
+      console.log('Generated slug:', slug);
 
       // Insert into database
-      const { error } = await supabase.from('archive_pages').insert({
+      console.log('Inserting into database...');
+      const insertData = {
         collection_slug: formData.collection_slug,
         book_no: formData.book_no,
         page_no: formData.page_no,
@@ -181,9 +205,21 @@ const NewArchivePagePage = () => {
         location: formData.location || null,
         tags: formData.tags,
         ocr_text: formData.ocr_text,
-      });
+      };
 
-      if (error) throw error;
+      console.log('Insert data:', insertData);
+
+      const { data: insertedData, error } = await supabase
+        .from('archive_pages')
+        .insert(insertData)
+        .select();
+
+      if (error) {
+        console.error('Database error:', error);
+        throw new Error(`Database error: ${error.message}`);
+      }
+
+      console.log('Insert successful:', insertedData);
 
       setMessage({ type: 'success', text: 'Page added successfully!' });
 
@@ -193,7 +229,10 @@ const NewArchivePagePage = () => {
       }, 2000);
     } catch (error: any) {
       console.error('Error saving page:', error);
-      setMessage({ type: 'error', text: error.message || 'Failed to save page' });
+      setMessage({
+        type: 'error',
+        text: error.message || 'Failed to save page. Check console for details.'
+      });
     } finally {
       setSaving(false);
     }

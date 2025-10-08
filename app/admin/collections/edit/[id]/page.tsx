@@ -182,19 +182,33 @@ const EditArchivePagePage = () => {
   };
 
   const uploadImageToStorage = async (file: File): Promise<string> => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${formData.collection_slug}/book-${formData.book_no}/page-${formData.page_no}.${fileExt}`;
-    const filePath = `archives/${fileName}`;
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${formData.collection_slug}/book-${formData.book_no}/page-${formData.page_no}.${fileExt}`;
+      const filePath = `archives/${fileName}`;
 
-    const { error: uploadError } = await supabase.storage
-      .from('archives')
-      .upload(filePath, file, { upsert: true });
+      console.log('Uploading file to:', filePath);
 
-    if (uploadError) throw uploadError;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('archives')
+        .upload(filePath, file, { upsert: true });
 
-    const { data } = supabase.storage.from('archives').getPublicUrl(filePath);
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw new Error(`Image upload failed: ${uploadError.message}`);
+      }
 
-    return data.publicUrl;
+      console.log('Upload successful:', uploadData);
+
+      const { data } = supabase.storage.from('archives').getPublicUrl(filePath);
+
+      console.log('Public URL:', data.publicUrl);
+
+      return data.publicUrl;
+    } catch (error: any) {
+      console.error('Error in uploadImageToStorage:', error);
+      throw error;
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
