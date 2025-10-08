@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
@@ -14,7 +14,7 @@ interface ForumCategory {
   slug: string;
 }
 
-const NewThreadPage = () => {
+const NewThreadContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, loading: authLoading } = useAuth();
@@ -243,6 +243,21 @@ const NewThreadPage = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+const NewThreadPage = () => {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-brand-beige flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-brand-green border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-brand-brown">Loading...</p>
+        </div>
+      </div>
+    }>
+      <NewThreadContent />
+    </Suspense>
   );
 };
 

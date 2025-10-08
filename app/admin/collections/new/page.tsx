@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -16,7 +16,7 @@ import {
   Save
 } from 'lucide-react';
 
-const NewArchivePagePage = () => {
+const NewArchivePageContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, profile, loading } = useAuth();
@@ -599,6 +599,21 @@ const NewArchivePagePage = () => {
         </form>
       </div>
     </div>
+  );
+};
+
+const NewArchivePagePage = () => {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-brand-beige flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-brand-green border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-brand-brown">Loading...</p>
+        </div>
+      </div>
+    }>
+      <NewArchivePageContent />
+    </Suspense>
   );
 };
 
