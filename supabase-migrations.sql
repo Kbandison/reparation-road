@@ -1,6 +1,10 @@
 -- Row Level Security Policies for archive_pages table
 -- This file contains the SQL commands needed to set up RLS policies for the collection management system
 
+-- Add updated_at column if it doesn't exist
+ALTER TABLE archive_pages
+ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+
 -- Enable RLS on archive_pages table (if not already enabled)
 ALTER TABLE archive_pages ENABLE ROW LEVEL SECURITY;
 

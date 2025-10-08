@@ -11,7 +11,9 @@ Database error: new row violates row-level security policy for table "archive_pa
 ```
 
 ### Solution
-You need to create RLS policies that allow admins to insert, update, and delete records in the `archive_pages` table.
+You need to:
+1. Add the `updated_at` column to the `archive_pages` table
+2. Create RLS policies that allow admins to insert, update, and delete records in the `archive_pages` table
 
 #### Steps to Fix:
 
@@ -21,13 +23,28 @@ You need to create RLS policies that allow admins to insert, update, and delete 
 4. **Copy and paste the contents of `supabase-migrations.sql`** into the SQL editor
 5. **Run the SQL commands**
 
-The policies will:
+The SQL will:
+- Add an `updated_at` column to track when pages are modified
 - Allow **everyone** to read archive pages (for public viewing)
 - Allow **only admins** to insert, update, and delete archive pages
 
 #### Alternative Method (Manual):
 
 If you prefer to use the UI:
+
+**First, add the updated_at column:**
+
+1. Go to **Table Editor** in your Supabase dashboard
+2. Select the `archive_pages` table
+3. Click **Add Column**
+4. Configure the column:
+   - Name: `updated_at`
+   - Type: `timestamptz`
+   - Default value: `now()`
+   - Nullable: Yes (or No, your preference)
+5. Save the column
+
+**Then, create the RLS policies:**
 
 1. Go to **Authentication** > **Policies** in your Supabase dashboard
 2. Find the `archive_pages` table
