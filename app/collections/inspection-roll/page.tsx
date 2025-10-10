@@ -135,29 +135,31 @@ const ArchivePageModal: React.FC<ArchivePageModalProps> = ({ page, onClose }) =>
   const [loading, setLoading] = React.useState(false);
 
   React.useEffect(() => {
-    const fetchFullPage = async () => {
-      if (!page || page.ocr_text) {
-        setFullPage(page);
-        return;
-      }
+    // Immediately set the page data we have
+    setFullPage(page);
 
+    // Only fetch if we don't have OCR text
+    if (!page || page.ocr_text) {
+      return;
+    }
+
+    const fetchFullPage = async () => {
       setLoading(true);
       try {
         const { data, error } = await supabase
           .from("archive_pages")
-          .select("*")
+          .select("ocr_text, ocr_json")
           .eq("id", page.id)
           .single();
 
         if (error) {
           console.error("Error fetching full page:", error);
-          setFullPage(page);
         } else {
-          setFullPage(data);
+          // Merge the OCR data with existing page data
+          setFullPage(prev => prev ? { ...prev, ocr_text: data.ocr_text, ocr_json: data.ocr_json } : null);
         }
       } catch (error) {
         console.error("Error:", error);
-        setFullPage(page);
       } finally {
         setLoading(false);
       }
@@ -166,7 +168,7 @@ const ArchivePageModal: React.FC<ArchivePageModalProps> = ({ page, onClose }) =>
     fetchFullPage();
   }, [page]);
 
-  if (!fullPage) return null;
+  if (!page || !fullPage) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -219,20 +221,27 @@ const ArchivePageModal: React.FC<ArchivePageModalProps> = ({ page, onClose }) =>
                 </div>
               </div>
 
-              {loading ? (
-                <div className="text-center py-4">
-                  <p className="text-sm text-gray-600">Loading transcribed text...</p>
-                </div>
-              ) : fullPage.ocr_text && (
-                <div>
-                  <h4 className="font-semibold text-brand-brown mb-2">Transcribed Text</h4>
+              <div>
+                <h4 className="font-semibold text-brand-brown mb-2">Transcribed Text</h4>
+                {loading ? (
+                  <div className="bg-gray-50 p-3 rounded-md text-sm h-64 flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-brand-green mb-2"></div>
+                      <p className="text-sm text-gray-600">Loading transcription...</p>
+                    </div>
+                  </div>
+                ) : fullPage?.ocr_text ? (
                   <div className="bg-gray-50 p-3 rounded-md text-sm max-h-64 overflow-y-auto">
                     <pre className="whitespace-pre-wrap font-mono text-xs">
                       {fullPage.ocr_text}
                     </pre>
                   </div>
-                </div>
-              )}
+                ) : (
+                  <div className="bg-gray-50 p-3 rounded-md text-sm h-32 flex items-center justify-center">
+                    <p className="text-gray-500">No transcription available for this page.</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -250,6 +259,7 @@ const InspectionRollOfNegroesPage = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPage, setSelectedPage] = useState<ArchivePage | null>(null);
+  const [clickedPageId, setClickedPageId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [bookFilter, setBookFilter] = useState<number | null>(null);
   const [yearFilter, setYearFilter] = useState<number | null>(null);
@@ -323,7 +333,12 @@ const InspectionRollOfNegroesPage = () => {
   const uniqueYears = [...new Set(pages.map(p => p.year).filter(Boolean))].sort((a, b) => a! - b!);
 
   const handlePageClick = (page: ArchivePage) => {
-    setSelectedPage(page);
+    setClickedPageId(page.id);
+    // Use setTimeout to ensure the UI updates before opening modal
+    setTimeout(() => {
+      setSelectedPage(page);
+      setClickedPageId(null);
+    }, 0);
   };
 
   if (loading) {
@@ -423,12 +438,21 @@ const InspectionRollOfNegroesPage = () => {
               <div
                 key={page.id}
                 onClick={() => handlePageClick(page)}
-                className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer border relative"
+                className={`bg-white rounded-lg shadow-md hover:shadow-lg transition-all cursor-pointer border relative ${
+                  clickedPageId === page.id ? 'ring-2 ring-brand-green scale-95' : ''
+                }`}
               >
                 {/* Bookmark Button */}
                 <div className="absolute top-3 right-3 z-10 bg-white rounded-full p-2 shadow-md">
                   <BookmarkButton pageId={page.id} size={18} />
                 </div>
+
+                {/* Loading Overlay when clicked */}
+                {clickedPageId === page.id && (
+                  <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-20 rounded-lg">
+                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-brand-green"></div>
+                  </div>
+                )}
 
                 {page.image_path && (
                   <div className="h-48 overflow-hidden rounded-t-lg relative bg-gray-100">
