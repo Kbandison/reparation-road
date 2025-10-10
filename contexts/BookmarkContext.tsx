@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from '@/lib/supabase';
 
@@ -25,16 +25,7 @@ export const BookmarkProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [bookmarks, setBookmarks] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      fetchBookmarks();
-    } else {
-      setBookmarks(new Set());
-      setLoading(false);
-    }
-  }, [user]);
-
-  const fetchBookmarks = async () => {
+  const fetchBookmarks = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -53,7 +44,16 @@ export const BookmarkProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      fetchBookmarks();
+    } else {
+      setBookmarks(new Set());
+      setLoading(false);
+    }
+  }, [user, fetchBookmarks]);
 
   const isBookmarked = (pageId: string): boolean => {
     return bookmarks.has(pageId);

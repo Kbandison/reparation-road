@@ -121,8 +121,8 @@ interface ArchivePage {
   year: number | null;
   location: string | null;
   tags: string[];
-  ocr_text: string;
-  ocr_json: object | null;
+  ocr_text?: string;
+  ocr_json?: object | null;
 }
 
 interface ArchivePageModalProps {
@@ -131,7 +131,42 @@ interface ArchivePageModalProps {
 }
 
 const ArchivePageModal: React.FC<ArchivePageModalProps> = ({ page, onClose }) => {
-  if (!page) return null;
+  const [fullPage, setFullPage] = React.useState<ArchivePage | null>(page);
+  const [loading, setLoading] = React.useState(false);
+
+  React.useEffect(() => {
+    const fetchFullPage = async () => {
+      if (!page || page.ocr_text) {
+        setFullPage(page);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from("archive_pages")
+          .select("*")
+          .eq("id", page.id)
+          .single();
+
+        if (error) {
+          console.error("Error fetching full page:", error);
+          setFullPage(page);
+        } else {
+          setFullPage(data);
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        setFullPage(page);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFullPage();
+  }, [page]);
+
+  if (!fullPage) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -139,13 +174,13 @@ const ArchivePageModal: React.FC<ArchivePageModalProps> = ({ page, onClose }) =>
         <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
           <div>
             <h3 className="text-xl font-bold text-brand-brown">
-              {page.title || `Book ${page.book_no}, Page ${page.page_no}`}
+              {fullPage.title || `Book ${fullPage.book_no}, Page ${fullPage.page_no}`}
             </h3>
-            {page.year && <p className="text-sm text-gray-600">Year: {page.year}</p>}
-            {page.location && <p className="text-sm text-gray-600">Location: {page.location}</p>}
+            {fullPage.year && <p className="text-sm text-gray-600">Year: {fullPage.year}</p>}
+            {fullPage.location && <p className="text-sm text-gray-600">Location: {fullPage.location}</p>}
           </div>
           <div className="flex items-center gap-3">
-            <BookmarkButton pageId={page.id} size={24} showLabel={true} />
+            <BookmarkButton pageId={fullPage.id} size={24} showLabel={true} />
             <Button onClick={onClose} variant="outline" size="sm">
               Close
             </Button>
@@ -154,15 +189,17 @@ const ArchivePageModal: React.FC<ArchivePageModalProps> = ({ page, onClose }) =>
 
         <div className="p-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {page.image_path && (
+            {fullPage.image_path && (
               <div className="space-y-2">
                 <h4 className="font-semibold text-brand-brown">Document Image</h4>
                 <div className="border rounded-lg overflow-hidden relative h-96">
                   <Image
-                    src={getImageUrl(page.image_path)}
-                    alt={`Page ${page.page_no} from Book ${page.book_no}`}
+                    src={getImageUrl(fullPage.image_path)}
+                    alt={`Page ${fullPage.page_no} from Book ${fullPage.book_no}`}
                     fill
                     className="object-contain"
+                    priority
+                    sizes="(max-width: 1024px) 100vw, 50vw"
                   />
                 </div>
               </div>
@@ -172,22 +209,26 @@ const ArchivePageModal: React.FC<ArchivePageModalProps> = ({ page, onClose }) =>
               <div>
                 <h4 className="font-semibold text-brand-brown mb-2">Document Details</h4>
                 <div className="space-y-1 text-sm">
-                  <p><span className="font-medium">Book Number:</span> {page.book_no}</p>
-                  <p><span className="font-medium">Page Number:</span> {page.page_no}</p>
-                  {page.year && <p><span className="font-medium">Year:</span> {page.year}</p>}
-                  {page.location && <p><span className="font-medium">Location:</span> {page.location}</p>}
-                  {page.tags && page.tags.length > 0 && (
-                    <p><span className="font-medium">Tags:</span> {page.tags.join(", ")}</p>
+                  <p><span className="font-medium">Book Number:</span> {fullPage.book_no}</p>
+                  <p><span className="font-medium">Page Number:</span> {fullPage.page_no}</p>
+                  {fullPage.year && <p><span className="font-medium">Year:</span> {fullPage.year}</p>}
+                  {fullPage.location && <p><span className="font-medium">Location:</span> {fullPage.location}</p>}
+                  {fullPage.tags && fullPage.tags.length > 0 && (
+                    <p><span className="font-medium">Tags:</span> {fullPage.tags.join(", ")}</p>
                   )}
                 </div>
               </div>
 
-              {page.ocr_text && (
+              {loading ? (
+                <div className="text-center py-4">
+                  <p className="text-sm text-gray-600">Loading transcribed text...</p>
+                </div>
+              ) : fullPage.ocr_text && (
                 <div>
                   <h4 className="font-semibold text-brand-brown mb-2">Transcribed Text</h4>
                   <div className="bg-gray-50 p-3 rounded-md text-sm max-h-64 overflow-y-auto">
                     <pre className="whitespace-pre-wrap font-mono text-xs">
-                      {page.ocr_text}
+                      {fullPage.ocr_text}
                     </pre>
                   </div>
                 </div>
@@ -233,12 +274,20 @@ const InspectionRollOfNegroesPage = () => {
   useEffect(() => {
     const fetchPages = async () => {
       try {
+        // First, get the total count
+        const { count } = await supabase
+          .from("archive_pages")
+          .select("*", { count: 'exact', head: true })
+          .eq("collection_slug", "inspection-roll-of-negroes");
+
+        // Then fetch only the first page of results with minimal data
         const { data, error } = await supabase
           .from("archive_pages")
-          .select("*")
+          .select("id, collection_slug, book_no, page_no, slug, image_path, title, year, location, tags")
           .eq("collection_slug", "inspection-roll-of-negroes")
           .order("book_no", { ascending: true })
-          .order("page_no", { ascending: true });
+          .order("page_no", { ascending: true })
+          .limit(100); // Load first 100 records initially
 
         if (error) {
           console.error("Error fetching archive pages:", error);
@@ -260,8 +309,9 @@ const InspectionRollOfNegroesPage = () => {
     let filtered = pages;
 
     if (searchTerm) {
+      // Note: Text search now only searches title, location, and tags
+      // For full OCR text search, consider implementing server-side search
       filtered = filtered.filter(page =>
-        page.ocr_text?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         page.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         page.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         page.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -308,18 +358,18 @@ const InspectionRollOfNegroesPage = () => {
         <h1 className="text-4xl font-bold text-brand-brown mb-4">Inspection Roll of Negroes</h1>
         <p className="text-lg text-gray-700 mb-6">
           Explore historical documents from the Inspection Roll of Negroes collection.
-          These documents contain important historical records that can be searched by text content.
+          These documents contain important historical records.
           Click on any document to view the full image and transcribed text.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end mb-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Search Text
+              Search
             </label>
             <Input
               type="search"
-              placeholder="Search document text, titles, locations..."
+              placeholder="Search titles, locations, tags..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full"
@@ -403,6 +453,8 @@ const InspectionRollOfNegroesPage = () => {
                       alt={`Book ${page.book_no}, Page ${page.page_no}`}
                       fill
                       className="object-cover"
+                      loading="lazy"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
                     />
                   </div>
                 )}
@@ -432,11 +484,6 @@ const InspectionRollOfNegroesPage = () => {
                       </div>
                     )}
                   </div>
-                  {page.ocr_text && (
-                    <p className="text-xs text-gray-500 mt-2 line-clamp-3">
-                      {page.ocr_text.substring(0, 100)}...
-                    </p>
-                  )}
                 </div>
               </div>
             ))}
