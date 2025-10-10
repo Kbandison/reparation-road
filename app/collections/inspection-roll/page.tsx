@@ -130,13 +130,15 @@ interface ArchivePageModalProps {
   onClose: () => void;
 }
 
-const ArchivePageModal: React.FC<ArchivePageModalProps> = ({ page, onClose }) => {
+const ArchivePageModal: React.FC<ArchivePageModalProps> = React.memo(({ page, onClose }) => {
   const [fullPage, setFullPage] = React.useState<ArchivePage | null>(page);
   const [loading, setLoading] = React.useState(false);
+  const [imageLoaded, setImageLoaded] = React.useState(false);
 
   React.useEffect(() => {
     // Immediately set the page data we have
     setFullPage(page);
+    setImageLoaded(false);
 
     // Only fetch if we don't have OCR text
     if (!page || page.ocr_text) {
@@ -194,14 +196,20 @@ const ArchivePageModal: React.FC<ArchivePageModalProps> = ({ page, onClose }) =>
             {fullPage.image_path && (
               <div className="space-y-2">
                 <h4 className="font-semibold text-brand-brown">Document Image</h4>
-                <div className="border rounded-lg overflow-hidden relative h-96">
+                <div className="border rounded-lg overflow-hidden relative h-96 bg-gray-100">
+                  {!imageLoaded && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-brand-green"></div>
+                    </div>
+                  )}
                   <Image
                     src={fullPage.image_path}
                     alt={`Page ${fullPage.page_no} from Book ${fullPage.book_no}`}
                     fill
-                    className="object-contain"
+                    className={`object-contain transition-opacity ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
                     priority
                     sizes="(max-width: 1024px) 100vw, 50vw"
+                    onLoad={() => setImageLoaded(true)}
                   />
                 </div>
               </div>
@@ -248,7 +256,7 @@ const ArchivePageModal: React.FC<ArchivePageModalProps> = ({ page, onClose }) =>
       </div>
     </div>
   );
-};
+});
 
 // Image paths are already complete URLs stored in the database
 // No helper function needed
@@ -332,14 +340,20 @@ const InspectionRollOfNegroesPage = () => {
   const uniqueBooks = [...new Set(pages.map(p => p.book_no))].sort((a, b) => a - b);
   const uniqueYears = [...new Set(pages.map(p => p.year).filter(Boolean))].sort((a, b) => a! - b!);
 
-  const handlePageClick = (page: ArchivePage) => {
+  const handlePageClick = React.useCallback((page: ArchivePage) => {
+    // Set clicked state immediately with high priority
     setClickedPageId(page.id);
-    // Use setTimeout to ensure the UI updates before opening modal
-    setTimeout(() => {
-      setSelectedPage(page);
-      setClickedPageId(null);
-    }, 0);
-  };
+
+    // Use startTransition to defer modal opening (low priority)
+    // This allows the spinner to render first
+    React.startTransition(() => {
+      // Small delay to ensure spinner is visible
+      setTimeout(() => {
+        setSelectedPage(page);
+        setClickedPageId(null);
+      }, 50); // 50ms ensures smooth visual feedback
+    });
+  }, []);
 
   if (loading) {
     return (
@@ -443,7 +457,10 @@ const InspectionRollOfNegroesPage = () => {
                 }`}
               >
                 {/* Bookmark Button */}
-                <div className="absolute top-3 right-3 z-10 bg-white rounded-full p-2 shadow-md">
+                <div
+                  className="absolute top-3 right-3 z-10 bg-white rounded-full p-2 shadow-md"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <BookmarkButton pageId={page.id} size={18} />
                 </div>
 
