@@ -130,7 +130,7 @@ interface ArchivePageModalProps {
   onClose: () => void;
 }
 
-const ArchivePageModal: React.FC<ArchivePageModalProps> = React.memo(({ page, onClose }) => {
+const ArchivePageModal = React.memo<ArchivePageModalProps>(function ArchivePageModal({ page, onClose }) {
   const [fullPage, setFullPage] = React.useState<ArchivePage | null>(page);
   const [loading, setLoading] = React.useState(false);
   const [imageLoaded, setImageLoaded] = React.useState(false);
@@ -276,13 +276,7 @@ const InspectionRollOfNegroesPage = () => {
   useEffect(() => {
     const fetchPages = async () => {
       try {
-        // First, get the total count
-        const { count } = await supabase
-          .from("archive_pages")
-          .select("*", { count: 'exact', head: true })
-          .eq("collection_slug", "inspection-roll-of-negroes");
-
-        // Then fetch only the first page of results with minimal data
+        // Fetch only the first page of results with minimal data
         const { data, error } = await supabase
           .from("archive_pages")
           .select("id, collection_slug, book_no, page_no, slug, image_path, title, year, location, tags")

@@ -54,8 +54,9 @@ export function preloadImage(url: string): void {
  * This is a placeholder for when you upgrade or use a CDN
  */
 export function getOptimizedImageUrl(
-  path: string,
-  options?: { width?: number; height?: number; quality?: number }
+  path: string
+  // options parameter commented out until image transforms are implemented
+  // options?: { width?: number; height?: number; quality?: number }
 ): string {
   const url = getSupabaseImageUrl(path);
 
