@@ -74,7 +74,10 @@ export const BookmarkProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           .eq('user_id', user.id)
           .eq('page_id', pageId);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Delete bookmark error:', error);
+          throw error;
+        }
 
         setBookmarks((prev) => {
           const newSet = new Set(prev);
@@ -83,20 +86,36 @@ export const BookmarkProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         });
       } else {
         // Add bookmark
-        const { error } = await supabase
+        console.log('Adding bookmark:', { user_id: user.id, page_id: pageId });
+
+        const { data, error } = await supabase
           .from('bookmarks')
           .insert({
             user_id: user.id,
             page_id: pageId,
+          })
+          .select();
+
+        if (error) {
+          console.error('Insert bookmark error:', error);
+          console.error('Error details:', {
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint
           });
+          throw error;
+        }
 
-        if (error) throw error;
-
+        console.log('Bookmark created:', data);
         setBookmarks((prev) => new Set(prev).add(pageId));
       }
     } catch (error: any) {
       console.error('Error toggling bookmark:', error);
-      alert(error.message || 'Failed to update bookmark');
+      const errorMsg = error.code
+        ? `Error ${error.code}: ${error.message}\n\n${error.hint || error.details || ''}`
+        : (error.message || 'Failed to update bookmark');
+      alert(errorMsg);
     }
   };
 
