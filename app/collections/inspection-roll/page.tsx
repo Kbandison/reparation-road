@@ -194,7 +194,7 @@ const ArchivePageModal: React.FC<ArchivePageModalProps> = ({ page, onClose }) =>
                 <h4 className="font-semibold text-brand-brown">Document Image</h4>
                 <div className="border rounded-lg overflow-hidden relative h-96">
                   <Image
-                    src={getImageUrl(fullPage.image_path)}
+                    src={fullPage.image_path}
                     alt={`Page ${fullPage.page_no} from Book ${fullPage.book_no}`}
                     fill
                     className="object-contain"
@@ -241,24 +241,8 @@ const ArchivePageModal: React.FC<ArchivePageModalProps> = ({ page, onClose }) =>
   );
 };
 
-// Helper function to convert relative image paths to absolute URLs
-const getImageUrl = (imagePath: string): string => {
-  if (!imagePath) return '';
-
-  // If it's already an absolute URL, return as is
-  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-    return imagePath;
-  }
-
-  // If it starts with /, treat as absolute path
-  if (imagePath.startsWith('/')) {
-    return imagePath;
-  }
-
-  // For relative paths, we'll need to use a placeholder or fallback
-  // You may need to adjust this based on where your images are actually stored
-  return `/images/${imagePath}`;
-};
+// Image paths are already complete URLs stored in the database
+// No helper function needed
 
 const InspectionRollOfNegroesPage = () => {
   const [pages, setPages] = useState<ArchivePage[]>([]);
@@ -447,14 +431,16 @@ const InspectionRollOfNegroesPage = () => {
                 </div>
 
                 {page.image_path && (
-                  <div className="h-48 overflow-hidden rounded-t-lg relative">
+                  <div className="h-48 overflow-hidden rounded-t-lg relative bg-gray-100">
                     <Image
-                      src={getImageUrl(page.image_path)}
+                      src={page.image_path}
                       alt={`Book ${page.book_no}, Page ${page.page_no}`}
                       fill
                       className="object-cover"
                       loading="lazy"
                       sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                      placeholder="blur"
+                      blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2VlZSIvPjwvc3ZnPg=="
                     />
                   </div>
                 )}
