@@ -139,6 +139,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (error) throw error;
+
+      // Immediately set user and fetch profile to ensure state is updated
+      if (data.user) {
+        setUser(data.user);
+        await fetchProfile(data.user.id);
+      }
+
       return { data, error: null };
     } catch (error) {
       return { data: null, error };
