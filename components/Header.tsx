@@ -210,6 +210,10 @@ export const Header = () => {
             setShowForgotPassword(false);
             setShowLogin(true);
           }}
+          onSwitchToSignup={() => {
+            setShowForgotPassword(false);
+            setShowSignup(true);
+          }}
         />
       )}
     </header>

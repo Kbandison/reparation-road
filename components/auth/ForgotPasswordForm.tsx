@@ -9,23 +9,45 @@ import { X, Mail, ArrowLeft } from 'lucide-react';
 interface ForgotPasswordFormProps {
   onClose: () => void;
   onBackToLogin: () => void;
+  onSwitchToSignup?: () => void;
 }
 
 export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
   onClose,
-  onBackToLogin
+  onBackToLogin,
+  onSwitchToSignup
 }) => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [emailSent, setEmailSent] = useState(false);
+  const [userNotFound, setUserNotFound] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setMessage(null);
+    setUserNotFound(false);
 
     try {
+      // First, check if the email exists in the profiles table
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', email)
+        .single();
+
+      if (profileError || !profileData) {
+        setMessage({
+          type: 'error',
+          text: 'No account found with this email address. Please create an account to continue.'
+        });
+        setUserNotFound(true);
+        setLoading(false);
+        return;
+      }
+
+      // If user exists, send the reset email
       // Note: This works for all users including admins
       // Supabase sends reset email to any registered user regardless of role
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -112,6 +134,17 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
               >
                 {loading ? 'Sending...' : 'Send Reset Link'}
               </Button>
+
+              {userNotFound && onSwitchToSignup && (
+                <Button
+                  type="button"
+                  onClick={onSwitchToSignup}
+                  variant="outline"
+                  className="w-full border-brand-green text-brand-green hover:bg-brand-green hover:text-white"
+                >
+                  Create an Account
+                </Button>
+              )}
             </form>
           </>
         ) : (

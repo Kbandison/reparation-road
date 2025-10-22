@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirm Your Email - Reparation Road</title>
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background-color: #fefaf5;
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+    }
+    .email-wrapper {
+      width: 100%;
+      background-color: #fefaf5;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      border: 2px solid #3a5a40;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .header {
+      background-color: #3a5a40;
+      padding: 40px 30px;
+      text-align: center;
+    }
+    .header h1 {
+      color: #ffffff;
+      margin: 0;
+      font-size: 32px;
+      font-family: 'EB Garamond', Georgia, serif;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .header p {
+      color: #e6dbc6;
+      margin: 8px 0 0 0;
+      font-size: 14px;
+      font-style: italic;
+    }
+    .content {
+      padding: 40px 30px;
+      color: #5b2e00;
+    }
+    .content h2 {
+      color: #3a5a40;
+      font-size: 26px;
+      margin: 0 0 20px 0;
+      font-family: 'EB Garamond', Georgia, serif;
+      font-weight: 600;
+    }
+    .content p {
+      font-size: 16px;
+      line-height: 1.7;
+      margin-bottom: 16px;
+      color: #5b2e00;
+    }
+    .button-container {
+      text-align: center;
+      margin: 32px 0;
+    }
+    .button {
+      display: inline-block;
+      background-color: #3a5a40;
+      color: #ffffff !important;
+      padding: 16px 40px;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 16px;
+      transition: background-color 0.3s ease;
+    }
+    .button:hover {
+      background-color: #194d12;
+    }
+    .welcome-box {
+      background-color: #fefaf5;
+      border: 2px solid #e6dbc6;
+      padding: 24px;
+      margin: 24px 0;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .welcome-box h3 {
+      color: #3a5a40;
+      margin: 0 0 16px 0;
+      font-size: 20px;
+      font-family: 'EB Garamond', Georgia, serif;
+    }
+    .feature-list {
+      list-style: none;
+      padding: 0;
+      margin: 20px 0;
+    }
+    .feature-list li {
+      padding: 12px 0;
+      border-bottom: 1px solid #e6dbc6;
+      font-size: 15px;
+    }
+    .feature-list li:last-child {
+      border-bottom: none;
+    }
+    .feature-list li:before {
+      content: "✓ ";
+      color: #3a5a40;
+      font-weight: bold;
+      margin-right: 8px;
+    }
+    .link-fallback {
+      margin-top: 24px;
+      padding: 20px;
+      background-color: #f5f5f5;
+      border-radius: 8px;
+    }
+    .link-fallback p {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 8px;
+    }
+    .link-fallback a {
+      color: #3a5a40;
+      word-break: break-all;
+      font-size: 12px;
+    }
+    .footer {
+      background-color: #e6dbc6;
+      padding: 30px;
+      text-align: center;
+    }
+    .footer p {
+      margin: 8px 0;
+      font-size: 14px;
+      color: #5b2e00;
+    }
+    .footer a {
+      color: #3a5a40;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .footer a:hover {
+      text-decoration: underline;
+    }
+    .divider {
+      height: 1px;
+      background-color: #e6dbc6;
+      margin: 30px 0;
+    }
+    @media only screen and (max-width: 600px) {
+      .content {
+        padding: 30px 20px;
+      }
+      .header {
+        padding: 30px 20px;
+      }
+      .header h1 {
+        font-size: 26px;
+      }
+      .content h2 {
+        font-size: 22px;
+      }
+      .button {
+        padding: 14px 32px;
+        font-size: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-wrapper">
+    <div class="container">
+      <!-- Header -->
+      <div class="header">
+        <h1>Reparation Road</h1>
+        <p>Uncovering Black History, Empowering Communities</p>
+      </div>
+
+      <!-- Content -->
+      <div class="content">
+        <h2>Welcome to Reparation Road!</h2>
+
+        <p>Hello and welcome,</p>
+
+        <p>Thank you for joining our community dedicated to uncovering Black history and empowering families through genealogical research and historical education. We're excited to have you on this journey!</p>
+
+        <p><strong>To get started, please confirm your email address by clicking the button below:</strong></p>
+
+        <div class="button-container">
+          <a href="{{ .ConfirmationURL }}" class="button">Confirm My Email</a>
+        </div>
+
+        <div class="welcome-box">
+          <h3>What You Can Do With Your Account</h3>
+          <ul class="feature-list">
+            <li>Access historical collections and records</li>
+            <li>Search for ancestral connections and documents</li>
+            <li>Save and bookmark important findings</li>
+            <li>Book one-on-one genealogy consultations</li>
+            <li>Join our community forum discussions</li>
+            <li>Receive weekly updates on new collections</li>
+          </ul>
+        </div>
+
+        <div class="divider"></div>
+
+        <p style="margin-top: 24px;">
+          <strong>New to genealogical research?</strong> Don't worry! We offer guided research sessions and consultation services with our founder, Adam Jacoby Paul, to help you get started on your family history journey.
+        </p>
+
+        <p>
+          Once you've confirmed your email, you'll have immediate access to explore our growing collection of historical records, including the Slave Compensation Claims, Confederate Payrolls, and much more.
+        </p>
+
+        <!-- Fallback Link -->
+        <div class="link-fallback">
+          <p><strong>Button not working?</strong></p>
+          <p>Copy and paste this link into your browser:</p>
+          <a href="{{ .ConfirmationURL }}">{{ .ConfirmationURL }}</a>
+        </div>
+
+        <p style="margin-top: 24px; font-size: 14px; color: #666;">
+          If you didn't create an account with Reparation Road, you can safely ignore this email.
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <p><strong>Get Started Today</strong></p>
+        <p style="margin-top: 16px;">
+          <a href="{{ .SiteURL }}/collection">Browse Collections</a> |
+          <a href="{{ .SiteURL }}/booking">Book Consultation</a> |
+          <a href="{{ .SiteURL }}/about">Our Story</a>
+        </p>
+        <p style="margin-top: 16px;">
+          Questions? Email us at <a href="mailto:support@reparationroad.com">support@reparationroad.com</a>
+        </p>
+        <p style="margin-top: 16px; font-size: 12px; color: #666;">
+          © 2024 Reparation Road. All rights reserved.
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
