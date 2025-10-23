@@ -226,7 +226,7 @@ const AdminCollectionsPage = () => {
   const [pages, setPages] = useState<ArchivePage[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loadingData, setLoadingData] = useState(true);
-  const [dbRecords, setDbRecords] = useState<any[]>([]);
+  const [dbRecords, setDbRecords] = useState<Record<string, unknown>[]>([]);
   const [dbLoading, setDbLoading] = useState(false);
 
   useEffect(() => {
@@ -290,7 +290,10 @@ const AdminCollectionsPage = () => {
         }
       });
 
-      setCollections(collectionsList.sort((a, b) => a.name.localeCompare(b.name)));
+      // Filter out collections with 0 records/pages (empty collections)
+      const filteredList = collectionsList.filter((c) => c.pageCount > 0 || c.tableType === 'coming_soon');
+
+      setCollections(filteredList.sort((a, b) => a.name.localeCompare(b.name)));
     } catch (error) {
       console.error('Error fetching collections:', error);
     } finally {
@@ -604,9 +607,9 @@ const AdminCollectionsPage = () => {
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200">
-                              {dbRecords.slice(0, 50).map((record: any) => (
-                                <tr key={record.id} className="hover:bg-gray-50">
-                                  {Object.values(record).slice(0, 6).map((value: any, idx) => (
+                              {dbRecords.slice(0, 50).map((record) => (
+                                <tr key={String(record.id)} className="hover:bg-gray-50">
+                                  {Object.values(record).slice(0, 6).map((value, idx) => (
                                     <td key={idx} className="px-4 py-3 text-sm text-gray-600">
                                       {value !== null && value !== undefined ? String(value).substring(0, 50) : '-'}
                                     </td>
