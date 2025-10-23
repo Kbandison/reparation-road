@@ -542,8 +542,13 @@ const AdminCollectionsPage = () => {
                   );
                 }
 
-                // Show database records table for non-archive_pages collections
-                if (collection && collection.tableType !== 'archive_pages' && collection.tableType !== 'coming_soon') {
+                // Show database records table for database-backed collections
+                if (
+                  collection &&
+                  (collection.tableType === 'slave_compensation_claims' ||
+                    collection.tableType === 'emmigrants_to_liberia' ||
+                    collection.tableType === 'liberation_census_rolls')
+                ) {
                   return (
                     <div className="bg-white rounded-lg shadow-lg p-6">
                       <div className="flex items-center justify-between mb-6">
