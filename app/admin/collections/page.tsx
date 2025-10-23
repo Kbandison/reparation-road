@@ -560,24 +560,22 @@ const AdminCollectionsPage = () => {
                             {collection.pageCount} record{collection.pageCount !== 1 ? 's' : ''} • Database Collection
                           </p>
                         </div>
-                        <div className="flex gap-2">
-                          <Button
-                            onClick={() => router.push('/collection')}
-                            variant="outline"
-                            size="sm"
-                          >
-                            View on Site
-                          </Button>
-                          <Button
-                            onClick={() => window.open(`https://supabase.com/dashboard/project/_/editor/${collection.tableName}`, '_blank')}
-                            variant="outline"
-                            size="sm"
-                            className="flex items-center gap-2"
-                          >
-                            <Database className="w-4 h-4" />
-                            Open in Supabase
-                          </Button>
-                        </div>
+                        <Button
+                          onClick={() => {
+                            // Navigate to dedicated admin page for full CRUD
+                            if (collection.slug === 'slave-compensation') {
+                              router.push('/admin/collections/slave-compensation');
+                            } else if (collection.slug === 'acs-emigrants-to-liberia') {
+                              router.push('/admin/collections/emigrants-to-liberia');
+                            } else if (collection.slug === 'acs-liberation-census-rolls') {
+                              router.push('/admin/collections/liberation-census-rolls');
+                            }
+                          }}
+                          className="bg-brand-green hover:bg-brand-darkgreen flex items-center gap-2"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Add New Record
+                        </Button>
                       </div>
 
                       {/* Search */}
@@ -604,21 +602,78 @@ const AdminCollectionsPage = () => {
                           <table className="w-full">
                             <thead className="bg-gray-50 border-b">
                               <tr>
-                                {Object.keys(dbRecords[0]).slice(0, 6).map((key) => (
+                                {Object.keys(dbRecords[0]).slice(0, 5).map((key) => (
                                   <th key={key} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     {key.replace(/_/g, ' ')}
                                   </th>
                                 ))}
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                  Actions
+                                </th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200">
                               {dbRecords.slice(0, 50).map((record) => (
                                 <tr key={String(record.id)} className="hover:bg-gray-50">
-                                  {Object.values(record).slice(0, 6).map((value, idx) => (
+                                  {Object.values(record).slice(0, 5).map((value, idx) => (
                                     <td key={idx} className="px-4 py-3 text-sm text-gray-600">
                                       {value !== null && value !== undefined ? String(value).substring(0, 50) : '-'}
                                     </td>
                                   ))}
+                                  <td className="px-4 py-3 text-sm">
+                                    <div className="flex gap-2">
+                                      <Button
+                                        onClick={() => {
+                                          // Navigate to edit page with record ID
+                                          if (collection.slug === 'slave-compensation') {
+                                            router.push(`/admin/collections/slave-compensation?edit=${record.id}`);
+                                          } else if (collection.slug === 'acs-emigrants-to-liberia') {
+                                            router.push(`/admin/collections/emigrants-to-liberia?edit=${record.id}`);
+                                          } else if (collection.slug === 'acs-liberation-census-rolls') {
+                                            router.push(`/admin/collections/liberation-census-rolls?edit=${record.id}`);
+                                          }
+                                        }}
+                                        size="sm"
+                                        variant="outline"
+                                        className="flex items-center gap-1"
+                                      >
+                                        <Edit className="w-3 h-3" />
+                                        Edit
+                                      </Button>
+                                      <Button
+                                        onClick={async () => {
+                                          if (!confirm('Are you sure you want to delete this record? This action cannot be undone.')) {
+                                            return;
+                                          }
+
+                                          try {
+                                            const { error } = await supabase
+                                              .from(collection.tableName || '')
+                                              .delete()
+                                              .eq('id', record.id);
+
+                                            if (error) throw error;
+
+                                            alert('Record deleted successfully');
+                                            // Refresh the data
+                                            if (collection.tableName) {
+                                              fetchDatabaseRecords(collection.tableName);
+                                            }
+                                            fetchCollections();
+                                          } catch (error) {
+                                            console.error('Error deleting record:', error);
+                                            alert('Failed to delete record');
+                                          }
+                                        }}
+                                        size="sm"
+                                        variant="outline"
+                                        className="text-red-600 hover:bg-red-50 flex items-center gap-1"
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                        Delete
+                                      </Button>
+                                    </div>
+                                  </td>
                                 </tr>
                               ))}
                             </tbody>
