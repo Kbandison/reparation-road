@@ -226,6 +226,8 @@ const AdminCollectionsPage = () => {
   const [pages, setPages] = useState<ArchivePage[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loadingData, setLoadingData] = useState(true);
+  const [dbRecords, setDbRecords] = useState<any[]>([]);
+  const [dbLoading, setDbLoading] = useState(false);
 
   useEffect(() => {
     if (!loading && (!user || profile?.role !== 'admin')) {
@@ -321,6 +323,25 @@ const AdminCollectionsPage = () => {
     }
   };
 
+  const fetchDatabaseRecords = async (tableName: string) => {
+    try {
+      setDbLoading(true);
+      const { data, error } = await supabase
+        .from(tableName)
+        .select('*')
+        .order('id', { ascending: true })
+        .limit(50); // Limit to first 50 records
+
+      if (error) throw error;
+      setDbRecords(data || []);
+    } catch (error) {
+      console.error('Error fetching database records:', error);
+      setDbRecords([]);
+    } finally {
+      setDbLoading(false);
+    }
+  };
+
   const formatCollectionName = (slug: string): string => {
     return slug
       .split('-')
@@ -330,7 +351,16 @@ const AdminCollectionsPage = () => {
 
   const handleSelectCollection = (slug: string) => {
     setSelectedCollection(slug);
-    fetchPages(slug);
+    const collection = collections.find(c => c.slug === slug);
+
+    if (!collection) return;
+
+    // Fetch data based on collection type
+    if (collection.tableType === 'archive_pages') {
+      fetchPages(slug);
+    } else if (collection.tableName && collection.tableType !== 'coming_soon') {
+      fetchDatabaseRecords(collection.tableName);
+    }
   };
 
   const handleDeletePage = async (pageId: string) => {
@@ -509,100 +539,91 @@ const AdminCollectionsPage = () => {
                   );
                 }
 
-                // Show database management message for non-archive_pages collections
-                if (collection?.tableType !== 'archive_pages' && collection?.tableType !== 'coming_soon') {
+                // Show database records table for non-archive_pages collections
+                if (collection && collection.tableType !== 'archive_pages' && collection.tableType !== 'coming_soon') {
                   return (
                     <div className="bg-white rounded-lg shadow-lg p-6">
                       <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-2xl font-semibold text-brand-brown">
-                          {collection.name}
-                        </h2>
-                        <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm font-medium rounded">
-                          Database Collection
-                        </span>
-                      </div>
-
-                      <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
-                        <div className="flex">
-                          <div className="flex-shrink-0">
-                            <svg className="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                            </svg>
-                          </div>
-                          <div className="ml-3">
-                            <h3 className="text-sm font-medium text-blue-800">
-                              Database-Backed Collection
-                            </h3>
-                            <div className="mt-2 text-sm text-blue-700">
-                              <p>
-                                This collection uses structured database records in the <code className="bg-blue-100 px-1 rounded">{collection.tableName}</code> table.
-                              </p>
-                              <p className="mt-2">
-                                <strong>Record Count:</strong> {collection.pageCount} record{collection.pageCount !== 1 ? 's' : ''}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-4">
-                        <div className="p-4 border border-gray-200 rounded-lg">
-                          <h3 className="font-semibold text-brand-brown mb-2">Management Options</h3>
-                          <p className="text-sm text-gray-600 mb-4">
-                            Manage records in this collection using the dedicated admin interface.
-                          </p>
-                          <div className="flex gap-3">
-                            {collection.slug === 'slave-compensation' && (
-                              <Button
-                                onClick={() => router.push('/admin/collections/slave-compensation')}
-                                className="bg-brand-green hover:bg-brand-darkgreen flex items-center gap-2"
-                              >
-                                <Edit className="w-4 h-4" />
-                                Manage Records
-                              </Button>
-                            )}
-                            {collection.slug === 'acs-emigrants-to-liberia' && (
-                              <Button
-                                onClick={() => router.push('/admin/collections/emigrants-to-liberia')}
-                                className="bg-brand-green hover:bg-brand-darkgreen flex items-center gap-2"
-                              >
-                                <Edit className="w-4 h-4" />
-                                Manage Records
-                              </Button>
-                            )}
-                            {collection.slug === 'acs-liberation-census-rolls' && (
-                              <Button
-                                onClick={() => router.push('/admin/collections/liberation-census-rolls')}
-                                className="bg-brand-green hover:bg-brand-darkgreen flex items-center gap-2"
-                              >
-                                <Edit className="w-4 h-4" />
-                                Manage Records
-                              </Button>
-                            )}
-                            <Button
-                              onClick={() => router.push('/collection')}
-                              variant="outline"
-                            >
-                              View on Site
-                            </Button>
-                            <Button
-                              onClick={() => window.open(`https://supabase.com/dashboard/project/_/editor/${collection.tableName}`, '_blank')}
-                              variant="outline"
-                              className="flex items-center gap-2"
-                            >
-                              <Database className="w-4 h-4" />
-                              Supabase
-                            </Button>
-                          </div>
-                        </div>
-
-                        <div className="p-4 bg-gray-50 rounded-lg">
-                          <h3 className="font-semibold text-brand-brown mb-2">Table Structure</h3>
-                          <p className="text-sm text-gray-600">
-                            View the collection on the public site to see the current data structure and records.
+                        <div>
+                          <h2 className="text-2xl font-semibold text-brand-brown">
+                            {collection.name}
+                          </h2>
+                          <p className="text-sm text-gray-600 mt-1">
+                            {collection.pageCount} record{collection.pageCount !== 1 ? 's' : ''} • Database Collection
                           </p>
                         </div>
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => router.push('/collection')}
+                            variant="outline"
+                            size="sm"
+                          >
+                            View on Site
+                          </Button>
+                          <Button
+                            onClick={() => window.open(`https://supabase.com/dashboard/project/_/editor/${collection.tableName}`, '_blank')}
+                            variant="outline"
+                            size="sm"
+                            className="flex items-center gap-2"
+                          >
+                            <Database className="w-4 h-4" />
+                            Open in Supabase
+                          </Button>
+                        </div>
                       </div>
+
+                      {/* Search */}
+                      <div className="mb-6">
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                          <Input
+                            type="search"
+                            placeholder="Search records..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-10"
+                          />
+                        </div>
+                      </div>
+
+                      {dbLoading ? (
+                        <div className="text-center py-12">
+                          <div className="w-12 h-12 border-4 border-brand-green border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                          <p className="text-gray-500">Loading records...</p>
+                        </div>
+                      ) : dbRecords.length > 0 ? (
+                        <div className="overflow-x-auto">
+                          <table className="w-full">
+                            <thead className="bg-gray-50 border-b">
+                              <tr>
+                                {Object.keys(dbRecords[0]).slice(0, 6).map((key) => (
+                                  <th key={key} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    {key.replace(/_/g, ' ')}
+                                  </th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200">
+                              {dbRecords.slice(0, 50).map((record: any) => (
+                                <tr key={record.id} className="hover:bg-gray-50">
+                                  {Object.values(record).slice(0, 6).map((value: any, idx) => (
+                                    <td key={idx} className="px-4 py-3 text-sm text-gray-600">
+                                      {value !== null && value !== undefined ? String(value).substring(0, 50) : '-'}
+                                    </td>
+                                  ))}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                          <div className="mt-4 text-sm text-gray-600 text-center">
+                            Showing first 50 records • For full management, use Supabase or dedicated admin interface
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-center py-12">
+                          <p className="text-gray-500">No records found</p>
+                        </div>
+                      )}
                     </div>
                   );
                 }
