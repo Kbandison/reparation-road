@@ -14,7 +14,8 @@ import {
   Book,
   FileText,
   Image as ImageIcon,
-  Upload
+  Upload,
+  Database
 } from 'lucide-react';
 
 interface ArchivePage {
