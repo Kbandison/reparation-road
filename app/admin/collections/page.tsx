@@ -37,150 +37,183 @@ interface Collection {
   name: string;
   pageCount: number;
   description?: string;
+  tableType: 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'coming_soon';
+  tableName?: string;
 }
 
 // Predefined collections that should always appear
-// Note: Only collections with actual archive_pages implementations are included here
 const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
   {
     slug: 'inspection-roll',
     name: 'Inspection Roll of Negroes',
-    description: 'Historical inspection roll documents'
+    description: 'Historical inspection roll documents',
+    tableType: 'archive_pages',
+    tableName: 'archive_pages'
   },
   {
     slug: 'slave-compensation',
     name: 'Slave Compensation Claims',
-    description: 'Post-Civil War compensation claims records'
+    description: 'Post-Civil War compensation claims records',
+    tableType: 'slave_compensation_claims',
+    tableName: 'slave_compensation_claims'
   },
   {
     slug: 'acs-emigrants-to-liberia',
     name: 'ACS: Emigrants to Liberia',
-    description: 'American Colonization Society emigrant records'
+    description: 'American Colonization Society emigrant records',
+    tableType: 'emmigrants_to_liberia',
+    tableName: 'emmigrants_to_liberia'
   },
   {
     slug: 'acs-liberation-census-rolls',
     name: 'ACS: Liberian Census Rolls',
-    description: 'Census records from Liberia'
+    description: 'Census records from Liberia',
+    tableType: 'liberation_census_rolls',
+    tableName: 'liberation_census_rolls'
   },
   {
     slug: 'revolutionary-soldiers',
     name: 'African-American Revolutionary Soldiers',
-    description: 'Revolutionary War service records'
+    description: 'Revolutionary War service records',
+    tableType: 'coming_soon'
   },
   {
     slug: 'bibles-churches',
     name: 'Bibles and Churches Records',
-    description: 'Historical church and Bible records'
+    description: 'Historical church and Bible records',
+    tableType: 'coming_soon'
   },
   {
     slug: 'florida-louisiana',
     name: 'British/Spanish/French Florida and Louisiana',
-    description: 'Colonial records from Florida and Louisiana'
+    description: 'Colonial records from Florida and Louisiana',
+    tableType: 'coming_soon'
   },
   {
     slug: 'clubs-organizations',
     name: 'Clubs and Organizations',
-    description: 'African-American social organizations'
+    description: 'African-American social organizations',
+    tableType: 'coming_soon'
   },
   {
     slug: 'confederate-payrolls',
     name: 'Confederate Payrolls',
-    description: 'Confederate army payroll records'
+    description: 'Confederate army payroll records',
+    tableType: 'coming_soon'
   },
   {
     slug: 'east-indians-native-americans',
     name: 'East Indians and Native Americans in MD/VA',
-    description: 'Records from Maryland and Virginia'
+    description: 'Records from Maryland and Virginia',
+    tableType: 'coming_soon'
   },
   {
     slug: 'bills-of-exchange',
     name: 'English Bills of Exchange',
-    description: 'Financial transaction records'
+    description: 'Financial transaction records',
+    tableType: 'coming_soon'
   },
   {
     slug: 'ex-slave-pension',
     name: 'Ex-slave Pension and Fraud Files',
-    description: 'Pension applications and related documents'
+    description: 'Pension applications and related documents',
+    tableType: 'coming_soon'
   },
   {
     slug: 'free-black-census-1790',
     name: 'Free Black Heads of Household, 1790 Census',
-    description: 'First US Census free Black households'
+    description: 'First US Census free Black households',
+    tableType: 'coming_soon'
   },
   {
     slug: 'freedmen-refugee-contraband',
     name: 'Freedmen, Refugee and Contraband Records',
-    description: 'Post-Civil War freedmen records'
+    description: 'Post-Civil War freedmen records',
+    tableType: 'coming_soon'
   },
   {
     slug: 'fugitive-slave-cases',
     name: 'Fugitive and Slave Case Files',
-    description: 'Legal case files and court records'
+    description: 'Legal case files and court records',
+    tableType: 'coming_soon'
   },
   {
     slug: 'lost-friends',
     name: 'Lost Friends in Last Seen Ads',
-    description: 'Historical missing persons advertisements'
+    description: 'Historical missing persons advertisements',
+    tableType: 'coming_soon'
   },
   {
     slug: 'native-american-records',
     name: 'Native American Records',
-    description: 'Indigenous peoples historical documents'
+    description: 'Indigenous peoples historical documents',
+    tableType: 'coming_soon'
   },
   {
     slug: 'georgia-passports',
     name: 'Passports Issued by Governors of Georgia 1785-1809',
-    description: 'Early Georgia travel documents'
+    description: 'Early Georgia travel documents',
+    tableType: 'coming_soon'
   },
   {
     slug: 'slave-claims-commission',
     name: 'Records of Slave Claims Commission',
-    description: 'Commission records and claims'
+    description: 'Commission records and claims',
+    tableType: 'coming_soon'
   },
   {
     slug: 'rac-vlc',
     name: 'Records of the RAC and VOC',
-    description: 'Royal African Company and Dutch East India Company'
+    description: 'Royal African Company and Dutch East India Company',
+    tableType: 'coming_soon'
   },
   {
     slug: 'tennessee-registers',
     name: 'Registers of Formerly Enslaved Tennessee',
-    description: 'Tennessee emancipation registers'
+    description: 'Tennessee emancipation registers',
+    tableType: 'coming_soon'
   },
   {
     slug: 'mississippi-registers',
     name: 'Registers of Formerly Enslaved Mississippi',
-    description: 'Mississippi emancipation registers'
+    description: 'Mississippi emancipation registers',
+    tableType: 'coming_soon'
   },
   {
     slug: 'slave-importation',
     name: 'Slave Importation Declaration',
-    description: 'Import declarations and manifests'
+    description: 'Import declarations and manifests',
+    tableType: 'coming_soon'
   },
   {
     slug: 'slave-narratives',
     name: 'Slave Narratives',
-    description: 'First-person accounts and narratives'
+    description: 'First-person accounts and narratives',
+    tableType: 'coming_soon'
   },
   {
     slug: 'slave-voyages',
     name: 'Slave Voyages',
-    description: 'Trans-Atlantic slave trade database'
+    description: 'Trans-Atlantic slave trade database',
+    tableType: 'coming_soon'
   },
   {
     slug: 'southwest-georgia',
     name: 'Southwest Georgia Obits and Burials',
-    description: 'Obituaries and burial records'
+    description: 'Obituaries and burial records',
+    tableType: 'coming_soon'
   },
   {
     slug: 'virginia-order-books',
     name: 'Virginia Order Books. Negro Adjudgments',
-    description: 'Court order books and judgments'
+    description: 'Court order books and judgments',
+    tableType: 'coming_soon'
   },
   {
     slug: 'virginia-property-tithes',
     name: 'Virginia Personal Property and Tithes Tables',
-    description: 'Property and tax records'
+    description: 'Property and tax records',
+    tableType: 'coming_soon'
   }
 ];
 
@@ -202,32 +235,54 @@ const AdminCollectionsPage = () => {
   const fetchCollections = React.useCallback(async () => {
     try {
       setLoadingData(true);
-      const { data, error } = await supabase
-        .from('archive_pages')
-        .select('collection_slug');
 
-      if (error) throw error;
+      // Fetch counts for each table type
+      const [archivePagesData, compensationData, emigrantsData, censusData] = await Promise.all([
+        supabase.from('archive_pages').select('collection_slug'),
+        supabase.from('slave_compensation_claims').select('id', { count: 'exact', head: true }),
+        supabase.from('emmigrants_to_liberia').select('id', { count: 'exact', head: true }),
+        supabase.from('liberation_census_rolls').select('id', { count: 'exact', head: true })
+      ]);
 
-      // Group by collection and count pages
-      const collectionMap = new Map<string, number>();
-      data?.forEach((page) => {
-        const count = collectionMap.get(page.collection_slug) || 0;
-        collectionMap.set(page.collection_slug, count + 1);
+      // Group archive_pages by collection slug
+      const archiveMap = new Map<string, number>();
+      archivePagesData.data?.forEach((page) => {
+        const count = archiveMap.get(page.collection_slug) || 0;
+        archiveMap.set(page.collection_slug, count + 1);
       });
 
-      // Start with predefined collections and merge with database counts
-      const collectionsList: Collection[] = PREDEFINED_COLLECTIONS.map((predef) => ({
-        ...predef,
-        pageCount: collectionMap.get(predef.slug) || 0,
-      }));
+      // Map table counts
+      const tableCounts = {
+        'slave_compensation_claims': compensationData.count || 0,
+        'emmigrants_to_liberia': emigrantsData.count || 0,
+        'liberation_census_rolls': censusData.count || 0
+      };
 
-      // Add any additional collections found in database that aren't predefined
-      Array.from(collectionMap.entries()).forEach(([slug, count]) => {
+      // Build collections list with appropriate counts
+      const collectionsList: Collection[] = PREDEFINED_COLLECTIONS.map((predef) => {
+        let count = 0;
+
+        if (predef.tableType === 'archive_pages') {
+          count = archiveMap.get(predef.slug) || 0;
+        } else if (predef.tableName && predef.tableName in tableCounts) {
+          count = tableCounts[predef.tableName as keyof typeof tableCounts];
+        }
+
+        return {
+          ...predef,
+          pageCount: count,
+        };
+      });
+
+      // Add any additional archive_pages collections not in predefined list
+      Array.from(archiveMap.entries()).forEach(([slug, count]) => {
         if (!PREDEFINED_COLLECTIONS.some((c) => c.slug === slug)) {
           collectionsList.push({
             slug,
             name: formatCollectionName(slug),
             pageCount: count,
+            tableType: 'archive_pages',
+            tableName: 'archive_pages'
           });
         }
       });
@@ -371,9 +426,29 @@ const AdminCollectionsPage = () => {
                         : 'bg-gray-50 hover:bg-gray-100 text-brand-brown'
                     }`}
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-start justify-between">
                       <div className="flex-1 pr-2">
-                        <p className="font-medium">{collection.name}</p>
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="font-medium">{collection.name}</p>
+                          {collection.tableType !== 'archive_pages' && collection.tableType !== 'coming_soon' && (
+                            <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${
+                              selectedCollection === collection.slug
+                                ? 'bg-white/20 text-white'
+                                : 'bg-blue-100 text-blue-700'
+                            }`}>
+                              DB
+                            </span>
+                          )}
+                          {collection.tableType === 'coming_soon' && (
+                            <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${
+                              selectedCollection === collection.slug
+                                ? 'bg-white/20 text-white'
+                                : 'bg-gray-200 text-gray-600'
+                            }`}>
+                              Soon
+                            </span>
+                          )}
+                        </div>
                         {collection.description && (
                           <p
                             className={`text-xs mt-1 ${
@@ -392,10 +467,10 @@ const AdminCollectionsPage = () => {
                               : 'text-gray-500'
                           }`}
                         >
-                          {collection.pageCount} page{collection.pageCount !== 1 ? 's' : ''}
+                          {collection.pageCount} {collection.tableType === 'archive_pages' ? 'page' : 'record'}{collection.pageCount !== 1 ? 's' : ''}
                         </p>
                       </div>
-                      <FileText className="w-5 h-5 flex-shrink-0" />
+                      <FileText className="w-5 h-5 flex-shrink-0 mt-1" />
                     </div>
                   </button>
                 ))}
@@ -410,22 +485,118 @@ const AdminCollectionsPage = () => {
           {/* Pages List */}
           <div className="lg:col-span-2">
             {selectedCollection ? (
-              <div className="bg-white rounded-lg shadow-lg p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-semibold text-brand-brown">
-                    {formatCollectionName(selectedCollection)}
-                  </h2>
-                  <Button
-                    onClick={() =>
-                      router.push(`/admin/collections/new?collection=${selectedCollection}`)
-                    }
-                    size="sm"
-                    className="flex items-center gap-2"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Page
-                  </Button>
-                </div>
+              (() => {
+                const collection = collections.find((c) => c.slug === selectedCollection);
+
+                // Show "Coming Soon" message
+                if (collection?.tableType === 'coming_soon') {
+                  return (
+                    <div className="bg-white rounded-lg shadow-lg p-12 text-center">
+                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <FileText className="w-8 h-8 text-gray-400" />
+                      </div>
+                      <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                        {collection.name}
+                      </h3>
+                      <p className="text-gray-500 mb-4">
+                        This collection is coming soon. Data management will be available once the collection is implemented.
+                      </p>
+                      <span className="inline-block px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full">
+                        Coming Soon
+                      </span>
+                    </div>
+                  );
+                }
+
+                // Show database management message for non-archive_pages collections
+                if (collection?.tableType !== 'archive_pages' && collection?.tableType !== 'coming_soon') {
+                  return (
+                    <div className="bg-white rounded-lg shadow-lg p-6">
+                      <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-2xl font-semibold text-brand-brown">
+                          {collection.name}
+                        </h2>
+                        <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm font-medium rounded">
+                          Database Collection
+                        </span>
+                      </div>
+
+                      <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+                        <div className="flex">
+                          <div className="flex-shrink-0">
+                            <svg className="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <div className="ml-3">
+                            <h3 className="text-sm font-medium text-blue-800">
+                              Database-Backed Collection
+                            </h3>
+                            <div className="mt-2 text-sm text-blue-700">
+                              <p>
+                                This collection uses structured database records in the <code className="bg-blue-100 px-1 rounded">{collection.tableName}</code> table.
+                              </p>
+                              <p className="mt-2">
+                                <strong>Record Count:</strong> {collection.pageCount} record{collection.pageCount !== 1 ? 's' : ''}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div className="p-4 border border-gray-200 rounded-lg">
+                          <h3 className="font-semibold text-brand-brown mb-2">Management Options</h3>
+                          <p className="text-sm text-gray-600 mb-4">
+                            To manage records in this collection, use direct database access or create a dedicated admin interface for this table type.
+                          </p>
+                          <div className="flex gap-3">
+                            <Button
+                              onClick={() => window.open(`https://supabase.com/dashboard/project/_/editor/${collection.tableName}`, '_blank')}
+                              variant="outline"
+                              className="flex items-center gap-2"
+                            >
+                              <Database className="w-4 h-4" />
+                              Open in Supabase
+                            </Button>
+                            <Button
+                              onClick={() => router.push('/collection')}
+                              variant="outline"
+                            >
+                              View on Site
+                            </Button>
+                          </div>
+                        </div>
+
+                        <div className="p-4 bg-gray-50 rounded-lg">
+                          <h3 className="font-semibold text-brand-brown mb-2">Table Structure</h3>
+                          <p className="text-sm text-gray-600">
+                            View the collection on the public site to see the current data structure and records.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+
+                // Default: archive_pages management
+                return (
+                  <div className="bg-white rounded-lg shadow-lg p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <h2 className="text-2xl font-semibold text-brand-brown">
+                        {formatCollectionName(selectedCollection)}
+                      </h2>
+                      <Button
+                        onClick={() =>
+                          router.push(`/admin/collections/new?collection=${selectedCollection}`)
+                        }
+                        size="sm"
+                        className="flex items-center gap-2"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add Page
+                      </Button>
+                    </div>
 
                 {/* Search */}
                 <div className="mb-6">
@@ -519,7 +690,9 @@ const AdminCollectionsPage = () => {
                     </div>
                   )}
                 </div>
-              </div>
+                  </div>
+                );
+              })()
             ) : (
               <div className="bg-white rounded-lg shadow-lg p-12 text-center">
                 <Upload className="w-16 h-16 text-gray-300 mx-auto mb-4" />
