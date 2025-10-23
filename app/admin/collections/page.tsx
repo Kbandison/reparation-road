@@ -36,7 +36,37 @@ interface Collection {
   slug: string;
   name: string;
   pageCount: number;
+  description?: string;
 }
+
+// Predefined collections that should always appear
+const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
+  {
+    slug: 'acs',
+    name: 'African Colonization Society',
+    description: 'Records of the American Colonization Society'
+  },
+  {
+    slug: 'slave-compensation',
+    name: 'Slave Compensation Claims',
+    description: 'Post-Civil War compensation claims records'
+  },
+  {
+    slug: 'inspection-roll',
+    name: 'Inspection Roll of Negroes',
+    description: 'Historical inspection roll documents'
+  },
+  {
+    slug: 'confederate-payrolls',
+    name: 'Confederate Payrolls',
+    description: 'Confederate army payroll records'
+  },
+  {
+    slug: 'slave-voyages',
+    name: 'Slave Voyages',
+    description: 'Trans-Atlantic slave trade database'
+  }
+];
 
 const AdminCollectionsPage = () => {
   const router = useRouter();
@@ -69,13 +99,22 @@ const AdminCollectionsPage = () => {
         collectionMap.set(page.collection_slug, count + 1);
       });
 
-      const collectionsList: Collection[] = Array.from(collectionMap.entries()).map(
-        ([slug, count]) => ({
-          slug,
-          name: formatCollectionName(slug),
-          pageCount: count,
-        })
-      );
+      // Start with predefined collections and merge with database counts
+      const collectionsList: Collection[] = PREDEFINED_COLLECTIONS.map((predef) => ({
+        ...predef,
+        pageCount: collectionMap.get(predef.slug) || 0,
+      }));
+
+      // Add any additional collections found in database that aren't predefined
+      Array.from(collectionMap.entries()).forEach(([slug, count]) => {
+        if (!PREDEFINED_COLLECTIONS.some((c) => c.slug === slug)) {
+          collectionsList.push({
+            slug,
+            name: formatCollectionName(slug),
+            pageCount: count,
+          });
+        }
+      });
 
       setCollections(collectionsList.sort((a, b) => a.name.localeCompare(b.name)));
     } catch (error) {
@@ -217,10 +256,21 @@ const AdminCollectionsPage = () => {
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <div>
+                      <div className="flex-1 pr-2">
                         <p className="font-medium">{collection.name}</p>
+                        {collection.description && (
+                          <p
+                            className={`text-xs mt-1 ${
+                              selectedCollection === collection.slug
+                                ? 'text-white/70'
+                                : 'text-gray-400'
+                            }`}
+                          >
+                            {collection.description}
+                          </p>
+                        )}
                         <p
-                          className={`text-xs ${
+                          className={`text-xs mt-1 ${
                             selectedCollection === collection.slug
                               ? 'text-white/80'
                               : 'text-gray-500'
@@ -229,7 +279,7 @@ const AdminCollectionsPage = () => {
                           {collection.pageCount} page{collection.pageCount !== 1 ? 's' : ''}
                         </p>
                       </div>
-                      <FileText className="w-5 h-5" />
+                      <FileText className="w-5 h-5 flex-shrink-0" />
                     </div>
                   </button>
                 ))}
