@@ -40,11 +40,12 @@ interface Collection {
 }
 
 // Predefined collections that should always appear
+// Note: Only collections with actual archive_pages implementations are included here
 const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
   {
-    slug: 'acs',
-    name: 'African Colonization Society',
-    description: 'Records of the American Colonization Society'
+    slug: 'inspection-roll',
+    name: 'Inspection Roll of Negroes',
+    description: 'Historical inspection roll documents'
   },
   {
     slug: 'slave-compensation',
@@ -52,9 +53,34 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
     description: 'Post-Civil War compensation claims records'
   },
   {
-    slug: 'inspection-roll',
-    name: 'Inspection Roll of Negroes',
-    description: 'Historical inspection roll documents'
+    slug: 'acs-emigrants-to-liberia',
+    name: 'ACS: Emigrants to Liberia',
+    description: 'American Colonization Society emigrant records'
+  },
+  {
+    slug: 'acs-liberation-census-rolls',
+    name: 'ACS: Liberian Census Rolls',
+    description: 'Census records from Liberia'
+  },
+  {
+    slug: 'revolutionary-soldiers',
+    name: 'African-American Revolutionary Soldiers',
+    description: 'Revolutionary War service records'
+  },
+  {
+    slug: 'bibles-churches',
+    name: 'Bibles and Churches Records',
+    description: 'Historical church and Bible records'
+  },
+  {
+    slug: 'florida-louisiana',
+    name: 'British/Spanish/French Florida and Louisiana',
+    description: 'Colonial records from Florida and Louisiana'
+  },
+  {
+    slug: 'clubs-organizations',
+    name: 'Clubs and Organizations',
+    description: 'African-American social organizations'
   },
   {
     slug: 'confederate-payrolls',
@@ -62,9 +88,99 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
     description: 'Confederate army payroll records'
   },
   {
+    slug: 'east-indians-native-americans',
+    name: 'East Indians and Native Americans in MD/VA',
+    description: 'Records from Maryland and Virginia'
+  },
+  {
+    slug: 'bills-of-exchange',
+    name: 'English Bills of Exchange',
+    description: 'Financial transaction records'
+  },
+  {
+    slug: 'ex-slave-pension',
+    name: 'Ex-slave Pension and Fraud Files',
+    description: 'Pension applications and related documents'
+  },
+  {
+    slug: 'free-black-census-1790',
+    name: 'Free Black Heads of Household, 1790 Census',
+    description: 'First US Census free Black households'
+  },
+  {
+    slug: 'freedmen-refugee-contraband',
+    name: 'Freedmen, Refugee and Contraband Records',
+    description: 'Post-Civil War freedmen records'
+  },
+  {
+    slug: 'fugitive-slave-cases',
+    name: 'Fugitive and Slave Case Files',
+    description: 'Legal case files and court records'
+  },
+  {
+    slug: 'lost-friends',
+    name: 'Lost Friends in Last Seen Ads',
+    description: 'Historical missing persons advertisements'
+  },
+  {
+    slug: 'native-american-records',
+    name: 'Native American Records',
+    description: 'Indigenous peoples historical documents'
+  },
+  {
+    slug: 'georgia-passports',
+    name: 'Passports Issued by Governors of Georgia 1785-1809',
+    description: 'Early Georgia travel documents'
+  },
+  {
+    slug: 'slave-claims-commission',
+    name: 'Records of Slave Claims Commission',
+    description: 'Commission records and claims'
+  },
+  {
+    slug: 'rac-vlc',
+    name: 'Records of the RAC and VOC',
+    description: 'Royal African Company and Dutch East India Company'
+  },
+  {
+    slug: 'tennessee-registers',
+    name: 'Registers of Formerly Enslaved Tennessee',
+    description: 'Tennessee emancipation registers'
+  },
+  {
+    slug: 'mississippi-registers',
+    name: 'Registers of Formerly Enslaved Mississippi',
+    description: 'Mississippi emancipation registers'
+  },
+  {
+    slug: 'slave-importation',
+    name: 'Slave Importation Declaration',
+    description: 'Import declarations and manifests'
+  },
+  {
+    slug: 'slave-narratives',
+    name: 'Slave Narratives',
+    description: 'First-person accounts and narratives'
+  },
+  {
     slug: 'slave-voyages',
     name: 'Slave Voyages',
     description: 'Trans-Atlantic slave trade database'
+  },
+  {
+    slug: 'southwest-georgia',
+    name: 'Southwest Georgia Obits and Burials',
+    description: 'Obituaries and burial records'
+  },
+  {
+    slug: 'virginia-order-books',
+    name: 'Virginia Order Books. Negro Adjudgments',
+    description: 'Court order books and judgments'
+  },
+  {
+    slug: 'virginia-property-tithes',
+    name: 'Virginia Personal Property and Tithes Tables',
+    description: 'Property and tax records'
   }
 ];
 
