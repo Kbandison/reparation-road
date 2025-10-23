@@ -549,22 +549,49 @@ const AdminCollectionsPage = () => {
                         <div className="p-4 border border-gray-200 rounded-lg">
                           <h3 className="font-semibold text-brand-brown mb-2">Management Options</h3>
                           <p className="text-sm text-gray-600 mb-4">
-                            To manage records in this collection, use direct database access or create a dedicated admin interface for this table type.
+                            Manage records in this collection using the dedicated admin interface.
                           </p>
                           <div className="flex gap-3">
+                            {collection.slug === 'slave-compensation' && (
+                              <Button
+                                onClick={() => router.push('/admin/collections/slave-compensation')}
+                                className="bg-brand-green hover:bg-brand-darkgreen flex items-center gap-2"
+                              >
+                                <Edit className="w-4 h-4" />
+                                Manage Records
+                              </Button>
+                            )}
+                            {collection.slug === 'acs-emigrants-to-liberia' && (
+                              <Button
+                                onClick={() => router.push('/admin/collections/emigrants-to-liberia')}
+                                className="bg-brand-green hover:bg-brand-darkgreen flex items-center gap-2"
+                              >
+                                <Edit className="w-4 h-4" />
+                                Manage Records
+                              </Button>
+                            )}
+                            {collection.slug === 'acs-liberation-census-rolls' && (
+                              <Button
+                                onClick={() => router.push('/admin/collections/liberation-census-rolls')}
+                                className="bg-brand-green hover:bg-brand-darkgreen flex items-center gap-2"
+                              >
+                                <Edit className="w-4 h-4" />
+                                Manage Records
+                              </Button>
+                            )}
+                            <Button
+                              onClick={() => router.push('/collection')}
+                              variant="outline"
+                            >
+                              View on Site
+                            </Button>
                             <Button
                               onClick={() => window.open(`https://supabase.com/dashboard/project/_/editor/${collection.tableName}`, '_blank')}
                               variant="outline"
                               className="flex items-center gap-2"
                             >
                               <Database className="w-4 h-4" />
-                              Open in Supabase
-                            </Button>
-                            <Button
-                              onClick={() => router.push('/collection')}
-                              variant="outline"
-                            >
-                              View on Site
+                              Supabase
                             </Button>
                           </div>
                         </div>
