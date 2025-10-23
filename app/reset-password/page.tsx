@@ -19,20 +19,64 @@ const ResetPasswordPage = () => {
   const [validating, setValidating] = useState(true);
 
   useEffect(() => {
-    // Check if we have a valid session from the password reset link
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+    // Handle the password reset token from the URL
+    const handlePasswordRecovery = async () => {
+      try {
+        // Supabase automatically exchanges the token in the URL hash for a session
+        // Listen for auth state changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+          console.log('Auth event:', event, 'Session:', session);
 
-      if (!session) {
+          if (event === 'PASSWORD_RECOVERY') {
+            // User clicked the reset link and has a valid recovery session
+            setValidating(false);
+          } else if (event === 'SIGNED_IN' && session) {
+            // Session established after password recovery
+            setValidating(false);
+          } else if (event === 'SIGNED_OUT') {
+            // Invalid or expired token
+            setMessage({
+              type: 'error',
+              text: 'Invalid or expired password reset link. Please request a new one.'
+            });
+            setValidating(false);
+          }
+        });
+
+        // Also check if we already have a session (e.g., page refresh)
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          setValidating(false);
+        } else {
+          // If no session after 3 seconds, show error
+          setTimeout(() => {
+            supabase.auth.getSession().then(({ data: { session: retrySession } }) => {
+              if (!retrySession) {
+                setMessage({
+                  type: 'error',
+                  text: 'Invalid or expired password reset link. Please request a new one.'
+                });
+                setValidating(false);
+              }
+            });
+          }, 3000);
+        }
+
+        // Cleanup subscription
+        return () => {
+          subscription.unsubscribe();
+        };
+      } catch (error) {
+        console.error('Error during password recovery:', error);
         setMessage({
           type: 'error',
-          text: 'Invalid or expired password reset link. Please request a new one.'
+          text: 'An error occurred. Please try requesting a new password reset link.'
         });
+        setValidating(false);
       }
-      setValidating(false);
     };
 
-    checkSession();
+    handlePasswordRecovery();
   }, []);
 
   const validatePassword = (password: string): string | null => {

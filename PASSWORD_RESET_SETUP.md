@@ -104,9 +104,21 @@ You can customize the password reset email template in:
 
 ### Issue: Reset link expires immediately
 **Solution**:
-- Reset tokens expire after 1 hour by default
+- Reset tokens expire after 1 hour by default (3600 seconds)
 - Check that your server time is correct
 - Verify token in Supabase logs
+- To change expiration time:
+  - Go to Supabase Dashboard → Authentication → Settings
+  - Look for "JWT expiry limit" or "Password reset expiry"
+  - Default is 3600 seconds (1 hour)
+
+### Issue: "Auth session is missing" error
+**Solution**:
+- This occurs when the token has expired or is invalid
+- Request a new password reset link
+- Use the reset link within 1 hour of receiving it
+- Don't refresh the page after clicking the reset link
+- Ensure cookies are enabled in your browser
 
 ## Testing Checklist
 
