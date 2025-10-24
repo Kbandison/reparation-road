@@ -222,7 +222,7 @@ const ResetPasswordPage = () => {
 
       // Set up listener for USER_UPDATED event
       const updateComplete = new Promise<{ error: Error | null }>((resolve) => {
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, updatedSession) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
           if (event === 'USER_UPDATED') {
             console.log('USER_UPDATED event received');
             subscription.unsubscribe();
