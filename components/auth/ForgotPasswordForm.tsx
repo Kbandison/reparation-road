@@ -50,8 +50,13 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
       // If user exists, send the reset email
       // Note: This works for all users including admins
       // Supabase sends reset email to any registered user regardless of role
+      const redirectUrl = `${window.location.origin}/reset-password`;
+      console.log('=== SENDING PASSWORD RESET ===');
+      console.log('Redirect URL being sent to Supabase:', redirectUrl);
+      console.log('Current origin:', window.location.origin);
+
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: redirectUrl,
       });
 
       if (error) {

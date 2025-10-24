@@ -1,14 +1,18 @@
 # Password Reset Configuration Guide
 
 ## Issue
-Password reset emails are sending correctly, but the reset link redirects to `localhost` instead of your production domain (`reparationroad.com`), causing a "site can't be reached" error.
+Password reset emails are sending correctly, but you may experience one or both of these issues:
+1. The reset link redirects to `localhost` instead of your production domain (`reparationroad.com`)
+2. You get "Invalid or expired password reset link" immediately when clicking the link
 
 ## Root Cause
-The Supabase authentication redirect URL needs to be configured to use your production domain for deployed environments.
+The Supabase authentication redirect URL needs to be configured correctly in your Supabase dashboard. If not configured, Supabase cannot validate the redirect and the token exchange will fail.
 
 ## Solution
 
-### Step 1: Update Supabase Dashboard Settings
+### Step 1: Update Supabase Dashboard Settings (CRITICAL)
+
+**⚠️ THIS IS THE MOST IMPORTANT STEP - If not configured correctly, password reset will always fail!**
 
 1. **Go to Supabase Dashboard**
    - Navigate to: https://supabase.com/dashboard
@@ -21,16 +25,26 @@ The Supabase authentication redirect URL needs to be configured to use your prod
 3. **Update Site URL**
    - Set **Site URL** to: `https://reparationroad.com`
    - (Or your actual production domain if different)
+   - For development: `http://localhost:3000`
 
-4. **Add Redirect URLs**
-   In the **Redirect URLs** section, add both:
-   - `https://reparationroad.com/reset-password`
-   - `http://localhost:3000/reset-password` (for local development)
+4. **Add Redirect URLs (CRITICAL)**
+   In the **Redirect URLs** section, you MUST add BOTH:
+   - `https://reparationroad.com/reset-password` (production)
+   - `http://localhost:3000/reset-password` (local development)
 
-   Click **Add URL** for each one.
+   **Important**:
+   - The URL must match EXACTLY (including https vs http)
+   - No trailing slashes
+   - Must end with `/reset-password`
+   - Click **Add URL** for each one
 
 5. **Save Changes**
    - Click **Save** at the bottom of the page
+   - Wait 1-2 minutes for changes to propagate
+
+6. **Verify Configuration**
+   - Refresh the page and confirm both URLs appear in the list
+   - The Site URL should match your current environment
 
 ### Step 2: Verify Environment Variables
 
@@ -95,6 +109,44 @@ You can customize the password reset email template in:
 
 ### Issue: "Invalid redirect URL" error
 **Solution**: Double-check that your production URL is added to the Redirect URLs list in Supabase dashboard.
+
+### Issue: "Invalid or expired password reset link" immediately on page load
+This is the most common issue and means Supabase cannot validate your redirect URL.
+
+**Solution**:
+1. **Check Browser Console** (F12 → Console tab)
+   - Look for console logs showing URL and hash parameters
+   - You should see: `Hash params: { accessToken: '...', type: 'recovery' }`
+   - If you see `accessToken: 'missing'` or `type: null`, the email link is malformed
+
+2. **Verify Redirect URLs in Supabase Dashboard**
+   - Go to Authentication → URL Configuration
+   - **The redirect URL must be added to the "Redirect URLs" list EXACTLY as shown**
+   - For localhost: `http://localhost:3000/reset-password`
+   - For production: `https://reparationroad.com/reset-password`
+   - **Common mistakes**:
+     - Adding `http://` instead of `https://` for production
+     - Adding trailing slash: `https://reparationroad.com/reset-password/` ❌
+     - Wrong path: `https://reparationroad.com/auth/reset-password` ❌
+
+3. **Check Site URL**
+   - In Supabase dashboard, Site URL should match your current environment
+   - Development: `http://localhost:3000`
+   - Production: `https://reparationroad.com`
+
+4. **Wait After Saving**
+   - After adding redirect URLs, wait 1-2 minutes for Supabase to sync
+   - Try clearing browser cache and cookies
+   - Request a NEW password reset email (old links won't work with new config)
+
+5. **Click Link Directly**
+   - Click the link in your email directly (don't copy/paste)
+   - The token is in the URL hash (#access_token=...) and may not survive copy/paste
+
+6. **Check Email Template**
+   - The email should contain a link like:
+     `http://localhost:3000/reset-password#access_token=...&type=recovery`
+   - If the link format is different, you may need to update the email template in Supabase
 
 ### Issue: Email not sending
 **Solution**:

@@ -15,7 +15,8 @@ import {
   FileText,
   Image as ImageIcon,
   Upload,
-  Database
+  Save,
+  X
 } from 'lucide-react';
 
 interface ArchivePage {
@@ -228,6 +229,9 @@ const AdminCollectionsPage = () => {
   const [loadingData, setLoadingData] = useState(true);
   const [dbRecords, setDbRecords] = useState<Record<string, unknown>[]>([]);
   const [dbLoading, setDbLoading] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<Record<string, unknown> | null>(null);
+  const [editTableName, setEditTableName] = useState<string | null>(null);
+  const [formData, setFormData] = useState<Record<string, unknown>>({});
 
   useEffect(() => {
     if (!loading && (!user || profile?.role !== 'admin')) {
@@ -343,6 +347,47 @@ const AdminCollectionsPage = () => {
     } finally {
       setDbLoading(false);
     }
+  };
+
+  const handleEditRecord = (record: Record<string, unknown>, tableName: string) => {
+    setEditingRecord(record);
+    setEditTableName(tableName);
+    setFormData({ ...record });
+  };
+
+  const handleSaveRecord = async () => {
+    if (!editingRecord || !editTableName) return;
+
+    try {
+      const { error } = await supabase
+        .from(editTableName)
+        .update(formData)
+        .eq('id', editingRecord.id);
+
+      if (error) throw error;
+
+      alert('Record updated successfully');
+      setEditingRecord(null);
+      setEditTableName(null);
+      setFormData({});
+
+      // Refresh the database records
+      if (selectedCollection) {
+        const collection = collections.find((c) => c.slug === selectedCollection);
+        if (collection?.tableName) {
+          await fetchDatabaseRecords(collection.tableName);
+        }
+      }
+    } catch (error) {
+      console.error('Error updating record:', error);
+      alert('Failed to update record');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingRecord(null);
+    setEditTableName(null);
+    setFormData({});
   };
 
   const formatCollectionName = (slug: string): string => {
@@ -624,13 +669,8 @@ const AdminCollectionsPage = () => {
                                     <div className="flex gap-2">
                                       <Button
                                         onClick={() => {
-                                          // Navigate to edit page with record ID
-                                          if (collection.slug === 'slave-compensation') {
-                                            router.push(`/admin/collections/slave-compensation?edit=${record.id}`);
-                                          } else if (collection.slug === 'acs-emigrants-to-liberia') {
-                                            router.push(`/admin/collections/emigrants-to-liberia?edit=${record.id}`);
-                                          } else if (collection.slug === 'acs-liberation-census-rolls') {
-                                            router.push(`/admin/collections/liberation-census-rolls?edit=${record.id}`);
+                                          if (collection.tableName) {
+                                            handleEditRecord(record, collection.tableName);
                                           }
                                         }}
                                         size="sm"
@@ -819,6 +859,67 @@ const AdminCollectionsPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Edit Record Modal */}
+      {editingRecord && editTableName && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-brand-brown">Edit Record</h2>
+              <button
+                onClick={handleCancelEdit}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="p-6">
+              <div className="grid grid-cols-2 gap-4">
+                {Object.keys(formData)
+                  .filter((key) => key !== 'id' && key !== 'created_at' && key !== 'updated_at')
+                  .map((key) => (
+                    <div key={key} className="col-span-2 sm:col-span-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-1 capitalize">
+                        {key.replace(/_/g, ' ')}
+                      </label>
+                      <Input
+                        type={typeof formData[key] === 'number' ? 'number' : 'text'}
+                        value={formData[key]?.toString() || ''}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setFormData({
+                            ...formData,
+                            [key]: typeof formData[key] === 'number' && value ? parseInt(value) : value
+                          });
+                        }}
+                        className="w-full"
+                      />
+                    </div>
+                  ))}
+              </div>
+
+              <div className="flex gap-3 mt-6 pt-6 border-t border-gray-200">
+                <Button
+                  onClick={handleSaveRecord}
+                  className="bg-brand-green hover:bg-brand-darkgreen flex items-center gap-2"
+                >
+                  <Save className="w-4 h-4" />
+                  Save Changes
+                </Button>
+                <Button
+                  onClick={handleCancelEdit}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <X className="w-4 h-4" />
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
