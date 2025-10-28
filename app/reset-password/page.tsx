@@ -10,8 +10,15 @@ import { Eye, EyeOff, Lock, CheckCircle } from 'lucide-react';
 const ResetPasswordPage = () => {
   console.log('=== RESET PASSWORD PAGE MOUNTED ===');
   console.log('Current URL:', typeof window !== 'undefined' ? window.location.href : 'SSR');
+  console.log('Environment:', process.env.NODE_ENV);
 
   const router = useRouter();
+
+  // Prevent any redirect on mount
+  useEffect(() => {
+    console.log('Reset password page useEffect running');
+    console.log('Page will render, no redirects allowed');
+  }, []);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showNewPassword, setShowNewPassword] = useState(false);
