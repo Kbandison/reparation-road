@@ -115,10 +115,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const getSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
 
-      console.log('Session check:', {
+      console.log('[AUTH DEBUG] Session check:', {
         hasSession: !!session,
-        pathname,
-        userMetadata: session?.user?.user_metadata
+        userEmail: session?.user?.email,
+        timestamp: new Date().toISOString()
       });
 
       setUser(session?.user ?? null);
@@ -136,22 +136,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event);
+        console.log('[AUTH DEBUG] Auth state changed:', {
+          event,
+          hasSession: !!session,
+          timestamp: new Date().toISOString()
+        });
 
         // ONLY set password recovery when the PASSWORD_RECOVERY event fires
         const isRecovery = event === 'PASSWORD_RECOVERY';
+
+        if (isRecovery) {
+          console.log('[AUTH DEBUG] PASSWORD_RECOVERY detected, redirecting to /reset-password');
+          // Redirect immediately when PASSWORD_RECOVERY event fires
+          router.push('/reset-password');
+        }
 
         setUser(session?.user ?? null);
         setIsPasswordRecovery(isRecovery);
 
         if (session?.user) {
           await fetchProfile(session.user.id);
-
-          // Force redirect to reset password page if in recovery mode
-          if (isRecovery && pathname !== '/reset-password') {
-            console.log('Forcing redirect to reset password page');
-            router.push('/reset-password');
-          }
         } else {
           setProfile(null);
         }
@@ -160,7 +164,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
 
     return () => subscription.unsubscribe();
-  }, [fetchProfile, pathname, router]);
+  }, [fetchProfile, router]);
 
   const createProfile = async (userId: string, email: string, firstName?: string, lastName?: string) => {
     try {
