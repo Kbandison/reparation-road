@@ -115,13 +115,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const getSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
 
-      // Check if this is a password recovery session
-      const isRecovery = Boolean(
-        session?.user?.aud === 'authenticated' &&
-        session?.user?.app_metadata?.provider === 'email' &&
-        pathname !== '/reset-password'
-      );
-
       console.log('Session check:', {
         hasSession: !!session,
         pathname,
@@ -129,16 +122,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       setUser(session?.user ?? null);
-      setIsPasswordRecovery(isRecovery);
+      // Don't set isPasswordRecovery on initial load - only set it when PASSWORD_RECOVERY event fires
+      setIsPasswordRecovery(false);
 
       if (session?.user) {
         await fetchProfile(session.user.id);
-
-        // If user is in PASSWORD_RECOVERY and not on reset page, redirect
-        if (isRecovery && pathname !== '/reset-password') {
-          console.log('Password recovery session detected, redirecting to /reset-password');
-          router.push('/reset-password');
-        }
       }
       setLoading(false);
     };
@@ -150,10 +138,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       async (event, session) => {
         console.log('Auth state changed:', event);
 
-        const isRecovery = Boolean(
-          event === 'PASSWORD_RECOVERY' ||
-          (session?.user && event === 'SIGNED_IN' && pathname === '/reset-password')
-        );
+        // ONLY set password recovery when the PASSWORD_RECOVERY event fires
+        const isRecovery = event === 'PASSWORD_RECOVERY';
 
         setUser(session?.user ?? null);
         setIsPasswordRecovery(isRecovery);
