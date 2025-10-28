@@ -85,7 +85,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const timeout = setTimeout(handleInactivityLogout, INACTIVITY_TIMEOUT);
 
     setInactivityTimeout(timeout);
-  }, [inactivityTimeout, handleInactivityLogout]);
+  }, [handleInactivityLogout]);
 
   // Track user activity
   useEffect(() => {
@@ -93,8 +93,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const activityEvents = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
 
+    const handleActivity = () => {
+      resetInactivityTimer();
+    };
+
     activityEvents.forEach(event => {
-      document.addEventListener(event, resetInactivityTimer);
+      document.addEventListener(event, handleActivity);
     });
 
     // Start initial timer
@@ -102,13 +106,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => {
       activityEvents.forEach(event => {
-        document.removeEventListener(event, resetInactivityTimer);
+        document.removeEventListener(event, handleActivity);
       });
-      if (inactivityTimeout) {
-        clearTimeout(inactivityTimeout);
-      }
     };
-  }, [user, resetInactivityTimer, inactivityTimeout]);
+  }, [user, resetInactivityTimer]);
 
   useEffect(() => {
     // Get initial session
