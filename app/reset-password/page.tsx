@@ -278,6 +278,15 @@ const ResetPasswordPage = () => {
       setResetSuccess(true);
       setLoading(false);
 
+      // Sign in again to get a normal session (not PASSWORD_RECOVERY)
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      if (currentSession) {
+        console.log('Re-establishing normal session...');
+        // The password update already transitions from recovery to normal session
+        // Just refresh the session to ensure it's updated
+        await supabase.auth.refreshSession();
+      }
+
       // Redirect to home page after 3 seconds
       setTimeout(() => {
         console.log('Redirecting to home page...');

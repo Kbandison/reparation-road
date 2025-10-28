@@ -3,16 +3,19 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase, Profile } from '@/lib/supabase';
+import { useRouter, usePathname } from 'next/navigation';
 
 interface AuthContextType {
   user: User | null;
   profile: Profile | null;
   loading: boolean;
   hasPremiumAccess: boolean;
+  isPasswordRecovery: boolean;
   signUp: (email: string, password: string, firstName?: string, lastName?: string) => Promise<any>;
   signIn: (email: string, password: string) => Promise<any>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<any>;
+  resetInactivityTimer: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,10 +28,17 @@ export const useAuth = () => {
   return context;
 };
 
+// Inactivity timeout: 30 minutes
+const INACTIVITY_TIMEOUT = 30 * 60 * 1000;
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const router = useRouter();
+  const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
+  const [inactivityTimeout, setInactivityTimeout] = useState<NodeJS.Timeout | null>(null);
 
   const fetchProfile = useCallback(async (userId: string) => {
     try {
@@ -51,13 +61,84 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
+  // Inactivity timer management - moved after signOut definition to avoid circular dependency
+  const handleInactivityLogout = useCallback(async () => {
+    console.log('User inactive for 30 minutes, logging out...');
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      setProfile(null);
+      setIsPasswordRecovery(false);
+      if (typeof window !== 'undefined') {
+        router.push('/');
+      }
+    } catch (error) {
+      console.error('Error during inactivity logout:', error);
+    }
+  }, [router]);
+
+  const resetInactivityTimer = useCallback(() => {
+    if (inactivityTimeout) {
+      clearTimeout(inactivityTimeout);
+    }
+
+    const timeout = setTimeout(handleInactivityLogout, INACTIVITY_TIMEOUT);
+
+    setInactivityTimeout(timeout);
+  }, [inactivityTimeout, handleInactivityLogout]);
+
+  // Track user activity
+  useEffect(() => {
+    if (!user) return;
+
+    const activityEvents = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
+
+    activityEvents.forEach(event => {
+      document.addEventListener(event, resetInactivityTimer);
+    });
+
+    // Start initial timer
+    resetInactivityTimer();
+
+    return () => {
+      activityEvents.forEach(event => {
+        document.removeEventListener(event, resetInactivityTimer);
+      });
+      if (inactivityTimeout) {
+        clearTimeout(inactivityTimeout);
+      }
+    };
+  }, [user, resetInactivityTimer, inactivityTimeout]);
+
   useEffect(() => {
     // Get initial session
     const getSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
+
+      // Check if this is a password recovery session
+      const isRecovery = Boolean(
+        session?.user?.aud === 'authenticated' &&
+        session?.user?.app_metadata?.provider === 'email' &&
+        pathname !== '/reset-password'
+      );
+
+      console.log('Session check:', {
+        hasSession: !!session,
+        pathname,
+        userMetadata: session?.user?.user_metadata
+      });
+
       setUser(session?.user ?? null);
+      setIsPasswordRecovery(isRecovery);
+
       if (session?.user) {
         await fetchProfile(session.user.id);
+
+        // If user is in PASSWORD_RECOVERY and not on reset page, redirect
+        if (isRecovery && pathname !== '/reset-password') {
+          console.log('Password recovery session detected, redirecting to /reset-password');
+          router.push('/reset-password');
+        }
       }
       setLoading(false);
     };
@@ -67,9 +148,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event);
+
+        const isRecovery = Boolean(
+          event === 'PASSWORD_RECOVERY' ||
+          (session?.user && event === 'SIGNED_IN' && pathname === '/reset-password')
+        );
+
         setUser(session?.user ?? null);
+        setIsPasswordRecovery(isRecovery);
+
         if (session?.user) {
           await fetchProfile(session.user.id);
+
+          // Force redirect to reset password page if in recovery mode
+          if (isRecovery && pathname !== '/reset-password') {
+            console.log('Forcing redirect to reset password page');
+            router.push('/reset-password');
+          }
         } else {
           setProfile(null);
         }
@@ -78,7 +174,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
 
     return () => subscription.unsubscribe();
-  }, [fetchProfile]);
+  }, [fetchProfile, pathname, router]);
 
   const createProfile = async (userId: string, email: string, firstName?: string, lastName?: string) => {
     try {
@@ -157,9 +253,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     try {
       setLoading(true);
+
+      // Clear inactivity timeout
+      if (inactivityTimeout) {
+        clearTimeout(inactivityTimeout);
+        setInactivityTimeout(null);
+      }
+
+      // Sign out from Supabase (this clears auth tokens)
       await supabase.auth.signOut();
+
+      // Clear state
       setUser(null);
       setProfile(null);
+      setIsPasswordRecovery(false);
+
+      // Explicitly clear localStorage (for any cached data)
+      if (typeof window !== 'undefined') {
+        // Clear any Supabase auth storage
+        localStorage.removeItem('supabase.auth.token');
+        localStorage.removeItem('sb-' + process.env.NEXT_PUBLIC_SUPABASE_URL?.split('//')[1]?.split('.')[0] + '-auth-token');
+
+        // Clear session storage as well
+        sessionStorage.clear();
+      }
+
+      console.log('User signed out successfully');
+
+      // Redirect to home page
+      router.push('/');
     } catch (error) {
       console.error('Error signing out:', error);
     } finally {
@@ -199,10 +321,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     profile,
     loading,
     hasPremiumAccess,
+    isPasswordRecovery,
     signUp,
     signIn,
     signOut,
     updateProfile,
+    resetInactivityTimer,
   };
 
   return (
