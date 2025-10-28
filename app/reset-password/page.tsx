@@ -8,6 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Eye, EyeOff, Lock, CheckCircle } from 'lucide-react';
 
 const ResetPasswordPage = () => {
+  console.log('=== RESET PASSWORD PAGE MOUNTED ===');
+  console.log('Current URL:', typeof window !== 'undefined' ? window.location.href : 'SSR');
+
   const router = useRouter();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
