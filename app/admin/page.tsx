@@ -401,20 +401,20 @@ const AdminDashboard = () => {
                 </Button>
               </div>
 
-              <div className="p-4 border border-gray-200 rounded-lg">
+              <div className="p-4 border border-brand-green rounded-lg">
                 <h3 className="font-semibold text-brand-brown mb-2 flex items-center">
                   <TrendingUp className="w-4 h-4 mr-2" />
-                  Revenue Reports
+                  Revenue & Subscriptions
                 </h3>
                 <p className="text-sm text-gray-600 mb-3">
-                  Track subscription revenue and growth.
+                  Track subscription revenue and growth metrics.
                 </p>
                 <Button
+                  onClick={() => router.push('/admin/revenue')}
                   className="w-full"
                   variant="outline"
-                  disabled
                 >
-                  Coming Soon
+                  View Revenue
                 </Button>
               </div>
 

@@ -8,107 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { BookmarkButton } from "@/components/ui/BookmarkButton";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { useRouter } from "next/navigation";
-import { LoginForm } from "@/components/auth/LoginForm";
-import { SignupForm } from "@/components/auth/SignupForm";
-
-const UpgradePrompt = () => {
-  const router = useRouter();
-  const [showLogin, setShowLogin] = useState(false);
-  const [showSignup, setShowSignup] = useState(false);
-
-  return (
-    <div className="min-h-screen bg-brand-beige flex items-center justify-center">
-      <div className="text-center max-w-lg mx-auto p-8">
-        <div className="mb-6">
-          <div className="w-20 h-20 bg-brand-green rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-          </div>
-          <h2 className="text-3xl font-bold text-brand-brown mb-4">
-            Premium Access Required
-          </h2>
-          <p className="text-gray-600 mb-6">
-            Access to the Inspection Roll of Negroes requires a premium membership.
-            Unlock thousands of historical documents and advanced search capabilities.
-          </p>
-        </div>
-
-        <div className="space-y-4 mb-6">
-          <div className="flex items-center justify-center">
-            <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-            </svg>
-            <span className="text-gray-700">Full access to all historical documents</span>
-          </div>
-          <div className="flex items-center justify-center">
-            <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-            </svg>
-            <span className="text-gray-700">Advanced text search within documents</span>
-          </div>
-          <div className="flex items-center justify-center">
-            <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-            </svg>
-            <span className="text-gray-700">High-resolution document images</span>
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          <Button
-            onClick={() => router.push('/membership')}
-            className="w-full bg-brand-green text-white hover:bg-brand-darkgreen"
-            size="lg"
-          >
-            Upgrade to Premium - $19.99/month
-          </Button>
-
-          <div className="text-center">
-            <p className="text-sm text-gray-600 mb-2">Don&apos;t have an account?</p>
-            <div className="space-x-2">
-              <Button
-                onClick={() => setShowSignup(true)}
-                variant="outline"
-                size="sm"
-              >
-                Sign Up Free
-              </Button>
-              <Button
-                onClick={() => setShowLogin(true)}
-                variant="outline"
-                size="sm"
-              >
-                Sign In
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {showLogin && (
-        <LoginForm
-          onClose={() => setShowLogin(false)}
-          onSwitchToSignup={() => {
-            setShowLogin(false);
-            setShowSignup(true);
-          }}
-        />
-      )}
-
-      {showSignup && (
-        <SignupForm
-          onClose={() => setShowSignup(false)}
-          onSwitchToLogin={() => {
-            setShowSignup(false);
-            setShowLogin(true);
-          }}
-        />
-      )}
-    </div>
-  );
-};
+import { ChevronLeft, ChevronRight, X, ZoomIn } from "lucide-react";
 
 interface ArchivePage {
   id: string;
@@ -128,12 +28,15 @@ interface ArchivePage {
 interface ArchivePageModalProps {
   page: ArchivePage | null;
   onClose: () => void;
+  allPages: ArchivePage[];
+  onNavigate: (page: ArchivePage) => void;
 }
 
-const ArchivePageModal = React.memo<ArchivePageModalProps>(function ArchivePageModal({ page, onClose }) {
+const ArchivePageModal = React.memo<ArchivePageModalProps>(function ArchivePageModal({ page, onClose, allPages, onNavigate }) {
   const [fullPage, setFullPage] = React.useState<ArchivePage | null>(page);
   const [loading, setLoading] = React.useState(false);
   const [imageLoaded, setImageLoaded] = React.useState(false);
+  const [isImageZoomed, setIsImageZoomed] = React.useState(false);
 
   React.useEffect(() => {
     // Immediately set the page data we have
@@ -170,20 +73,82 @@ const ArchivePageModal = React.memo<ArchivePageModalProps>(function ArchivePageM
     fetchFullPage();
   }, [page]);
 
+  // Get current page index and navigation helpers
+  const currentIndex = allPages.findIndex(p => p.id === page?.id);
+  const hasPrev = currentIndex > 0;
+  const hasNext = currentIndex < allPages.length - 1;
+
+  const handlePrevPage = React.useCallback(() => {
+    if (hasPrev) {
+      onNavigate(allPages[currentIndex - 1]);
+    }
+  }, [hasPrev, currentIndex, allPages, onNavigate]);
+
+  const handleNextPage = React.useCallback(() => {
+    if (hasNext) {
+      onNavigate(allPages[currentIndex + 1]);
+    }
+  }, [hasNext, currentIndex, allPages, onNavigate]);
+
+  // Keyboard navigation
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        handlePrevPage();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        handleNextPage();
+      } else if (e.key === 'Escape') {
+        if (isImageZoomed) {
+          setIsImageZoomed(false);
+        } else {
+          onClose();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handlePrevPage, handleNextPage, isImageZoomed, onClose]);
+
   if (!page || !fullPage) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
-          <div>
-            <h3 className="text-xl font-bold text-brand-brown">
-              {fullPage.title || `Book ${fullPage.book_no}, Page ${fullPage.page_no}`}
-            </h3>
-            {fullPage.year && <p className="text-sm text-gray-600">Year: {fullPage.year}</p>}
-            {fullPage.location && <p className="text-sm text-gray-600">Location: {fullPage.location}</p>}
+          <div className="flex items-center gap-4">
+            <Button
+              onClick={handlePrevPage}
+              disabled={!hasPrev}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-1"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Prev
+            </Button>
+            <div>
+              <h3 className="text-xl font-bold text-brand-brown">
+                {fullPage.title || `Book ${fullPage.book_no}, Page ${fullPage.page_no}`}
+              </h3>
+              <p className="text-sm text-gray-500">Page {currentIndex + 1} of {allPages.length}</p>
+              {fullPage.year && <p className="text-sm text-gray-600">Year: {fullPage.year}</p>}
+              {fullPage.location && <p className="text-sm text-gray-600">Location: {fullPage.location}</p>}
+            </div>
           </div>
           <div className="flex items-center gap-3">
+            <Button
+              onClick={handleNextPage}
+              disabled={!hasNext}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-1"
+            >
+              Next
+              <ChevronRight className="w-4 h-4" />
+            </Button>
             <BookmarkButton pageId={fullPage.id} size={24} showLabel={true} />
             <Button onClick={onClose} variant="outline" size="sm">
               Close
@@ -195,8 +160,14 @@ const ArchivePageModal = React.memo<ArchivePageModalProps>(function ArchivePageM
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {fullPage.image_path && (
               <div className="space-y-2">
-                <h4 className="font-semibold text-brand-brown">Document Image</h4>
-                <div className="border rounded-lg overflow-hidden relative h-96 bg-gray-100">
+                <h4 className="font-semibold text-brand-brown flex items-center gap-2">
+                  Document Image
+                  <span className="text-xs text-gray-500 font-normal">(Click to expand)</span>
+                </h4>
+                <div
+                  className="border rounded-lg overflow-hidden relative h-96 bg-gray-100 cursor-zoom-in group"
+                  onClick={() => setIsImageZoomed(true)}
+                >
                   {!imageLoaded && (
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-brand-green"></div>
@@ -211,6 +182,11 @@ const ArchivePageModal = React.memo<ArchivePageModalProps>(function ArchivePageM
                     sizes="(max-width: 1024px) 100vw, 50vw"
                     onLoad={() => setImageLoaded(true)}
                   />
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all flex items-center justify-center">
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white rounded-full p-3 shadow-lg">
+                      <ZoomIn className="w-6 h-6 text-brand-green" />
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -254,6 +230,68 @@ const ArchivePageModal = React.memo<ArchivePageModalProps>(function ArchivePageM
           </div>
         </div>
       </div>
+
+      {/* Fullscreen Image Zoom Overlay */}
+      {isImageZoomed && fullPage.image_path && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-95 z-[60] flex items-center justify-center p-4"
+          onClick={() => setIsImageZoomed(false)}
+        >
+          {/* Close Button */}
+          <button
+            onClick={() => setIsImageZoomed(false)}
+            className="absolute top-4 right-4 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors z-10"
+          >
+            <X className="w-6 h-6 text-gray-700" />
+          </button>
+
+          {/* Navigation Buttons */}
+          {hasPrev && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handlePrevPage();
+              }}
+              className="absolute left-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-3 shadow-lg hover:bg-gray-100 transition-colors z-10"
+            >
+              <ChevronLeft className="w-8 h-8 text-gray-700" />
+            </button>
+          )}
+          {hasNext && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleNextPage();
+              }}
+              className="absolute right-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-3 shadow-lg hover:bg-gray-100 transition-colors z-10"
+            >
+              <ChevronRight className="w-8 h-8 text-gray-700" />
+            </button>
+          )}
+
+          {/* Page Counter */}
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white px-4 py-2 rounded-full shadow-lg z-10">
+            <p className="text-sm font-medium text-gray-700">
+              Page {currentIndex + 1} of {allPages.length}
+            </p>
+          </div>
+
+          {/* Zoomed Image */}
+          <div
+            className="relative w-full h-full flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Image
+              src={fullPage.image_path}
+              alt={`Page ${fullPage.page_no} from Book ${fullPage.book_no}`}
+              fill
+              className="object-contain"
+              priority
+              sizes="100vw"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 });
@@ -563,6 +601,8 @@ const InspectionRollOfNegroesPage = () => {
       <ArchivePageModal
         page={selectedPage}
         onClose={() => setSelectedPage(null)}
+        allPages={filteredPages}
+        onNavigate={(page) => setSelectedPage(page)}
       />
     </div>
   );
@@ -570,7 +610,7 @@ const InspectionRollOfNegroesPage = () => {
 
 const WrappedInspectionRollPage = () => {
   return (
-    <ProtectedRoute requiresPaid={true} fallback={<UpgradePrompt />}>
+    <ProtectedRoute requiresPaid={false}>
       <InspectionRollOfNegroesPage />
     </ProtectedRoute>
   );

@@ -16,6 +16,8 @@ const MembershipPage = () => {
     "Browse collection landing pages",
     "View collection descriptions",
     "Access general historical information",
+    "Access to Forum",
+    "Access to Inspection Roll of Negroes collection",
     "Create an account",
     "Basic customer support",
   ];

@@ -114,22 +114,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // Get initial session
     const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
 
-      console.log('[AUTH DEBUG] Session check:', {
-        hasSession: !!session,
-        userEmail: session?.user?.email,
-        timestamp: new Date().toISOString()
-      });
+        console.log('[AUTH DEBUG] Session check:', {
+          hasSession: !!session,
+          userEmail: session?.user?.email,
+          timestamp: new Date().toISOString()
+        });
 
-      setUser(session?.user ?? null);
-      // Don't set isPasswordRecovery on initial load - only set it when PASSWORD_RECOVERY event fires
-      setIsPasswordRecovery(false);
+        setUser(session?.user ?? null);
+        // Don't set isPasswordRecovery on initial load - only set it when PASSWORD_RECOVERY event fires
+        setIsPasswordRecovery(false);
 
-      if (session?.user) {
-        await fetchProfile(session.user.id);
+        if (session?.user) {
+          // Wait for profile to fully load before setting loading to false
+          await fetchProfile(session.user.id);
+        }
+      } catch (error) {
+        console.error('[AUTH ERROR] Error getting session:', error);
+      } finally {
+        // Always set loading to false after everything is done
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     getSession();
@@ -137,30 +144,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('[AUTH DEBUG] Auth state changed:', {
-          event,
-          hasSession: !!session,
-          timestamp: new Date().toISOString()
-        });
+        try {
+          console.log('[AUTH DEBUG] Auth state changed:', {
+            event,
+            hasSession: !!session,
+            timestamp: new Date().toISOString()
+          });
 
-        // ONLY set password recovery when the PASSWORD_RECOVERY event fires
-        const isRecovery = event === 'PASSWORD_RECOVERY';
+          // ONLY set password recovery when the PASSWORD_RECOVERY event fires
+          const isRecovery = event === 'PASSWORD_RECOVERY';
 
-        if (isRecovery) {
-          console.log('[AUTH DEBUG] PASSWORD_RECOVERY detected, redirecting to /reset-password');
-          // Redirect immediately when PASSWORD_RECOVERY event fires
-          router.push('/reset-password');
+          if (isRecovery) {
+            console.log('[AUTH DEBUG] PASSWORD_RECOVERY detected, redirecting to /reset-password');
+            // Redirect immediately when PASSWORD_RECOVERY event fires
+            router.push('/reset-password');
+          }
+
+          setUser(session?.user ?? null);
+          setIsPasswordRecovery(isRecovery);
+
+          if (session?.user) {
+            // Wait for profile to fully load before setting loading to false
+            await fetchProfile(session.user.id);
+          } else {
+            setProfile(null);
+          }
+        } catch (error) {
+          console.error('[AUTH ERROR] Error in auth state change:', error);
+        } finally {
+          // Always set loading to false after everything is done
+          setLoading(false);
         }
-
-        setUser(session?.user ?? null);
-        setIsPasswordRecovery(isRecovery);
-
-        if (session?.user) {
-          await fetchProfile(session.user.id);
-        } else {
-          setProfile(null);
-        }
-        setLoading(false);
       }
     );
 

@@ -25,6 +25,7 @@ export const Header = () => {
     { label: "Our Story", href: "/about" },
     { label: "Collection", href: "/collection" },
     { label: "Forum", href: "/forum" },
+    // { label: "Library", href: "/library" }, // Commented out for production
     { label: "Membership", href: "/membership" },
     { label: "Booking", href: "/booking" },
   ];

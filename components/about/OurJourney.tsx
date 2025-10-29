@@ -1,6 +1,7 @@
 "use client";
 
 import { ScrollReveal } from "@/components/ScrollReveal";
+import { Instagram, Twitter, Facebook } from "lucide-react";
 
 const milestones = [
   {
@@ -52,6 +53,44 @@ export const OurJourney = () => {
               </li>
             ))}
           </ol>
+
+          {/* Social Media Section */}
+          <div className="mt-12 text-center">
+            <h3 className="text-xl font-serif text-[var(--color-brand-brown)] mb-4">
+              Connect With Us
+            </h3>
+            <div className="flex gap-6 justify-center">
+              <a
+                href="https://www.instagram.com/reparation_road/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center gap-2 text-[var(--color-brand-green)] hover:opacity-80 transition-opacity"
+                aria-label="Follow us on Instagram"
+              >
+                <Instagram className="w-8 h-8" />
+                <span className="text-sm">Instagram</span>
+              </a>
+              <a
+                href="https://x.com/ReparationRoad"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center gap-2 text-[var(--color-brand-green)] hover:opacity-80 transition-opacity"
+                aria-label="Follow us on X (Twitter)"
+              >
+                <Twitter className="w-8 h-8" />
+                <span className="text-sm">X (Twitter)</span>
+              </a>
+              <a
+                href="#"
+                className="flex flex-col items-center gap-2 text-[var(--color-brand-green)] opacity-40 cursor-not-allowed"
+                aria-label="Facebook (Coming Soon)"
+                onClick={(e) => e.preventDefault()}
+              >
+                <Facebook className="w-8 h-8" />
+                <span className="text-sm">Facebook (Soon)</span>
+              </a>
+            </div>
+          </div>
         </div>
       </section>
     </ScrollReveal>

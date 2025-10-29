@@ -9,80 +9,96 @@ import { Button } from "@/components/ui/button";
 import ClaimModal from "@/components/ClaimModal";
 
 const collections = [
-  { name: "African Colonization Society", href: "/collections/acs" },
+  { name: "African Colonization Society", href: "/collections/acs", tier: "premium" },
   {
     name: "African-American Revolutionary Soldiers",
     href: "/collections/revolutionary-soldiers",
+    tier: "premium"
   },
-  { name: "Bibles and Churches Records", href: "/collections/bibles-churches" },
+  { name: "Bibles and Churches Records", href: "/collections/bibles-churches", tier: "premium" },
   {
     name: "British/Spanish/French Florida and Louisiana",
     href: "/collections/florida-louisiana",
+    tier: "premium"
   },
-  { name: "Clubs and Organizations", href: "/collections/clubs-organizations" },
-  { name: "Confederate Payrolls", href: "/collections/confederate-payrolls" },
+  { name: "Clubs and Organizations", href: "/collections/clubs-organizations", tier: "premium" },
+  { name: "Confederate Payrolls", href: "/collections/confederate-payrolls", tier: "premium" },
   {
     name: "East Indians and Native Americans in Maryland and Virginia",
     href: "/collections/east-indians-native-americans",
+    tier: "premium"
   },
-  { name: "English Bills of Exchange", href: "/collections/bills-of-exchange" },
+  { name: "English Bills of Exchange", href: "/collections/bills-of-exchange", tier: "premium" },
   {
     name: "Ex-slave Pension and Fraud Files",
     href: "/collections/ex-slave-pension",
+    tier: "premium"
   },
   {
     name: "Free Black Heads of Household, First US Census 1790",
     href: "/collections/free-black-census-1790",
+    tier: "premium"
   },
   {
     name: "Freedmen, Refugee and Contraband Records",
     href: "/collections/freedmen-refugee-contraband",
+    tier: "premium"
   },
   {
     name: "Fugitive and Slave Case Files",
     href: "/collections/fugitive-slave-cases",
+    tier: "premium"
   },
-  { name: "Inspection Roll of Negroes", href: "/collections/inspection-roll" },
-  { name: "Lost Friends in Last Seen Ads", href: "/collections/lost-friends" },
+  { name: "Inspection Roll of Negroes", href: "/collections/inspection-roll", tier: "free" },
+  { name: "Lost Friends in Last Seen Ads", href: "/collections/lost-friends", tier: "premium" },
   {
     name: "Native American Records",
     href: "/collections/native-american-records",
+    tier: "premium"
   },
   {
     name: "Passports Issued by Governors of Georgia 1785-1809",
     href: "/collections/georgia-passports",
+    tier: "premium"
   },
   {
     name: "Records of Slave Claims Commission",
     href: "/collections/slave-claims-commission",
+    tier: "premium"
   },
-  { name: "Records of the RAC and VOC", href: "/collections/rac-vlc" },
+  { name: "Records of the RAC and VOC", href: "/collections/rac-vlc", tier: "premium" },
   {
     name: "Registers of Formerly Enslaved Tennessee",
     href: "/collections/tennessee-registers",
+    tier: "premium"
   },
   {
     name: "Registers of Formerly Enslaved Mississippi",
     href: "/collections/mississippi-registers",
+    tier: "premium"
   },
-  { name: "Slave Compensation", href: "/collections/slave-compensation" },
+  { name: "Slave Compensation", href: "/collections/slave-compensation", tier: "premium" },
   {
     name: "Slave Importation Declaration",
     href: "/collections/slave-importation",
+    tier: "premium"
   },
-  { name: "Slave Narratives", href: "/collections/slave-narratives" },
-  { name: "Slave Voyages", href: "/collections/slave-voyages" },
+  { name: "Slave Narratives", href: "/collections/slave-narratives", tier: "premium" },
+  { name: "Slave Voyages", href: "/collections/slave-voyages", tier: "premium" },
   {
     name: "Southwest Georgia Obits and Burials",
     href: "/collections/southwest-georgia",
+    tier: "premium"
   },
   {
     name: "Virginia Order Books. Negro Adjudgments",
     href: "/collections/virginia-order-books",
+    tier: "premium"
   },
   {
     name: "Virginia Personal Property and Tithes Tables",
     href: "/collections/virginia-property-tithes",
+    tier: "premium"
   },
 ];
 
@@ -146,7 +162,15 @@ const SearchPage = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {collections.map((collection) => (
               <Link href={collection.href} key={collection.name}>
-                <div className="border rounded-lg p-4 flex flex-col h-full justify-center items-center text-center cursor-pointer hover:bg-gray-100">
+                <div className="border rounded-lg p-4 flex flex-col h-full justify-center items-center text-center cursor-pointer hover:bg-gray-100 relative">
+                  {/* Tier Badge */}
+                  <div className={`absolute top-2 right-2 px-2 py-1 rounded-md text-xs font-semibold ${
+                    collection.tier === 'free'
+                      ? 'bg-brand-green text-white'
+                      : 'bg-amber-500 text-white'
+                  }`}>
+                    {collection.tier === 'free' ? 'FREE' : 'PREMIUM'}
+                  </div>
                   <h3 className="text-xl font-semibold">{collection.name}</h3>
                 </div>
               </Link>
