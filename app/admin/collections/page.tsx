@@ -41,7 +41,7 @@ interface Collection {
   name: string;
   pageCount: number;
   description?: string;
-  tableType: 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'coming_soon';
+  tableType: 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'free_black_heads_of_household' | 'coming_soon';
   tableName?: string;
 }
 
@@ -128,7 +128,8 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
     slug: 'free-black-census-1790',
     name: 'Free Black Heads of Household, 1790 Census',
     description: 'First US Census free Black households',
-    tableType: 'coming_soon'
+    tableType: 'free_black_heads_of_household',
+    tableName: 'free_black_heads_of_household'
   },
   {
     slug: 'freedmen-refugee-contraband',
@@ -250,12 +251,13 @@ const AdminCollectionsPage = () => {
       setLoadingData(true);
 
       // Fetch counts for each table type
-      const [archivePagesData, compensationData, emigrantsData, censusData, revolutionaryData] = await Promise.all([
+      const [archivePagesData, compensationData, emigrantsData, censusData, revolutionaryData, freeBlackData] = await Promise.all([
         supabase.from('archive_pages').select('collection_slug'),
         supabase.from('slave_compensation_claims').select('id', { count: 'exact', head: true }),
         supabase.from('emmigrants_to_liberia').select('id', { count: 'exact', head: true }),
         supabase.from('liberation_census_rolls').select('id', { count: 'exact', head: true }),
-        supabase.from('revolutionary_soldiers').select('id', { count: 'exact', head: true })
+        supabase.from('revolutionary_soldiers').select('id', { count: 'exact', head: true }),
+        supabase.from('free_black_heads_of_household').select('id', { count: 'exact', head: true })
       ]);
 
       // Group archive_pages by collection slug
@@ -270,7 +272,8 @@ const AdminCollectionsPage = () => {
         'slave_compensation_claims': compensationData.count || 0,
         'emmigrants_to_liberia': emigrantsData.count || 0,
         'liberation_census_rolls': censusData.count || 0,
-        'revolutionary_soldiers': revolutionaryData.count || 0
+        'revolutionary_soldiers': revolutionaryData.count || 0,
+        'free_black_heads_of_household': freeBlackData.count || 0
       };
 
       // Build collections list with appropriate counts
@@ -710,7 +713,8 @@ const AdminCollectionsPage = () => {
                   (collection.tableType === 'slave_compensation_claims' ||
                     collection.tableType === 'emmigrants_to_liberia' ||
                     collection.tableType === 'liberation_census_rolls' ||
-                    collection.tableType === 'revolutionary_soldiers')
+                    collection.tableType === 'revolutionary_soldiers' ||
+                    collection.tableType === 'free_black_heads_of_household')
                 ) {
                   return (
                     <div className="bg-white rounded-lg shadow-lg p-6">
