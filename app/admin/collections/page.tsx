@@ -16,8 +16,10 @@ import {
   Image as ImageIcon,
   Upload,
   Save,
-  X
+  X,
+  Loader2
 } from 'lucide-react';
+import Image from 'next/image';
 
 interface ArchivePage {
   id: string;
@@ -233,6 +235,9 @@ const AdminCollectionsPage = () => {
   const [editingRecord, setEditingRecord] = useState<Record<string, unknown> | null>(null);
   const [editTableName, setEditTableName] = useState<string | null>(null);
   const [formData, setFormData] = useState<Record<string, unknown>>({});
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (!loading && (!user || profile?.role !== 'admin')) {
@@ -352,19 +357,92 @@ const AdminCollectionsPage = () => {
     }
   };
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image size must be less than 5MB');
+        return;
+      }
+
+      setImageFile(file);
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadImageToStorage = async (file: File, recordName: string): Promise<string> => {
+    try {
+      // Generate a unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${recordName.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.${fileExt}`;
+      const filePath = `images/${fileName}`;
+
+      // Upload to Supabase storage
+      const { data, error } = await supabase.storage
+        .from('revolutionary_soldiers')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) throw error;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('revolutionary_soldiers')
+        .getPublicUrl(data.path);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      throw new Error('Failed to upload image to storage');
+    }
+  };
+
   const handleEditRecord = (record: Record<string, unknown>, tableName: string) => {
     setEditingRecord(record);
     setEditTableName(tableName);
     setFormData({ ...record });
+
+    // Set image preview for revolutionary_soldiers
+    if (tableName === 'revolutionary_soldiers' && record.image) {
+      setImagePreview(record.image as string);
+    } else {
+      setImagePreview('');
+    }
+    setImageFile(null);
   };
 
   const handleSaveRecord = async () => {
     if (!editingRecord || !editTableName) return;
 
     try {
+      setUploading(true);
+      let updatedFormData = { ...formData };
+
+      // Handle image upload for revolutionary_soldiers
+      if (editTableName === 'revolutionary_soldiers' && imageFile) {
+        const recordName = (formData.name as string) || 'soldier';
+        const imageUrl = await uploadImageToStorage(imageFile, recordName);
+        updatedFormData = { ...updatedFormData, image: imageUrl };
+      }
+
       const { error } = await supabase
         .from(editTableName)
-        .update(formData)
+        .update(updatedFormData)
         .eq('id', editingRecord.id);
 
       if (error) throw error;
@@ -373,6 +451,8 @@ const AdminCollectionsPage = () => {
       setEditingRecord(null);
       setEditTableName(null);
       setFormData({});
+      setImageFile(null);
+      setImagePreview('');
 
       // Refresh the database records
       if (selectedCollection) {
@@ -384,6 +464,8 @@ const AdminCollectionsPage = () => {
     } catch (error) {
       console.error('Error updating record:', error);
       alert('Failed to update record');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -391,6 +473,8 @@ const AdminCollectionsPage = () => {
     setEditingRecord(null);
     setEditTableName(null);
     setFormData({});
+    setImageFile(null);
+    setImagePreview('');
   };
 
   const formatCollectionName = (slug: string): string => {
@@ -649,22 +733,44 @@ const AdminCollectionsPage = () => {
                           <p className="text-gray-500">Loading records...</p>
                         </div>
                       ) : dbRecords.length > 0 ? (
-                        <div className="overflow-x-auto">
-                          <table className="w-full">
-                            <thead className="bg-gray-50 border-b">
-                              <tr>
-                                {Object.keys(dbRecords[0]).slice(0, 5).map((key) => (
-                                  <th key={key} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    {key.replace(/_/g, ' ')}
-                                  </th>
-                                ))}
-                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                  Actions
-                                </th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-200">
-                              {dbRecords.slice(0, 50).map((record) => (
+                        (() => {
+                          // Filter database records based on search term
+                          const filteredDbRecords = dbRecords.filter(record =>
+                            Object.values(record).some(value =>
+                              value?.toString().toLowerCase().includes(searchTerm.toLowerCase())
+                            )
+                          );
+
+                          return (
+                            <>
+                              {searchTerm && (
+                                <p className="text-sm text-gray-600 mb-4">
+                                  Showing {filteredDbRecords.length} of {dbRecords.length} records
+                                </p>
+                              )}
+                              <div className="overflow-x-auto">
+                                <table className="w-full">
+                                  <thead className="bg-gray-50 border-b">
+                                    <tr>
+                                      {Object.keys(dbRecords[0]).slice(0, 5).map((key) => (
+                                        <th key={key} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                          {key.replace(/_/g, ' ')}
+                                        </th>
+                                      ))}
+                                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                        Actions
+                                      </th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-gray-200">
+                                    {filteredDbRecords.length === 0 ? (
+                                      <tr>
+                                        <td colSpan={6} className="px-4 py-12 text-center text-gray-500">
+                                          No records found matching &quot;{searchTerm}&quot;
+                                        </td>
+                                      </tr>
+                                    ) : (
+                                      filteredDbRecords.slice(0, 50).map((record) => (
                                 <tr key={String(record.id)} className="hover:bg-gray-50">
                                   {Object.values(record).slice(0, 5).map((value, idx) => (
                                     <td key={idx} className="px-4 py-3 text-sm text-gray-600">
@@ -720,14 +826,18 @@ const AdminCollectionsPage = () => {
                                       </Button>
                                     </div>
                                   </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                          <div className="mt-4 text-sm text-gray-600 text-center">
-                            Showing first 50 records • For full management, use Supabase or dedicated admin interface
-                          </div>
-                        </div>
+                                        </tr>
+                                      ))
+                                    )}
+                                  </tbody>
+                                </table>
+                                <div className="mt-4 text-sm text-gray-600 text-center">
+                                  Showing first {Math.min(filteredDbRecords.length, 50)} of {filteredDbRecords.length} filtered records
+                                </div>
+                              </div>
+                            </>
+                          );
+                        })()
                       ) : (
                         <div className="text-center py-12">
                           <p className="text-gray-500">No records found</p>
@@ -881,9 +991,65 @@ const AdminCollectionsPage = () => {
             </div>
 
             <div className="p-6">
+              {/* Image Upload Section (only for revolutionary_soldiers) */}
+              {editTableName === 'revolutionary_soldiers' && (
+                <div className="mb-6 pb-6 border-b border-gray-200">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Soldier Image
+                  </label>
+
+                  <div className="flex gap-4">
+                    {/* Image Preview */}
+                    <div className="w-48 h-48 bg-gray-100 rounded-lg overflow-hidden relative border-2 border-gray-200">
+                      {imagePreview ? (
+                        <Image
+                          src={imagePreview}
+                          alt="Preview"
+                          fill
+                          className="object-cover"
+                          sizes="192px"
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                          <ImageIcon className="w-16 h-16 text-gray-300 mb-2" />
+                          <p className="text-sm text-gray-400">No image</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Upload Button */}
+                    <div className="flex-1">
+                      <label className="cursor-pointer">
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-brand-green transition-colors text-center">
+                          <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                          <p className="text-sm font-medium text-gray-700 mb-1">
+                            Click to upload new image
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            PNG, JPG up to 5MB
+                          </p>
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageSelect}
+                          className="hidden"
+                        />
+                      </label>
+
+                      {imageFile && (
+                        <p className="text-sm text-green-600 mt-2">
+                          ✓ New image selected: {imageFile.name}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-4">
                 {Object.keys(formData)
-                  .filter((key) => key !== 'id' && key !== 'created_at' && key !== 'updated_at')
+                  .filter((key) => key !== 'id' && key !== 'created_at' && key !== 'updated_at' && key !== 'image')
                   .map((key) => (
                     <div key={key} className="col-span-2 sm:col-span-1">
                       <label className="block text-sm font-medium text-gray-700 mb-1 capitalize">
@@ -908,14 +1074,25 @@ const AdminCollectionsPage = () => {
               <div className="flex gap-3 mt-6 pt-6 border-t border-gray-200">
                 <Button
                   onClick={handleSaveRecord}
+                  disabled={uploading}
                   className="bg-brand-green hover:bg-brand-darkgreen flex items-center gap-2"
                 >
-                  <Save className="w-4 h-4" />
-                  Save Changes
+                  {uploading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" />
+                      Save Changes
+                    </>
+                  )}
                 </Button>
                 <Button
                   onClick={handleCancelEdit}
                   variant="outline"
+                  disabled={uploading}
                   className="flex items-center gap-2"
                 >
                   <X className="w-4 h-4" />
