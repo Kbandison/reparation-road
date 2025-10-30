@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, X, Heart } from "lucide-react";
+import { Menu, X, Heart, Shield, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBookmarks } from "@/contexts/BookmarkContext";
 import { UserDropdown } from "@/components/auth/UserDropdown";
@@ -17,7 +17,7 @@ export const Header = () => {
   const [showLogin, setShowLogin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const { user, loading } = useAuth();
+  const { user, profile, loading, signOut } = useAuth();
   const { bookmarks } = useBookmarks();
 
   const navLinks = [
@@ -140,22 +140,56 @@ export const Header = () => {
           )}
 
           {/* Mobile Auth */}
-          <div className="mt-4">
+          <div className="mt-4 flex flex-col items-center gap-3">
             {loading ? (
               <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse mx-auto" />
             ) : user ? (
-              <div className="text-center">
-                <p className="text-brand-brown font-medium">
-                  {user.email?.split('@')[0]}
-                </p>
+              <>
+                <div className="text-center">
+                  <p className="text-brand-brown font-medium">
+                    {user.email?.split('@')[0]}
+                  </p>
+                  {profile?.subscription_status && (
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium mt-1 ${
+                      profile.subscription_status === 'paid'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-gray-100 text-gray-800'
+                    }`}>
+                      {profile.subscription_status === 'paid' ? 'Premium' : 'Free'} Member
+                    </span>
+                  )}
+                </div>
+
                 <Link
                   href="/profile"
-                  className="text-brand-green hover:text-brand-darkgreen"
+                  className="text-xl font-medium text-brand-green hover:text-brand-darkgreen transition"
                   onClick={() => setOpen(false)}
                 >
                   View Profile
                 </Link>
-              </div>
+
+                {profile?.role === 'admin' && (
+                  <Link
+                    href="/admin"
+                    className="flex items-center gap-2 text-xl font-medium text-brand-green hover:text-brand-darkgreen transition"
+                    onClick={() => setOpen(false)}
+                  >
+                    <Shield size={24} />
+                    Admin Dashboard
+                  </Link>
+                )}
+
+                <button
+                  onClick={async () => {
+                    await signOut();
+                    setOpen(false);
+                  }}
+                  className="flex items-center gap-2 text-xl font-medium text-red-600 hover:text-red-700 transition mt-2"
+                >
+                  <LogOut size={24} />
+                  Sign Out
+                </button>
+              </>
             ) : (
               <Button
                 onClick={() => {
