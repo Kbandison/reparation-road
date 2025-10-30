@@ -39,7 +39,7 @@ interface Collection {
   name: string;
   pageCount: number;
   description?: string;
-  tableType: 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'coming_soon';
+  tableType: 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'coming_soon';
   tableName?: string;
 }
 
@@ -77,7 +77,8 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
     slug: 'revolutionary-soldiers',
     name: 'African-American Revolutionary Soldiers',
     description: 'Revolutionary War service records',
-    tableType: 'coming_soon'
+    tableType: 'revolutionary_soldiers',
+    tableName: 'revolutionary_soldiers'
   },
   {
     slug: 'bibles-churches',
@@ -244,11 +245,12 @@ const AdminCollectionsPage = () => {
       setLoadingData(true);
 
       // Fetch counts for each table type
-      const [archivePagesData, compensationData, emigrantsData, censusData] = await Promise.all([
+      const [archivePagesData, compensationData, emigrantsData, censusData, revolutionaryData] = await Promise.all([
         supabase.from('archive_pages').select('collection_slug'),
         supabase.from('slave_compensation_claims').select('id', { count: 'exact', head: true }),
         supabase.from('emmigrants_to_liberia').select('id', { count: 'exact', head: true }),
-        supabase.from('liberation_census_rolls').select('id', { count: 'exact', head: true })
+        supabase.from('liberation_census_rolls').select('id', { count: 'exact', head: true }),
+        supabase.from('revolutionary_soldiers').select('id', { count: 'exact', head: true })
       ]);
 
       // Group archive_pages by collection slug
@@ -262,7 +264,8 @@ const AdminCollectionsPage = () => {
       const tableCounts = {
         'slave_compensation_claims': compensationData.count || 0,
         'emmigrants_to_liberia': emigrantsData.count || 0,
-        'liberation_census_rolls': censusData.count || 0
+        'liberation_census_rolls': censusData.count || 0,
+        'revolutionary_soldiers': revolutionaryData.count || 0
       };
 
       // Build collections list with appropriate counts
@@ -592,7 +595,8 @@ const AdminCollectionsPage = () => {
                   collection &&
                   (collection.tableType === 'slave_compensation_claims' ||
                     collection.tableType === 'emmigrants_to_liberia' ||
-                    collection.tableType === 'liberation_census_rolls')
+                    collection.tableType === 'liberation_census_rolls' ||
+                    collection.tableType === 'revolutionary_soldiers')
                 ) {
                   return (
                     <div className="bg-white rounded-lg shadow-lg p-6">
@@ -614,6 +618,8 @@ const AdminCollectionsPage = () => {
                               router.push('/admin/collections/emigrants-to-liberia');
                             } else if (collection.slug === 'acs-liberation-census-rolls') {
                               router.push('/admin/collections/liberation-census-rolls');
+                            } else if (collection.slug === 'revolutionary-soldiers') {
+                              router.push('/admin/collections/revolutionary-soldiers');
                             }
                           }}
                           className="bg-brand-green hover:bg-brand-darkgreen flex items-center gap-2"
