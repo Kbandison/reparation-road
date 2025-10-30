@@ -786,7 +786,7 @@ const AdminCollectionsPage = () => {
                                 <table className="w-full">
                                   <thead className="bg-gray-50 border-b">
                                     <tr>
-                                      {Object.keys(dbRecords[0]).slice(0, 5).map((key) => (
+                                      {Object.keys(dbRecords[0]).filter(key => key !== 'id').slice(0, 5).map((key) => (
                                         <th key={key} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                           {key.replace(/_/g, ' ')}
                                         </th>
@@ -806,7 +806,7 @@ const AdminCollectionsPage = () => {
                                     ) : (
                                       filteredDbRecords.slice(0, 50).map((record) => (
                                 <tr key={String(record.id)} className="hover:bg-gray-50">
-                                  {Object.values(record).slice(0, 5).map((value, idx) => (
+                                  {Object.entries(record).filter(([key]) => key !== 'id').slice(0, 5).map(([, value], idx) => (
                                     <td key={idx} className="px-4 py-3 text-sm text-gray-600">
                                       {value !== null && value !== undefined ? String(value).substring(0, 50) : '-'}
                                     </td>
