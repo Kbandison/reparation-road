@@ -17,7 +17,8 @@
       "Bash(git commit:*)",
       "Read(//home/kbandison/Coding/Errors/**)",
       "Bash(npm run lint:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(Soon\" message instead of broken images.\n\nChanges:\n- Created SoldierImage component with built-in error handling\n- Added imageError state to track failed image loads\n- Implemented onError handler for Next.js Image component\n- Two display variants:\n  - Card variant: Smaller icon and text for grid cards\n  - Modal variant: Larger icon and text for detail modal\n- Fallback display features:\n  - Shield icon (16px for cards, 24px for modal)\n  - \"Image Coming Soon\" text\n  - \"Check back later\" subtitle\n  - Gradient background (gray-100 to gray-200)\n  - Rounded corners matching the container\n\nBenefits:\n- Prevents broken image icons\n- Professional placeholder appearance\n- Consistent with brand design\n- Better user experience\n- Automatically handles missing/invalid image URLs\n\nThe component gracefully degrades when images are unavailable,\nmaintaining visual consistency across the collection page.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
     ],
     "deny": [],
     "ask": []

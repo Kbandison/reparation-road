@@ -116,6 +116,50 @@ interface Soldier {
   regiment: string | null;
 }
 
+// Image component with error handling
+const SoldierImage = ({
+  soldier,
+  className,
+  sizes,
+  priority = false,
+  variant = "card"
+}: {
+  soldier: Soldier;
+  className?: string;
+  sizes?: string;
+  priority?: boolean;
+  variant?: "card" | "modal";
+}) => {
+  const [imageError, setImageError] = useState(false);
+
+  if (!soldier.image || imageError) {
+    const isModal = variant === "modal";
+    return (
+      <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg">
+        <Shield className={`${isModal ? 'w-24 h-24' : 'w-16 h-16'} text-gray-300 mb-3`} />
+        <p className={`text-gray-500 font-medium ${isModal ? 'text-lg' : 'text-sm'}`}>
+          Image Coming Soon
+        </p>
+        <p className={`text-gray-400 ${isModal ? 'text-sm mt-1' : 'text-xs mt-1'}`}>
+          Check back later
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <Image
+      src={soldier.image}
+      alt={soldier.name}
+      fill
+      className={className}
+      sizes={sizes}
+      priority={priority}
+      onError={() => setImageError(true)}
+    />
+  );
+};
+
 const RevolutionarySoldiersPage = () => {
   const [soldiers, setSoldiers] = useState<Soldier[]>([]);
   const [filteredSoldiers, setFilteredSoldiers] = useState<Soldier[]>([]);
@@ -227,19 +271,11 @@ const RevolutionarySoldiersPage = () => {
                   className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group hover:-translate-y-1"
                 >
                   <div className="relative h-64 bg-gray-100">
-                    {soldier.image ? (
-                      <Image
-                        src={soldier.image}
-                        alt={soldier.name}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                      />
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <Shield className="w-16 h-16 text-gray-300" />
-                      </div>
-                    )}
+                    <SoldierImage
+                      soldier={soldier}
+                      className="object-cover"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    />
                   </div>
                   <div className="p-4">
                     <h3 className="font-bold text-lg text-brand-brown mb-2 group-hover:text-brand-green transition-colors">
@@ -330,19 +366,13 @@ const RevolutionarySoldiersPage = () => {
 
             <div className="p-6">
               <div className="relative h-96 bg-gray-100 rounded-lg mb-6">
-                {selectedSoldier.image ? (
-                  <Image
-                    src={selectedSoldier.image}
-                    alt={selectedSoldier.name}
-                    fill
-                    className="object-contain rounded-lg"
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                  />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Shield className="w-24 h-24 text-gray-300" />
-                  </div>
-                )}
+                <SoldierImage
+                  soldier={selectedSoldier}
+                  className="object-contain rounded-lg"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  priority={true}
+                  variant="modal"
+                />
               </div>
 
               <div className="space-y-4">
