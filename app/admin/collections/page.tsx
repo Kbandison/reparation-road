@@ -390,6 +390,8 @@ const AdminCollectionsPage = () => {
       const fileName = `${recordName.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.${fileExt}`;
       const filePath = `images/${fileName}`;
 
+      console.log('Uploading image:', { fileName, filePath, fileSize: file.size });
+
       // Upload to Supabase storage
       const { data, error } = await supabase.storage
         .from('revolutionary_soldiers')
@@ -398,17 +400,41 @@ const AdminCollectionsPage = () => {
           upsert: false
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase storage error:', error);
+        throw error;
+      }
+
+      if (!data) {
+        throw new Error('No data returned from storage upload');
+      }
+
+      console.log('Upload successful:', data);
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('revolutionary_soldiers')
         .getPublicUrl(data.path);
 
+      console.log('Public URL:', publicUrl);
+
       return publicUrl;
     } catch (error) {
       console.error('Error uploading image:', error);
-      throw new Error('Failed to upload image to storage');
+
+      // Provide more specific error messages
+      if (error && typeof error === 'object' && 'message' in error) {
+        const errorMessage = (error as { message: string }).message;
+        if (errorMessage.includes('not found')) {
+          throw new Error('Storage bucket "revolutionary_soldiers" does not exist. Please create it in Supabase first.');
+        } else if (errorMessage.includes('permission') || errorMessage.includes('policy')) {
+          throw new Error('Permission denied. Please check storage bucket policies in Supabase.');
+        } else {
+          throw new Error(`Upload failed: ${errorMessage}`);
+        }
+      }
+
+      throw new Error('Failed to upload image to storage. Check console for details.');
     }
   };
 
@@ -463,7 +489,11 @@ const AdminCollectionsPage = () => {
       }
     } catch (error) {
       console.error('Error updating record:', error);
-      alert('Failed to update record');
+      if (error instanceof Error) {
+        alert(`Failed to update record: ${error.message}`);
+      } else {
+        alert('Failed to update record');
+      }
     } finally {
       setUploading(false);
     }
