@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'nviahrhrupqvwyglaxlj.supabase.co',
         port: '',
-        pathname: '/storage/v1/object/public/revolutionary_soldiers/**',
+        pathname: '/storage/v1/object/public/revolutionary-soldiers/**',
       },
     ],
     formats: ['image/webp', 'image/avif'],
