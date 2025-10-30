@@ -394,7 +394,7 @@ const AdminCollectionsPage = () => {
 
       // Upload to Supabase storage
       const { data, error } = await supabase.storage
-        .from('revolutionary_soldiers')
+        .from('revolutionary-soldiers')
         .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false
@@ -413,7 +413,7 @@ const AdminCollectionsPage = () => {
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
-        .from('revolutionary_soldiers')
+        .from('revolutionary-soldiers')
         .getPublicUrl(data.path);
 
       console.log('Public URL:', publicUrl);
@@ -426,7 +426,7 @@ const AdminCollectionsPage = () => {
       if (error && typeof error === 'object' && 'message' in error) {
         const errorMessage = (error as { message: string }).message;
         if (errorMessage.includes('not found')) {
-          throw new Error('Storage bucket "revolutionary_soldiers" does not exist. Please create it in Supabase first.');
+          throw new Error('Storage bucket "revolutionary-soldiers" does not exist. Please create it in Supabase first.');
         } else if (errorMessage.includes('permission') || errorMessage.includes('policy')) {
           throw new Error('Permission denied. Please check storage bucket policies in Supabase.');
         } else {
