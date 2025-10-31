@@ -36,6 +36,15 @@ interface ArchivePage {
   created_at: string;
 }
 
+interface SubCollection {
+  slug: string;
+  name: string;
+  pageCount?: number;
+  description?: string;
+  tableType: 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'free_black_heads_of_household' | 'enslaved_persons_alabama' | 'enslaved_catholic_kentuky' | 'coming_soon';
+  tableName?: string;
+}
+
 interface Collection {
   slug: string;
   name: string;
@@ -43,7 +52,7 @@ interface Collection {
   description?: string;
   tableType: 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'free_black_heads_of_household' | 'enslaved_persons_alabama' | 'enslaved_catholic_kentuky' | 'coming_soon';
   tableName?: string;
-  subcollections?: Omit<Collection, 'subcollections'>[];
+  subcollections?: SubCollection[];
 }
 
 // Predefined collections that should always appear
@@ -333,7 +342,7 @@ const AdminCollectionsPage = () => {
         }
 
         // Process subcollections if they exist
-        let subcollectionsWithCounts: Omit<Collection, 'subcollections'>[] | undefined;
+        let subcollectionsWithCounts: SubCollection[] | undefined;
         if (predef.subcollections) {
           subcollectionsWithCounts = predef.subcollections.map((sub) => {
             let subCount = 0;
