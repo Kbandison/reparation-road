@@ -320,8 +320,7 @@ const InspectionRollOfNegroesPage = () => {
           .select("id, collection_slug, book_no, page_no, slug, image_path, title, year, location, tags")
           .eq("collection_slug", "inspection-roll-of-negroes")
           .order("book_no", { ascending: true })
-          .order("page_no", { ascending: true })
-          .limit(50000); // High limit to ensure all records are fetched
+          .order("page_no", { ascending: true });
 
         if (error) {
           console.error("Error fetching archive pages:", error);

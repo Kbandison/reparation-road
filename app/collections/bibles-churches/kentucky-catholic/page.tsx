@@ -157,8 +157,7 @@ const KentuckyCatholicPage = () => {
         const { data, error } = await supabase
           .from("enslaved_catholic_kentuky")
           .select("*")
-          .order("baptism_date", { ascending: true })
-          .limit(50000);
+          .order("baptism_date", { ascending: true });
 
         if (error) {
           console.error("Error fetching records:", error);

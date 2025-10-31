@@ -175,8 +175,7 @@ const RevolutionarySoldiersPage = () => {
         const { data, error } = await supabase
           .from("revolutionary_soldiers")
           .select("*")
-          .order("name", { ascending: true })
-          .limit(50000);
+          .order("name", { ascending: true });
 
         if (error) {
           console.error("Error fetching soldiers:", error);

@@ -131,8 +131,7 @@ const FreeBlackCensusPage = () => {
         const { data, error } = await supabase
           .from("free_black_heads_of_household")
           .select("*")
-          .order("name", { ascending: true })
-          .limit(50000);
+          .order("name", { ascending: true });
 
         if (error) {
           console.error("Error fetching records:", error);

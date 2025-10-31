@@ -256,6 +256,8 @@ const AdminCollectionsPage = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [uploading, setUploading] = useState(false);
+  const [currentDbPage, setCurrentDbPage] = useState(1);
+  const itemsPerDbPage = 50;
 
   // Helper function to find collection including subcollections
   const findCollection = (slug: string): Collection | undefined => {
@@ -280,6 +282,11 @@ const AdminCollectionsPage = () => {
       router.push('/');
     }
   }, [user, profile, loading, router]);
+
+  // Reset page when search term changes
+  useEffect(() => {
+    setCurrentDbPage(1);
+  }, [searchTerm]);
 
   const fetchCollections = React.useCallback(async () => {
     try {
@@ -889,6 +896,12 @@ const AdminCollectionsPage = () => {
                             )
                           );
 
+                          // Pagination calculations
+                          const totalDbPages = Math.ceil(filteredDbRecords.length / itemsPerDbPage);
+                          const startDbIndex = (currentDbPage - 1) * itemsPerDbPage;
+                          const endDbIndex = startDbIndex + itemsPerDbPage;
+                          const currentDbRecords = filteredDbRecords.slice(startDbIndex, endDbIndex);
+
                           return (
                             <>
                               {searchTerm && (
@@ -932,7 +945,7 @@ const AdminCollectionsPage = () => {
                                         </td>
                                       </tr>
                                     ) : (
-                                      filteredDbRecords.map((record) => (
+                                      currentDbRecords.map((record) => (
                                 <tr key={String(record.id)} className="hover:bg-gray-50">
                                   {Object.entries(record)
                                     .filter(([key]) => {
@@ -1007,8 +1020,56 @@ const AdminCollectionsPage = () => {
                                     )}
                                   </tbody>
                                 </table>
+
+                                {/* Pagination for database records */}
+                                {totalDbPages > 1 && (
+                                  <div className="flex justify-center items-center gap-4 mt-6">
+                                    <Button
+                                      onClick={() => setCurrentDbPage(prev => Math.max(prev - 1, 1))}
+                                      disabled={currentDbPage === 1}
+                                      variant="outline"
+                                      size="sm"
+                                    >
+                                      Previous
+                                    </Button>
+
+                                    <div className="flex gap-2">
+                                      {Array.from({ length: Math.min(5, totalDbPages) }, (_, i) => {
+                                        const pageNum = currentDbPage <= 3
+                                          ? i + 1
+                                          : currentDbPage >= totalDbPages - 2
+                                          ? totalDbPages - 4 + i
+                                          : currentDbPage - 2 + i;
+
+                                        if (pageNum < 1 || pageNum > totalDbPages) return null;
+
+                                        return (
+                                          <Button
+                                            key={pageNum}
+                                            onClick={() => setCurrentDbPage(pageNum)}
+                                            variant={currentDbPage === pageNum ? "default" : "outline"}
+                                            size="sm"
+                                            className={currentDbPage === pageNum ? "bg-brand-green hover:bg-brand-darkgreen" : ""}
+                                          >
+                                            {pageNum}
+                                          </Button>
+                                        );
+                                      })}
+                                    </div>
+
+                                    <Button
+                                      onClick={() => setCurrentDbPage(prev => Math.min(prev + 1, totalDbPages))}
+                                      disabled={currentDbPage === totalDbPages}
+                                      variant="outline"
+                                      size="sm"
+                                    >
+                                      Next
+                                    </Button>
+                                  </div>
+                                )}
+
                                 <div className="mt-4 text-sm text-gray-600 text-center">
-                                  Showing first {Math.min(filteredDbRecords.length, 50)} of {filteredDbRecords.length} filtered records
+                                  Page {currentDbPage} of {totalDbPages} ({startDbIndex + 1}-{Math.min(endDbIndex, filteredDbRecords.length)} of {filteredDbRecords.length} record{filteredDbRecords.length !== 1 ? 's' : ''})
                                 </div>
                               </div>
                             </>

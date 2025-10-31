@@ -140,8 +140,7 @@ const SlaveCompensationPage = () => {
         const { data, error } = await supabase
           .from("slave_compensation_claims")
           .select("*")
-          .order("id", { ascending: true })
-          .limit(50000);
+          .order("id", { ascending: true });
 
         if (error) {
           console.error("Error fetching claims:", error);
