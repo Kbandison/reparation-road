@@ -43,7 +43,7 @@ interface Collection {
   description?: string;
   tableType: 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'free_black_heads_of_household' | 'enslaved_persons_alabama' | 'enslaved_catholic_kentuky' | 'coming_soon';
   tableName?: string;
-  subcollections?: Omit<Collection, 'pageCount' | 'subcollections'>[];
+  subcollections?: Omit<Collection, 'subcollections'>[];
 }
 
 // Predefined collections that should always appear
@@ -270,7 +270,7 @@ const AdminCollectionsPage = () => {
       if (collection.subcollections) {
         const subcollection = collection.subcollections.find((sub) => sub.slug === slug);
         if (subcollection) {
-          return { ...subcollection, pageCount: subcollection.pageCount } as Collection;
+          return subcollection as Collection;
         }
       }
     }
@@ -333,7 +333,7 @@ const AdminCollectionsPage = () => {
         }
 
         // Process subcollections if they exist
-        let subcollectionsWithCounts: Collection[] | undefined;
+        let subcollectionsWithCounts: Omit<Collection, 'subcollections'>[] | undefined;
         if (predef.subcollections) {
           subcollectionsWithCounts = predef.subcollections.map((sub) => {
             let subCount = 0;
