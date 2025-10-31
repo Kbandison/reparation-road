@@ -43,7 +43,7 @@ export const dynamic = 'force-dynamic';
 
 export default function BiblesChurchesPage() {
   const { profile } = useAuth();
-  const isPremiumOrAdmin = profile?.subscription_status === 'active' || profile?.role === 'admin';
+  const isPremiumOrAdmin = profile?.subscription_status === 'paid' || profile?.role === 'admin';
 
   return (
     <div className="min-h-screen bg-brand-beige">
