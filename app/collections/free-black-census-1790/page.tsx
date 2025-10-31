@@ -128,18 +128,34 @@ const FreeBlackCensusPage = () => {
   useEffect(() => {
     const fetchRecords = async () => {
       try {
-        const { data, error } = await supabase
-          .from("free_black_heads_of_household")
-          .select("*")
-          .order("name", { ascending: true })
-          .limit(100000);
+        let allRecords: HouseholdRecord[] = [];
+        let from = 0;
+        const batchSize = 1000;
+        let hasMore = true;
 
-        if (error) {
-          console.error("Error fetching records:", error);
-        } else {
-          setRecords(data || []);
-          setFilteredRecords(data || []);
+        while (hasMore) {
+          const { data, error } = await supabase
+            .from("free_black_heads_of_household")
+            .select("*")
+            .order("name", { ascending: true })
+            .range(from, from + batchSize - 1);
+
+          if (error) {
+            console.error("Error fetching records:", error);
+            break;
+          }
+
+          if (data && data.length > 0) {
+            allRecords = [...allRecords, ...data];
+            from += batchSize;
+            hasMore = data.length === batchSize;
+          } else {
+            hasMore = false;
+          }
         }
+
+        setRecords(allRecords);
+        setFilteredRecords(allRecords);
       } catch (error) {
         console.error("Error:", error);
       } finally {

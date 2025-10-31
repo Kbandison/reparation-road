@@ -314,21 +314,36 @@ const InspectionRollOfNegroesPage = () => {
   useEffect(() => {
     const fetchPages = async () => {
       try {
-        // Fetch all records with minimal data
-        const { data, error } = await supabase
-          .from("archive_pages")
-          .select("id, collection_slug, book_no, page_no, slug, image_path, title, year, location, tags")
-          .eq("collection_slug", "inspection-roll-of-negroes")
-          .order("book_no", { ascending: true })
-          .order("page_no", { ascending: true })
-          .limit(100000);
+        let allPages: ArchivePage[] = [];
+        let from = 0;
+        const batchSize = 1000;
+        let hasMore = true;
 
-        if (error) {
-          console.error("Error fetching archive pages:", error);
-        } else {
-          setPages(data || []);
-          setFilteredPages(data || []);
+        while (hasMore) {
+          const { data, error } = await supabase
+            .from("archive_pages")
+            .select("id, collection_slug, book_no, page_no, slug, image_path, title, year, location, tags")
+            .eq("collection_slug", "inspection-roll-of-negroes")
+            .order("book_no", { ascending: true })
+            .order("page_no", { ascending: true })
+            .range(from, from + batchSize - 1);
+
+          if (error) {
+            console.error("Error fetching archive pages:", error);
+            break;
+          }
+
+          if (data && data.length > 0) {
+            allPages = [...allPages, ...data];
+            from += batchSize;
+            hasMore = data.length === batchSize;
+          } else {
+            hasMore = false;
+          }
         }
+
+        setPages(allPages);
+        setFilteredPages(allPages);
       } catch (error) {
         console.error("Error:", error);
       } finally {

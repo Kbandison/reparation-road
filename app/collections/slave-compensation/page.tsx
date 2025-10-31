@@ -137,18 +137,34 @@ const SlaveCompensationPage = () => {
   useEffect(() => {
     const fetchClaims = async () => {
       try {
-        const { data, error } = await supabase
-          .from("slave_compensation_claims")
-          .select("*")
-          .order("id", { ascending: true })
-          .limit(100000);
+        let allClaims: Claim[] = [];
+        let from = 0;
+        const batchSize = 1000;
+        let hasMore = true;
 
-        if (error) {
-          console.error("Error fetching claims:", error);
-        } else {
-          setClaims(data || []);
-          setFilteredClaims(data || []);
+        while (hasMore) {
+          const { data, error } = await supabase
+            .from("slave_compensation_claims")
+            .select("*")
+            .order("id", { ascending: true })
+            .range(from, from + batchSize - 1);
+
+          if (error) {
+            console.error("Error fetching claims:", error);
+            break;
+          }
+
+          if (data && data.length > 0) {
+            allClaims = [...allClaims, ...data];
+            from += batchSize;
+            hasMore = data.length === batchSize;
+          } else {
+            hasMore = false;
+          }
         }
+
+        setClaims(allClaims);
+        setFilteredClaims(allClaims);
       } catch (error) {
         console.error("Error:", error);
       } finally {

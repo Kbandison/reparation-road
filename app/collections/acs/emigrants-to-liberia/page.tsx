@@ -137,19 +137,35 @@ const EmigrantsToLiberiaPage = () => {
   useEffect(() => {
     const fetchEmigrants = async () => {
       try {
-        const { data, error } = await supabase
-          .from("emmigrants_to_liberia")
-          .select("*")
-          .order("id", { ascending: true })
-          .limit(100000);
+        let allEmigrants: Emigrant[] = [];
+        let from = 0;
+        const batchSize = 1000;
+        let hasMore = true;
 
-        if (error) {
-          console.error("Error fetching emigrants:", error);
-          setError("Failed to load emigrants data. Please try again later.");
-        } else {
-          setEmigrants(data || []);
-          setFilteredEmigrants(data || []);
+        while (hasMore) {
+          const { data, error } = await supabase
+            .from("emmigrants_to_liberia")
+            .select("*")
+            .order("id", { ascending: true })
+            .range(from, from + batchSize - 1);
+
+          if (error) {
+            console.error("Error fetching emigrants:", error);
+            setError("Failed to load emigrants data. Please try again later.");
+            break;
+          }
+
+          if (data && data.length > 0) {
+            allEmigrants = [...allEmigrants, ...data];
+            from += batchSize;
+            hasMore = data.length === batchSize;
+          } else {
+            hasMore = false;
+          }
         }
+
+        setEmigrants(allEmigrants);
+        setFilteredEmigrants(allEmigrants);
       } catch (error) {
         console.error("Error:", error);
         setError("Failed to connect to database. Please try again later.");

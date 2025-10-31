@@ -186,19 +186,35 @@ const LiberationCensusRollsPage = () => {
   useEffect(() => {
     const fetchRecords = async () => {
       try {
-        const { data, error } = await supabase
-          .from("liberation_census_rolls")
-          .select("*")
-          .order("id", { ascending: true })
-          .limit(100000);
+        let allRecords: CensusRecord[] = [];
+        let from = 0;
+        const batchSize = 1000;
+        let hasMore = true;
 
-        if (error) {
-          console.error("Error fetching census records:", error);
-          setError("Failed to load census records. Please try again later.");
-        } else {
-          setRecords(data || []);
-          setFilteredRecords(data || []);
+        while (hasMore) {
+          const { data, error } = await supabase
+            .from("liberation_census_rolls")
+            .select("*")
+            .order("id", { ascending: true })
+            .range(from, from + batchSize - 1);
+
+          if (error) {
+            console.error("Error fetching census records:", error);
+            setError("Failed to load census records. Please try again later.");
+            break;
+          }
+
+          if (data && data.length > 0) {
+            allRecords = [...allRecords, ...data];
+            from += batchSize;
+            hasMore = data.length === batchSize;
+          } else {
+            hasMore = false;
+          }
         }
+
+        setRecords(allRecords);
+        setFilteredRecords(allRecords);
       } catch (error) {
         console.error("Error:", error);
         setError("Failed to connect to database. Please try again later.");

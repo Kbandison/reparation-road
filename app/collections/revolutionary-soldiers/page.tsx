@@ -172,18 +172,34 @@ const RevolutionarySoldiersPage = () => {
   useEffect(() => {
     const fetchSoldiers = async () => {
       try {
-        const { data, error } = await supabase
-          .from("revolutionary_soldiers")
-          .select("*")
-          .order("name", { ascending: true })
-          .limit(100000);
+        let allSoldiers: Soldier[] = [];
+        let from = 0;
+        const batchSize = 1000;
+        let hasMore = true;
 
-        if (error) {
-          console.error("Error fetching soldiers:", error);
-        } else {
-          setSoldiers(data || []);
-          setFilteredSoldiers(data || []);
+        while (hasMore) {
+          const { data, error } = await supabase
+            .from("revolutionary_soldiers")
+            .select("*")
+            .order("name", { ascending: true })
+            .range(from, from + batchSize - 1);
+
+          if (error) {
+            console.error("Error fetching soldiers:", error);
+            break;
+          }
+
+          if (data && data.length > 0) {
+            allSoldiers = [...allSoldiers, ...data];
+            from += batchSize;
+            hasMore = data.length === batchSize;
+          } else {
+            hasMore = false;
+          }
         }
+
+        setSoldiers(allSoldiers);
+        setFilteredSoldiers(allSoldiers);
       } catch (error) {
         console.error("Error:", error);
       } finally {
