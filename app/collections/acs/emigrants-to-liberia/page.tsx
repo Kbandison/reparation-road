@@ -140,7 +140,8 @@ const EmigrantsToLiberiaPage = () => {
         const { data, error } = await supabase
           .from("emmigrants_to_liberia")
           .select("*")
-          .order("id", { ascending: true });
+          .order("id", { ascending: true })
+          .limit(50000);
 
         if (error) {
           console.error("Error fetching emigrants:", error);

@@ -189,7 +189,8 @@ const LiberationCensusRollsPage = () => {
         const { data, error } = await supabase
           .from("liberation_census_rolls")
           .select("*")
-          .order("id", { ascending: true });
+          .order("id", { ascending: true })
+          .limit(50000);
 
         if (error) {
           console.error("Error fetching census records:", error);

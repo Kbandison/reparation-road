@@ -43,6 +43,7 @@ interface Collection {
   description?: string;
   tableType: 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'free_black_heads_of_household' | 'enslaved_persons_alabama' | 'enslaved_catholic_kentuky' | 'coming_soon';
   tableName?: string;
+  subcollections?: Omit<Collection, 'pageCount' | 'subcollections'>[];
 }
 
 // Predefined collections that should always appear
@@ -86,7 +87,23 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
     slug: 'bibles-churches',
     name: 'Bibles and Churches Records',
     description: 'Historical church and Bible records',
-    tableType: 'coming_soon'
+    tableType: 'coming_soon',
+    subcollections: [
+      {
+        slug: 'alabama-episcopal',
+        name: 'Alabama Episcopal Registers',
+        description: 'Enslaved persons mentioned in Alabama Episcopal church records',
+        tableType: 'enslaved_persons_alabama',
+        tableName: 'enslaved_persons_alabama'
+      },
+      {
+        slug: 'kentucky-catholic',
+        name: 'Kentucky Catholic Church Records',
+        description: 'Enslaved persons in Kentucky Catholic baptism records',
+        tableType: 'enslaved_catholic_kentuky',
+        tableName: 'enslaved_catholic_kentuky'
+      }
+    ]
   },
   {
     slug: 'florida-louisiana',
@@ -240,6 +257,24 @@ const AdminCollectionsPage = () => {
   const [imagePreview, setImagePreview] = useState<string>('');
   const [uploading, setUploading] = useState(false);
 
+  // Helper function to find collection including subcollections
+  const findCollection = (slug: string): Collection | undefined => {
+    // First search in main collections
+    const mainCollection = collections.find((c) => c.slug === slug);
+    if (mainCollection) return mainCollection;
+
+    // If not found, search in subcollections
+    for (const collection of collections) {
+      if (collection.subcollections) {
+        const subcollection = collection.subcollections.find((sub) => sub.slug === slug);
+        if (subcollection) {
+          return { ...subcollection, pageCount: subcollection.pageCount } as Collection;
+        }
+      }
+    }
+    return undefined;
+  };
+
   useEffect(() => {
     if (!loading && (!user || profile?.role !== 'admin')) {
       router.push('/');
@@ -290,9 +325,27 @@ const AdminCollectionsPage = () => {
           count = tableCounts[predef.tableName as keyof typeof tableCounts];
         }
 
+        // Process subcollections if they exist
+        let subcollectionsWithCounts: Collection[] | undefined;
+        if (predef.subcollections) {
+          subcollectionsWithCounts = predef.subcollections.map((sub) => {
+            let subCount = 0;
+            if (sub.tableType === 'archive_pages') {
+              subCount = archiveMap.get(sub.slug) || 0;
+            } else if (sub.tableName && sub.tableName in tableCounts) {
+              subCount = tableCounts[sub.tableName as keyof typeof tableCounts];
+            }
+            return {
+              ...sub,
+              pageCount: subCount
+            };
+          });
+        }
+
         return {
           ...predef,
           pageCount: count,
+          subcollections: subcollectionsWithCounts
         };
       });
 
@@ -489,7 +542,7 @@ const AdminCollectionsPage = () => {
 
       // Refresh the database records
       if (selectedCollection) {
-        const collection = collections.find((c) => c.slug === selectedCollection);
+        const collection = findCollection(selectedCollection);
         if (collection?.tableName) {
           await fetchDatabaseRecords(collection.tableName);
         }
@@ -523,7 +576,7 @@ const AdminCollectionsPage = () => {
 
   const handleSelectCollection = (slug: string) => {
     setSelectedCollection(slug);
-    const collection = collections.find(c => c.slug === slug);
+    const collection = findCollection(slug);
 
     if (!collection) return;
 
@@ -620,62 +673,117 @@ const AdminCollectionsPage = () => {
 
               <div className="space-y-2">
                 {collections.map((collection) => (
-                  <button
-                    key={collection.slug}
-                    onClick={() => handleSelectCollection(collection.slug)}
-                    className={`w-full text-left p-3 rounded-lg transition-colors ${
-                      selectedCollection === collection.slug
-                        ? 'bg-brand-green text-white'
-                        : 'bg-gray-50 hover:bg-gray-100 text-brand-brown'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 pr-2">
-                        <div className="flex items-center gap-2 mb-1">
-                          <p className="font-medium">{collection.name}</p>
-                          {collection.tableType !== 'archive_pages' && collection.tableType !== 'coming_soon' && (
-                            <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${
-                              selectedCollection === collection.slug
-                                ? 'bg-white/20 text-white'
-                                : 'bg-blue-100 text-blue-700'
-                            }`}>
-                              DB
-                            </span>
+                  <div key={collection.slug}>
+                    <button
+                      onClick={() => handleSelectCollection(collection.slug)}
+                      className={`w-full text-left p-3 rounded-lg transition-colors ${
+                        selectedCollection === collection.slug
+                          ? 'bg-brand-green text-white'
+                          : 'bg-gray-50 hover:bg-gray-100 text-brand-brown'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 pr-2">
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="font-medium">{collection.name}</p>
+                            {collection.tableType !== 'archive_pages' && collection.tableType !== 'coming_soon' && (
+                              <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${
+                                selectedCollection === collection.slug
+                                  ? 'bg-white/20 text-white'
+                                  : 'bg-blue-100 text-blue-700'
+                              }`}>
+                                DB
+                              </span>
+                            )}
+                            {collection.tableType === 'coming_soon' && (
+                              <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${
+                                selectedCollection === collection.slug
+                                  ? 'bg-white/20 text-white'
+                                  : 'bg-gray-200 text-gray-600'
+                              }`}>
+                                Soon
+                              </span>
+                            )}
+                          </div>
+                          {collection.description && (
+                            <p
+                              className={`text-xs mt-1 ${
+                                selectedCollection === collection.slug
+                                  ? 'text-white/70'
+                                  : 'text-gray-400'
+                              }`}
+                            >
+                              {collection.description}
+                            </p>
                           )}
-                          {collection.tableType === 'coming_soon' && (
-                            <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${
-                              selectedCollection === collection.slug
-                                ? 'bg-white/20 text-white'
-                                : 'bg-gray-200 text-gray-600'
-                            }`}>
-                              Soon
-                            </span>
-                          )}
-                        </div>
-                        {collection.description && (
                           <p
                             className={`text-xs mt-1 ${
                               selectedCollection === collection.slug
-                                ? 'text-white/70'
-                                : 'text-gray-400'
+                                ? 'text-white/80'
+                                : 'text-gray-500'
                             }`}
                           >
-                            {collection.description}
+                            {collection.pageCount} {collection.tableType === 'archive_pages' ? 'page' : 'record'}{collection.pageCount !== 1 ? 's' : ''}
                           </p>
-                        )}
-                        <p
-                          className={`text-xs mt-1 ${
-                            selectedCollection === collection.slug
-                              ? 'text-white/80'
-                              : 'text-gray-500'
-                          }`}
-                        >
-                          {collection.pageCount} {collection.tableType === 'archive_pages' ? 'page' : 'record'}{collection.pageCount !== 1 ? 's' : ''}
-                        </p>
+                        </div>
+                        <FileText className="w-5 h-5 flex-shrink-0 mt-1" />
                       </div>
-                      <FileText className="w-5 h-5 flex-shrink-0 mt-1" />
-                    </div>
-                  </button>
+                    </button>
+
+                    {/* Render subcollections if they exist */}
+                    {collection.subcollections && collection.subcollections.length > 0 && (
+                      <div className="ml-4 mt-1 space-y-1">
+                        {collection.subcollections.map((subcollection) => (
+                          <button
+                            key={subcollection.slug}
+                            onClick={() => handleSelectCollection(subcollection.slug)}
+                            className={`w-full text-left p-2 rounded-lg transition-colors text-sm ${
+                              selectedCollection === subcollection.slug
+                                ? 'bg-brand-green text-white'
+                                : 'bg-gray-100 hover:bg-gray-200 text-brand-brown'
+                            }`}
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1 pr-2">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <p className="font-medium">{subcollection.name}</p>
+                                  {subcollection.tableType !== 'archive_pages' && subcollection.tableType !== 'coming_soon' && (
+                                    <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${
+                                      selectedCollection === subcollection.slug
+                                        ? 'bg-white/20 text-white'
+                                        : 'bg-blue-100 text-blue-700'
+                                    }`}>
+                                      DB
+                                    </span>
+                                  )}
+                                </div>
+                                {subcollection.description && (
+                                  <p
+                                    className={`text-xs mt-1 ${
+                                      selectedCollection === subcollection.slug
+                                        ? 'text-white/70'
+                                        : 'text-gray-400'
+                                    }`}
+                                  >
+                                    {subcollection.description}
+                                  </p>
+                                )}
+                                <p
+                                  className={`text-xs mt-1 ${
+                                    selectedCollection === subcollection.slug
+                                      ? 'text-white/80'
+                                      : 'text-gray-500'
+                                  }`}
+                                >
+                                  {subcollection.pageCount} record{subcollection.pageCount !== 1 ? 's' : ''}
+                                </p>
+                              </div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 ))}
 
                 {collections.length === 0 && (
@@ -689,7 +797,7 @@ const AdminCollectionsPage = () => {
           <div className="lg:col-span-2">
             {selectedCollection ? (
               (() => {
-                const collection = collections.find((c) => c.slug === selectedCollection);
+                const collection = findCollection(selectedCollection);
 
                 // Show "Coming Soon" message
                 if (collection?.tableType === 'coming_soon') {
@@ -792,11 +900,25 @@ const AdminCollectionsPage = () => {
                                 <table className="w-full">
                                   <thead className="bg-gray-50 border-b">
                                     <tr>
-                                      {Object.keys(dbRecords[0]).filter(key => key !== 'id').slice(0, 5).map((key) => (
-                                        <th key={key} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                          {key.replace(/_/g, ' ')}
+                                      {Object.keys(dbRecords[0])
+                                        .filter(key => {
+                                          // Filter out 'id' and 'image' for revolutionary_soldiers
+                                          if (collection.tableType === 'revolutionary_soldiers') {
+                                            return key !== 'id' && key !== 'image';
+                                          }
+                                          return key !== 'id';
+                                        })
+                                        .slice(0, 5)
+                                        .map((key) => (
+                                          <th key={key} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                            {key.replace(/_/g, ' ')}
+                                          </th>
+                                        ))}
+                                      {collection.tableType === 'revolutionary_soldiers' && (
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                          Has Image
                                         </th>
-                                      ))}
+                                      )}
                                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                         Actions
                                       </th>
@@ -805,18 +927,32 @@ const AdminCollectionsPage = () => {
                                   <tbody className="divide-y divide-gray-200">
                                     {filteredDbRecords.length === 0 ? (
                                       <tr>
-                                        <td colSpan={6} className="px-4 py-12 text-center text-gray-500">
+                                        <td colSpan={collection.tableType === 'revolutionary_soldiers' ? 7 : 6} className="px-4 py-12 text-center text-gray-500">
                                           No records found matching &quot;{searchTerm}&quot;
                                         </td>
                                       </tr>
                                     ) : (
-                                      filteredDbRecords.slice(0, 50).map((record) => (
+                                      filteredDbRecords.map((record) => (
                                 <tr key={String(record.id)} className="hover:bg-gray-50">
-                                  {Object.entries(record).filter(([key]) => key !== 'id').slice(0, 5).map(([, value], idx) => (
-                                    <td key={idx} className="px-4 py-3 text-sm text-gray-600">
-                                      {value !== null && value !== undefined ? String(value).substring(0, 50) : '-'}
+                                  {Object.entries(record)
+                                    .filter(([key]) => {
+                                      // Filter out 'id' and 'image' for revolutionary_soldiers
+                                      if (collection.tableType === 'revolutionary_soldiers') {
+                                        return key !== 'id' && key !== 'image';
+                                      }
+                                      return key !== 'id';
+                                    })
+                                    .slice(0, 5)
+                                    .map(([, value], idx) => (
+                                      <td key={idx} className="px-4 py-3 text-sm text-gray-600">
+                                        {value !== null && value !== undefined ? String(value).substring(0, 50) : '-'}
+                                      </td>
+                                    ))}
+                                  {collection.tableType === 'revolutionary_soldiers' && (
+                                    <td className="px-4 py-3 text-sm text-gray-600 font-semibold">
+                                      {record.image ? 'Y' : 'N'}
                                     </td>
-                                  ))}
+                                  )}
                                   <td className="px-4 py-3 text-sm">
                                     <div className="flex gap-2">
                                       <Button
