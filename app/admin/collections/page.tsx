@@ -408,11 +408,15 @@ const AdminCollectionsPage = () => {
   const fetchDatabaseRecords = async (tableName: string) => {
     try {
       setDbLoading(true);
+
+      // Kentucky Catholic table uses 'page' as identifier, not 'id'
+      const orderColumn = tableName === 'enslaved_catholic_kentuky' ? 'baptism_date' : 'id';
+
       const { data, error } = await supabase
         .from(tableName)
         .select('*')
-        .order('id', { ascending: true })
-        .limit(50); // Limit to first 50 records
+        .order(orderColumn, { ascending: true })
+        .limit(100000);
 
       if (error) throw error;
       setDbRecords(data || []);
