@@ -18,6 +18,8 @@ const MembershipPage = () => {
     "Access general historical information",
     "Access to Forum",
     "Access to Inspection Roll of Negroes collection",
+    "Access to African-American Revolutionary Soldiers collection",
+    "Access to Free Black Heads of Household (1790 Census) collection",
     "Create an account",
     "Basic customer support",
   ];

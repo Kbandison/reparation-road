@@ -382,7 +382,7 @@ const FreeBlackCensusPage = () => {
 
 const WrappedFreeBlackCensusPage = () => {
   return (
-    <ProtectedRoute requiresPaid={true} fallback={<UpgradePrompt />}>
+    <ProtectedRoute requiresPaid={false} fallback={<UpgradePrompt />}>
       <FreeBlackCensusPage />
     </ProtectedRoute>
   );

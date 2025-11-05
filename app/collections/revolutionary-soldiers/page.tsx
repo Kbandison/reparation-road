@@ -427,7 +427,7 @@ const RevolutionarySoldiersPage = () => {
 
 const WrappedRevolutionarySoldiersPage = () => {
   return (
-    <ProtectedRoute requiresPaid={true} fallback={<UpgradePrompt />}>
+    <ProtectedRoute requiresPaid={false} fallback={<UpgradePrompt />}>
       <RevolutionarySoldiersPage />
     </ProtectedRoute>
   );
