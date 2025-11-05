@@ -15,7 +15,7 @@ const collections = [
   {
     name: "African-American Revolutionary Soldiers",
     href: "/collections/revolutionary-soldiers",
-    tier: "premium",
+    tier: "free",
     description: "Black patriots who fought for American independence"
   },
   { name: "Bibles and Churches Records", href: "/collections/bibles-churches", tier: "premium", description: "Church records and Bible inscriptions" },
@@ -43,7 +43,7 @@ const collections = [
   {
     name: "Free Black Heads of Household, First US Census 1790",
     href: "/collections/free-black-census-1790",
-    tier: "premium",
+    tier: "free",
     description: "Early census documentation of free Black families"
   },
   {
@@ -164,7 +164,7 @@ const CollectionPage = () => {
           <div className="max-w-4xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-white text-sm font-semibold mb-6">
               <Sparkles className="w-4 h-4" />
-              27 Historical Collections
+              3 Free + 24 Premium Collections
             </div>
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
               Discover Your Heritage
