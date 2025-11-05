@@ -118,7 +118,39 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
     slug: 'florida-louisiana',
     name: 'British/Spanish/French Florida and Louisiana',
     description: 'Colonial records from Florida and Louisiana',
-    tableType: 'coming_soon'
+    tableType: 'coming_soon',
+    subcollections: [
+      {
+        slug: 'colored-baptisms-1784-1793',
+        name: 'Colored Baptisms 1784-1793 (Diocese of St Augustine)',
+        description: 'Baptism records of colored individuals from the Diocese of St Augustine spanning 1784-1793',
+        tableType: 'coming_soon'
+      },
+      {
+        slug: 'colored-baptisms-1807-1848',
+        name: 'Colored Baptisms 1807-1848 (Diocese of St Augustine)',
+        description: 'Baptism records of colored individuals from the Diocese of St Augustine spanning 1807-1848',
+        tableType: 'coming_soon'
+      },
+      {
+        slug: 'colored-deaths-1785-1821',
+        name: 'Colored Deaths 1785-1821 (Diocese of St Augustine)',
+        description: 'Death records of colored individuals from the Diocese of St Augustine spanning 1785-1821',
+        tableType: 'coming_soon'
+      },
+      {
+        slug: 'colored-marriages-1784-1882',
+        name: 'Colored Marriages 1784-1882 (Diocese of St Augustine)',
+        description: 'Marriage records of colored individuals from the Diocese of St Augustine spanning 1784-1882',
+        tableType: 'coming_soon'
+      },
+      {
+        slug: 'mixed-baptisms-1793-1807',
+        name: 'Mixed Baptisms 1793-1807 (Diocese of St Augustine)',
+        description: 'Mixed baptism records from the Diocese of St Augustine spanning 1793-1807',
+        tableType: 'coming_soon'
+      }
+    ]
   },
   {
     slug: 'clubs-organizations',
@@ -148,7 +180,51 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
     slug: 'ex-slave-pension',
     name: 'Ex-slave Pension and Fraud Files',
     description: 'Pension applications and related documents',
-    tableType: 'coming_soon'
+    tableType: 'coming_soon',
+    subcollections: [
+      {
+        slug: 'case-files-formerly-enslaved',
+        name: 'Case Files Concerning the Formerly Enslaved',
+        description: 'Individual case files related to pension claims by formerly enslaved persons',
+        tableType: 'coming_soon'
+      },
+      {
+        slug: 'national-ex-slave-relief',
+        name: 'Case Files: National Ex-Slave Mutual Relief Assn. of the US',
+        description: 'Case files from the National Ex-Slave Mutual Relief Association pension fraud investigation',
+        tableType: 'coming_soon'
+      },
+      {
+        slug: 'correspondence-1892-1898',
+        name: 'Chronological Correspondence: 1892-1898',
+        description: 'Correspondence related to ex-slave pension fraud investigations from 1892-1898',
+        tableType: 'coming_soon'
+      },
+      {
+        slug: 'correspondence-1899-1904',
+        name: 'Chronological Correspondence: 1899-1904',
+        description: 'Correspondence related to ex-slave pension fraud investigations from 1899-1904',
+        tableType: 'coming_soon'
+      },
+      {
+        slug: 'correspondence-1905-1909',
+        name: 'Chronological Correspondence: 1905-1909',
+        description: 'Correspondence related to ex-slave pension fraud investigations from 1905-1909',
+        tableType: 'coming_soon'
+      },
+      {
+        slug: 'correspondence-1910-1917',
+        name: 'Chronological Correspondence: 1910-1917',
+        description: 'Correspondence related to ex-slave pension fraud investigations from 1910-1917',
+        tableType: 'coming_soon'
+      },
+      {
+        slug: 'correspondence-1918-1922',
+        name: 'Chronological Correspondence: 1918-1922',
+        description: 'Correspondence related to ex-slave pension fraud investigations from 1918-1922',
+        tableType: 'coming_soon'
+      }
+    ]
   },
   {
     slug: 'free-black-census-1790',
@@ -173,13 +249,115 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
     slug: 'lost-friends',
     name: 'Lost Friends in Last Seen Ads',
     description: 'Historical missing persons advertisements',
-    tableType: 'coming_soon'
+    tableType: 'coming_soon',
+    subcollections: [
+      { slug: 'alabama', name: 'Alabama', tableType: 'coming_soon' },
+      { slug: 'alaska', name: 'Alaska', tableType: 'coming_soon' },
+      { slug: 'arizona', name: 'Arizona', tableType: 'coming_soon' },
+      { slug: 'arkansas', name: 'Arkansas', tableType: 'coming_soon' },
+      { slug: 'california', name: 'California', tableType: 'coming_soon' },
+      { slug: 'colorado', name: 'Colorado', tableType: 'coming_soon' },
+      { slug: 'connecticut', name: 'Connecticut', tableType: 'coming_soon' },
+      { slug: 'delaware', name: 'Delaware', tableType: 'coming_soon' },
+      { slug: 'florida', name: 'Florida', tableType: 'coming_soon' },
+      { slug: 'georgia', name: 'Georgia', tableType: 'coming_soon' },
+      { slug: 'hawaii', name: 'Hawaii', tableType: 'coming_soon' },
+      { slug: 'idaho', name: 'Idaho', tableType: 'coming_soon' },
+      { slug: 'illinois', name: 'Illinois', tableType: 'coming_soon' },
+      { slug: 'indiana', name: 'Indiana', tableType: 'coming_soon' },
+      { slug: 'iowa', name: 'Iowa', tableType: 'coming_soon' },
+      { slug: 'kansas', name: 'Kansas', tableType: 'coming_soon' },
+      { slug: 'kentucky', name: 'Kentucky', tableType: 'coming_soon' },
+      { slug: 'louisiana', name: 'Louisiana', tableType: 'coming_soon' },
+      { slug: 'maine', name: 'Maine', tableType: 'coming_soon' },
+      { slug: 'maryland', name: 'Maryland', tableType: 'coming_soon' },
+      { slug: 'massachusetts', name: 'Massachusetts', tableType: 'coming_soon' },
+      { slug: 'michigan', name: 'Michigan', tableType: 'coming_soon' },
+      { slug: 'minnesota', name: 'Minnesota', tableType: 'coming_soon' },
+      { slug: 'mississippi', name: 'Mississippi', tableType: 'coming_soon' },
+      { slug: 'missouri', name: 'Missouri', tableType: 'coming_soon' },
+      { slug: 'montana', name: 'Montana', tableType: 'coming_soon' },
+      { slug: 'nebraska', name: 'Nebraska', tableType: 'coming_soon' },
+      { slug: 'nevada', name: 'Nevada', tableType: 'coming_soon' },
+      { slug: 'new-hampshire', name: 'New Hampshire', tableType: 'coming_soon' },
+      { slug: 'new-jersey', name: 'New Jersey', tableType: 'coming_soon' },
+      { slug: 'new-mexico', name: 'New Mexico', tableType: 'coming_soon' },
+      { slug: 'new-york', name: 'New York', tableType: 'coming_soon' },
+      { slug: 'north-carolina', name: 'North Carolina', tableType: 'coming_soon' },
+      { slug: 'north-dakota', name: 'North Dakota', tableType: 'coming_soon' },
+      { slug: 'ohio', name: 'Ohio', tableType: 'coming_soon' },
+      { slug: 'oklahoma', name: 'Oklahoma', tableType: 'coming_soon' },
+      { slug: 'oregon', name: 'Oregon', tableType: 'coming_soon' },
+      { slug: 'pennsylvania', name: 'Pennsylvania', tableType: 'coming_soon' },
+      { slug: 'rhode-island', name: 'Rhode Island', tableType: 'coming_soon' },
+      { slug: 'south-carolina', name: 'South Carolina', tableType: 'coming_soon' },
+      { slug: 'south-dakota', name: 'South Dakota', tableType: 'coming_soon' },
+      { slug: 'tennessee', name: 'Tennessee', tableType: 'coming_soon' },
+      { slug: 'texas', name: 'Texas', tableType: 'coming_soon' },
+      { slug: 'utah', name: 'Utah', tableType: 'coming_soon' },
+      { slug: 'vermont', name: 'Vermont', tableType: 'coming_soon' },
+      { slug: 'virginia', name: 'Virginia', tableType: 'coming_soon' },
+      { slug: 'washington', name: 'Washington', tableType: 'coming_soon' },
+      { slug: 'west-virginia', name: 'West Virginia', tableType: 'coming_soon' },
+      { slug: 'wisconsin', name: 'Wisconsin', tableType: 'coming_soon' },
+      { slug: 'wyoming', name: 'Wyoming', tableType: 'coming_soon' }
+    ]
   },
   {
     slug: 'native-american-records',
     name: 'Native American Records',
     description: 'Indigenous peoples historical documents',
-    tableType: 'coming_soon'
+    tableType: 'coming_soon',
+    subcollections: [
+      {
+        slug: 'enslaved-fleeing-to-indian-country',
+        name: 'Enslaved people fleeing to American Indian country',
+        description: 'Records of enslaved persons who escaped to Native American territories',
+        tableType: 'coming_soon'
+      },
+      {
+        slug: 'baker-dawes',
+        name: 'Baker & Dawes',
+        description: 'Baker Roll and Dawes Commission records for Native American enrollment',
+        tableType: 'coming_soon'
+      },
+      {
+        slug: 'chickasaw-removal-1837-1847',
+        name: 'Chickasaw Removal Records 1837-1847',
+        description: 'Records documenting the forced removal of Chickasaw Nation members',
+        tableType: 'coming_soon'
+      },
+      {
+        slug: 'choctaw-other-freedmen',
+        name: 'Choctaw & Other Freedmen',
+        description: 'Records of freedmen associated with the Choctaw Nation and other tribes',
+        tableType: 'coming_soon'
+      },
+      {
+        slug: 'creek-census-1832',
+        name: 'Creek Census 1832 (Parsons Abbott Roll)',
+        description: 'Census of Creek Nation members conducted in 1832',
+        tableType: 'coming_soon'
+      },
+      {
+        slug: 'early-cherokee-census',
+        name: 'Early Cherokee Census',
+        description: 'Early census records of the Cherokee Nation',
+        tableType: 'coming_soon'
+      },
+      {
+        slug: 'letters-indian-affairs',
+        name: 'Letters related to Indian Affairs',
+        description: 'Correspondence and documents related to Native American affairs',
+        tableType: 'coming_soon'
+      },
+      {
+        slug: 'non-federal-tribal-info',
+        name: 'Non-Federally Recognized Tribal Info',
+        description: 'Information about tribes not recognized by the federal government',
+        tableType: 'coming_soon'
+      }
+    ]
   },
   {
     slug: 'georgia-passports',
@@ -245,7 +423,39 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
     slug: 'virginia-property-tithes',
     name: 'Virginia Personal Property and Tithes Tables',
     description: 'Property and tax records',
-    tableType: 'coming_soon'
+    tableType: 'coming_soon',
+    subcollections: [
+      {
+        slug: 'chesterfield-county-1747-1821',
+        name: 'Chesterfield County 1747-1821',
+        description: 'Personal property and tithe records from Chesterfield County spanning 1747-1821',
+        tableType: 'coming_soon'
+      },
+      {
+        slug: 'franklin-county',
+        name: 'Franklin County',
+        description: 'Personal property and tithe records from Franklin County, Virginia',
+        tableType: 'coming_soon'
+      },
+      {
+        slug: 'hanover-county-1782-1786',
+        name: 'Hanover County 1782-1786',
+        description: 'Personal property and tithe records from Hanover County spanning 1782-1786',
+        tableType: 'coming_soon'
+      },
+      {
+        slug: 'lancaster-county',
+        name: 'Lancaster County',
+        description: 'Personal property and tithe records from Lancaster County, Virginia',
+        tableType: 'coming_soon'
+      },
+      {
+        slug: 'richmond',
+        name: 'Richmond',
+        description: 'Personal property and tithe records from Richmond, Virginia',
+        tableType: 'coming_soon'
+      }
+    ]
   }
 ];
 
