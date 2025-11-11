@@ -27,6 +27,7 @@ interface ExSlavePensionLetter {
   storage_base_url: string;
   slug: string | null;
   notes: string | null;
+  page_no: number | null;
   ex_slave_pension_images?: {
     public_url: string;
   }[];
@@ -295,7 +296,7 @@ const ExSlavePensionPage = () => {
             .from("ex-slave-pension")
             .select("*, ex_slave_pension_images(public_url)")
             .order("book_number", { ascending: true })
-            .order("slug", { ascending: true })
+            .order("page_no", { ascending: true })
             .range(from, from + batchSize - 1);
 
           if (error) {
