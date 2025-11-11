@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { BookmarkButton } from "@/components/ui/BookmarkButton";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { ChevronLeft, ChevronRight, X, ZoomIn } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, ZoomIn, FileText } from "lucide-react";
 
 interface ExSlavePensionLetter {
   id: string;
@@ -382,17 +382,24 @@ const ExSlavePensionPage = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-brand-brown mb-4">
-          Case Files Concerning the Formerly Enslaved
-        </h1>
-        <p className="text-lg text-gray-700 mb-6">
-          Individual case files related to pension claims by formerly enslaved persons from the Ex-Slave Pension Fraud Files collection.
-          These letters and documents provide insights into the lives and struggles of formerly enslaved individuals seeking compensation.
-          Click on any letter to view the full document and content.
-        </p>
+    <div className="min-h-screen bg-brand-beige">
+      {/* Hero Section */}
+      <div className="bg-gradient-to-r from-brand-green to-brand-darkgreen text-white py-16">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <FileText className="w-16 h-16 mx-auto mb-4" />
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+              Case Files Concerning the Formerly Enslaved
+            </h1>
+            <p className="text-lg text-white/90">
+              Individual case files related to pension claims by formerly enslaved persons from the Ex-Slave Pension Fraud Files collection.
+              These letters and documents provide insights into the lives and struggles of formerly enslaved individuals seeking compensation.
+            </p>
+          </div>
+        </div>
+      </div>
 
+      <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end mb-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -581,6 +588,7 @@ const ExSlavePensionPage = () => {
         allLetters={filteredLetters}
         onNavigate={(letter) => setSelectedLetter(letter)}
       />
+      </div>
     </div>
   );
 };
