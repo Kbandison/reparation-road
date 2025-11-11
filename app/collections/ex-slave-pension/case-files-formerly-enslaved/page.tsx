@@ -27,6 +27,9 @@ interface ExSlavePensionLetter {
   storage_base_url: string;
   slug: string | null;
   notes: string | null;
+  ex_slave_pension_images?: {
+    public_url: string;
+  }[];
 }
 
 interface LetterModalProps {
@@ -83,8 +86,9 @@ const LetterModal = React.memo<LetterModalProps>(function LetterModal({ letter, 
 
   if (!letter) return null;
 
-  // Build image path from storage info
-  const imagePath = letter.slug ? `${letter.storage_base_url}/${letter.slug}.jpg` : null;
+  // Get image URL from joined images table, or fallback to constructed path
+  const imagePath = letter.ex_slave_pension_images?.[0]?.public_url ||
+    (letter.slug ? `${letter.storage_base_url}/${letter.slug}.jpg` : null);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -288,8 +292,8 @@ const ExSlavePensionPage = () => {
 
         while (hasMore) {
           const { data, error } = await supabase
-            .from("ex_slave_pension")
-            .select("*")
+            .from("ex-slave-pension")
+            .select("*, ex_slave_pension_images(public_url)")
             .order("book_number", { ascending: true })
             .order("letter_date", { ascending: true })
             .range(from, from + batchSize - 1);
@@ -460,7 +464,8 @@ const ExSlavePensionPage = () => {
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {currentPageData.map((letter) => {
-              const imagePath = letter.slug ? `${letter.storage_base_url}/${letter.slug}.jpg` : null;
+              const imagePath = letter.ex_slave_pension_images?.[0]?.public_url ||
+                (letter.slug ? `${letter.storage_base_url}/${letter.slug}.jpg` : null);
 
               return (
                 <div

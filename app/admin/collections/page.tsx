@@ -187,7 +187,7 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
         name: 'Case Files Concerning the Formerly Enslaved',
         description: 'Individual case files related to pension claims by formerly enslaved persons',
         tableType: 'ex_slave_pension',
-        tableName: 'ex_slave_pension'
+        tableName: 'ex-slave-pension'
       },
       {
         slug: 'national-ex-slave-relief',
@@ -524,7 +524,7 @@ const AdminCollectionsPage = () => {
         supabase.from('enslaved_persons_alabama').select('id', { count: 'exact', head: true }),
         supabase.from('enslaved_catholic_kentuky').select('page', { count: 'exact', head: true }),
         supabase.from('slave_voyages').select('id', { count: 'exact', head: true }),
-        supabase.from('ex_slave_pension').select('id', { count: 'exact', head: true })
+        supabase.from('ex-slave-pension').select('id', { count: 'exact', head: true })
       ]);
 
       // Group archive_pages by collection slug
@@ -544,7 +544,7 @@ const AdminCollectionsPage = () => {
         'enslaved_persons_alabama': alabamaData.count || 0,
         'enslaved_catholic_kentuky': kentuckyData.count || 0,
         'slave_voyages': slaveVoyagesData.count || 0,
-        'ex_slave_pension': exSlavePensionData.count || 0
+        'ex-slave-pension': exSlavePensionData.count || 0
       };
 
       // Build collections list with appropriate counts
