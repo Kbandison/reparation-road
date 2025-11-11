@@ -112,6 +112,7 @@ const LetterModal = React.memo<LetterModalProps>(function LetterModal({ letter, 
               </h3>
               <p className="text-sm text-gray-500">Letter {currentIndex + 1} of {allLetters.length}</p>
               {letter.book_number && <p className="text-sm text-gray-600">Book Number: {letter.book_number}</p>}
+              {letter.page_no && <p className="text-sm text-gray-600">Page: {letter.page_no}</p>}
               {letter.letter_date && <p className="text-sm text-gray-600">Date: {new Date(letter.letter_date).toLocaleDateString()}</p>}
             </div>
           </div>
@@ -173,6 +174,7 @@ const LetterModal = React.memo<LetterModalProps>(function LetterModal({ letter, 
                 <h4 className="font-semibold text-brand-brown mb-2">Letter Details</h4>
                 <div className="space-y-1 text-sm">
                   {letter.book_number && <p><span className="font-medium">Book Number:</span> {letter.book_number}</p>}
+                  {letter.page_no && <p><span className="font-medium">Page:</span> {letter.page_no}</p>}
                   {letter.letter_date && <p><span className="font-medium">Date:</span> {new Date(letter.letter_date).toLocaleDateString()}</p>}
                   {letter.recipient_name && <p><span className="font-medium">Recipient:</span> {letter.recipient_name}</p>}
                   {letter.recipient_town && <p><span className="font-medium">Town:</span> {letter.recipient_town}</p>}
@@ -510,7 +512,7 @@ const ExSlavePensionPage = () => {
                       {letter.book_title}
                     </h3>
                     <div className="text-sm text-gray-600 space-y-1">
-                      {letter.book_number && <p>Book {letter.book_number}</p>}
+                      {letter.book_number && <p>Book {letter.book_number}{letter.page_no && `, Page ${letter.page_no}`}</p>}
                       {letter.letter_date && <p>Date: {new Date(letter.letter_date).toLocaleDateString()}</p>}
                       {letter.recipient_name && <p>To: {letter.recipient_name}</p>}
                       {letter.recipient_state && (
