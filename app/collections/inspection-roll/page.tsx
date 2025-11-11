@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { BookmarkButton } from "@/components/ui/BookmarkButton";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { ChevronLeft, ChevronRight, X, ZoomIn } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, ZoomIn, ScrollText } from "lucide-react";
 
 interface ArchivePage {
   id: string;
@@ -413,14 +413,26 @@ const InspectionRollOfNegroesPage = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-brand-beige">
+      {/* Hero Section */}
+      <div className="bg-gradient-to-r from-brand-green to-brand-darkgreen text-white py-16">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <ScrollText className="w-16 h-16 mx-auto mb-4" />
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+              Inspection Roll of Negroes
+            </h1>
+            <p className="text-lg text-white/90">
+              Explore historical documents from the Inspection Roll of Negroes collection.
+              These documents contain important historical records.
+              Click on any document to view the full image and transcribed text.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-brand-brown mb-4">Inspection Roll of Negroes</h1>
-        <p className="text-lg text-gray-700 mb-6">
-          Explore historical documents from the Inspection Roll of Negroes collection.
-          These documents contain important historical records.
-          Click on any document to view the full image and transcribed text.
-        </p>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end mb-6">
           <div>
@@ -619,6 +631,7 @@ const InspectionRollOfNegroesPage = () => {
         allPages={filteredPages}
         onNavigate={(page) => setSelectedPage(page)}
       />
+      </div>
     </div>
   );
 };

@@ -10,6 +10,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useRouter } from "next/navigation";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { SignupForm } from "@/components/auth/SignupForm";
+import { FileText } from "lucide-react";
 
 const UpgradePrompt = () => {
   const router = useRouter();
@@ -207,14 +208,26 @@ const SlaveCompensationPage = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-brand-beige">
+      {/* Hero Section */}
+      <div className="bg-gradient-to-r from-brand-green to-brand-darkgreen text-white py-16">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <FileText className="w-16 h-16 mx-auto mb-4" />
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+              Slave Compensation Claims
+            </h1>
+            <p className="text-lg text-white/90">
+              Explore historical records of slave compensation claims filed after the Civil War.
+              Click on any row to view detailed information about the claimant.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-brand-brown mb-4">Slave Compensation Claims</h1>
-        <p className="text-lg text-gray-700 mb-6">
-          Explore historical records of slave compensation claims filed after the Civil War. 
-          Click on any row to view detailed information about the claimant.
-        </p>
-        
+
         <div className="flex flex-col sm:flex-row gap-4 items-center mb-6">
           <Input
             type="search"
@@ -322,6 +335,7 @@ const SlaveCompensationPage = () => {
         claim={selectedClaim}
         onClose={() => setSelectedClaim(null)}
       />
+      </div>
     </div>
   );
 };
