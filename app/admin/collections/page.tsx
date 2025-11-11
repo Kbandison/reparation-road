@@ -41,7 +41,7 @@ interface SubCollection {
   name: string;
   pageCount?: number;
   description?: string;
-  tableType: 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'free_black_heads_of_household' | 'enslaved_persons_alabama' | 'enslaved_catholic_kentuky' | 'slave_voyages' | 'coming_soon';
+  tableType: 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'free_black_heads_of_household' | 'enslaved_persons_alabama' | 'enslaved_catholic_kentuky' | 'slave_voyages' | 'ex_slave_pension' | 'coming_soon';
   tableName?: string;
 }
 
@@ -50,7 +50,7 @@ interface Collection {
   name: string;
   pageCount: number;
   description?: string;
-  tableType: 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'free_black_heads_of_household' | 'enslaved_persons_alabama' | 'enslaved_catholic_kentuky' | 'slave_voyages' | 'coming_soon';
+  tableType: 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'free_black_heads_of_household' | 'enslaved_persons_alabama' | 'enslaved_catholic_kentuky' | 'slave_voyages' | 'ex_slave_pension' | 'coming_soon';
   tableName?: string;
   subcollections?: SubCollection[];
 }
@@ -186,7 +186,8 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
         slug: 'case-files-formerly-enslaved',
         name: 'Case Files Concerning the Formerly Enslaved',
         description: 'Individual case files related to pension claims by formerly enslaved persons',
-        tableType: 'coming_soon'
+        tableType: 'ex_slave_pension',
+        tableName: 'ex-slave-pension'
       },
       {
         slug: 'national-ex-slave-relief',
@@ -513,7 +514,7 @@ const AdminCollectionsPage = () => {
       setLoadingData(true);
 
       // Fetch counts for each table type
-      const [archivePagesData, compensationData, emigrantsData, censusData, revolutionaryData, freeBlackData, alabamaData, kentuckyData, slaveVoyagesData] = await Promise.all([
+      const [archivePagesData, compensationData, emigrantsData, censusData, revolutionaryData, freeBlackData, alabamaData, kentuckyData, slaveVoyagesData, exSlavePensionData] = await Promise.all([
         supabase.from('archive_pages').select('collection_slug'),
         supabase.from('slave_compensation_claims').select('id', { count: 'exact', head: true }),
         supabase.from('emmigrants_to_liberia').select('id', { count: 'exact', head: true }),
@@ -522,7 +523,8 @@ const AdminCollectionsPage = () => {
         supabase.from('free_black_heads_of_household').select('id', { count: 'exact', head: true }),
         supabase.from('enslaved_persons_alabama').select('id', { count: 'exact', head: true }),
         supabase.from('enslaved_catholic_kentuky').select('page', { count: 'exact', head: true }),
-        supabase.from('slave_voyages').select('id', { count: 'exact', head: true })
+        supabase.from('slave_voyages').select('id', { count: 'exact', head: true }),
+        supabase.from('ex-slave-pension').select('id', { count: 'exact', head: true })
       ]);
 
       // Group archive_pages by collection slug
@@ -541,7 +543,8 @@ const AdminCollectionsPage = () => {
         'free_black_heads_of_household': freeBlackData.count || 0,
         'enslaved_persons_alabama': alabamaData.count || 0,
         'enslaved_catholic_kentuky': kentuckyData.count || 0,
-        'slave_voyages': slaveVoyagesData.count || 0
+        'slave_voyages': slaveVoyagesData.count || 0,
+        'ex-slave-pension': exSlavePensionData.count || 0
       };
 
       // Build collections list with appropriate counts
@@ -1078,7 +1081,8 @@ const AdminCollectionsPage = () => {
                     collection.tableType === 'free_black_heads_of_household' ||
                     collection.tableType === 'enslaved_persons_alabama' ||
                     collection.tableType === 'enslaved_catholic_kentuky' ||
-                    collection.tableType === 'slave_voyages')
+                    collection.tableType === 'slave_voyages' ||
+                    collection.tableType === 'ex_slave_pension')
                 ) {
                   return (
                     <div className="bg-white rounded-lg shadow-lg p-6">
