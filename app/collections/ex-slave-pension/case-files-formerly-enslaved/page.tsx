@@ -295,7 +295,7 @@ const ExSlavePensionPage = () => {
             .from("ex-slave-pension")
             .select("*, ex_slave_pension_images(public_url)")
             .order("book_number", { ascending: true })
-            .order("letter_date", { ascending: true })
+            .order("slug", { ascending: true })
             .range(from, from + batchSize - 1);
 
           if (error) {
