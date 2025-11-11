@@ -288,7 +288,7 @@ const ExSlavePensionPage = () => {
 
         while (hasMore) {
           const { data, error } = await supabase
-            .from("ex-slave-pension")
+            .from("ex_slave_pension")
             .select("*")
             .order("book_number", { ascending: true })
             .order("letter_date", { ascending: true })
