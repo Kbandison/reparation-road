@@ -8,6 +8,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useRouter } from "next/navigation";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { SignupForm } from "@/components/auth/SignupForm";
+import { Users } from "lucide-react";
 
 const UpgradePrompt = () => {
   const router = useRouter();
@@ -273,9 +274,23 @@ const LiberationCensusRollsPage = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <nav className="text-sm breadcrumbs mb-4">
+    <div className="min-h-screen bg-brand-beige">
+      <div className="bg-gradient-to-r from-brand-green to-brand-darkgreen text-white py-16">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <Users className="w-16 h-16 mx-auto mb-4" />
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">Liberian Census Rolls</h1>
+            <p className="text-lg text-white/90">
+              Census records documenting liberated Africans in various settlements.
+              These records provide valuable information about the demographics,
+              origins, and conditions of freed individuals in post-emancipation
+              communities. Click on any row to view detailed information.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div className="container mx-auto px-4 py-8">
+        <nav className="text-sm breadcrumbs mb-6">
           <ol className="flex items-center space-x-2 text-brand-brown">
             <li>
               <a href="/collections/acs" className="hover:underline">
@@ -286,16 +301,6 @@ const LiberationCensusRollsPage = () => {
             <li className="font-semibold">Liberian Census Rolls</li>
           </ol>
         </nav>
-
-        <h1 className="text-4xl font-bold text-brand-brown mb-4">
-          Liberian Census Rolls
-        </h1>
-        <p className="text-lg text-gray-700 mb-6">
-          Census records documenting liberated Africans in various settlements.
-          These records provide valuable information about the demographics,
-          origins, and conditions of freed individuals in post-emancipation
-          communities. Click on any row to view detailed information.
-        </p>
 
         <div className="flex flex-col sm:flex-row gap-4 items-center mb-6">
           <Input
@@ -311,17 +316,17 @@ const LiberationCensusRollsPage = () => {
         </div>
       </div>
 
-      {filteredRecords.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-xl text-gray-600">
-            {records.length === 0
-              ? "No census records found in the database."
-              : "No records found matching your search."}
-          </p>
-        </div>
-      ) : (
-        <>
-          <div className="overflow-x-auto bg-white rounded-lg shadow">
+        {filteredRecords.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-xl text-gray-600">
+              {records.length === 0
+                ? "No census records found in the database."
+                : "No records found matching your search."}
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="overflow-x-auto bg-white rounded-lg shadow">
             <table className="w-full text-sm text-left">
               <thead className="bg-brand-tan text-brand-brown">
                 <tr>
@@ -362,8 +367,8 @@ const LiberationCensusRollsPage = () => {
             </table>
           </div>
 
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-4 mt-6">
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-4 mt-6">
               <Button
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
@@ -405,18 +410,18 @@ const LiberationCensusRollsPage = () => {
               >
                 Next
               </Button>
+              </div>
+            )}
+
+            <div className="text-center text-sm text-gray-600 mt-4">
+              Page {currentPage} of {totalPages} ({startIndex + 1}-
+              {Math.min(endIndex, filteredRecords.length)} of{" "}
+              {filteredRecords.length} records)
             </div>
-          )}
+          </>
+        )}
 
-          <div className="text-center text-sm text-gray-600 mt-4">
-            Page {currentPage} of {totalPages}({startIndex + 1}-
-            {Math.min(endIndex, filteredRecords.length)} of{" "}
-            {filteredRecords.length} records)
-          </div>
-        </>
-      )}
-
-      {selectedRecord && (
+        {selectedRecord && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="relative rounded-2xl shadow-2xl border border-brand-green bg-brand-tan w-[90vw] max-w-lg p-4 md:p-8 flex flex-col items-center max-h-[80vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4 w-full">
@@ -506,7 +511,8 @@ const LiberationCensusRollsPage = () => {
             </div>
           </div>
         </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

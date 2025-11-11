@@ -373,9 +373,10 @@ const ExSlavePensionPage = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-center items-center h-64">
-          <p className="text-xl">Loading Ex-Slave Pension letters...</p>
+      <div className="min-h-screen bg-brand-beige flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-brand-green border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-xl text-brand-brown">Loading Ex-Slave Pension letters...</p>
         </div>
       </div>
     );

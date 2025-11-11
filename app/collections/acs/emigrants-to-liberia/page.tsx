@@ -8,6 +8,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useRouter } from "next/navigation";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { SignupForm } from "@/components/auth/SignupForm";
+import { Ship } from "lucide-react";
 
 const UpgradePrompt = () => {
   const router = useRouter();
@@ -229,9 +230,21 @@ const EmigrantsToLiberiaPage = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <nav className="text-sm breadcrumbs mb-4">
+    <div className="min-h-screen bg-brand-beige">
+      <div className="bg-gradient-to-r from-brand-green to-brand-darkgreen text-white py-16">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <Ship className="w-16 h-16 mx-auto mb-4" />
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">Emigrants to Liberia</h1>
+            <p className="text-lg text-white/90">
+              Records of individuals and families who emigrated to Liberia through the American Colonization Society.
+              Click on any row to view detailed information about the emigrant.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div className="container mx-auto px-4 py-8">
+        <nav className="text-sm breadcrumbs mb-6">
           <ol className="flex items-center space-x-2 text-brand-brown">
             <li>
               <a href="/collections/acs" className="hover:underline">
@@ -243,14 +256,6 @@ const EmigrantsToLiberiaPage = () => {
           </ol>
         </nav>
 
-        <h1 className="text-4xl font-bold text-brand-brown mb-4">
-          Emigrants to Liberia
-        </h1>
-        <p className="text-lg text-gray-700 mb-6">
-          Records of individuals and families who emigrated to Liberia through the American Colonization Society. 
-          Click on any row to view detailed information about the emigrant.
-        </p>
-        
         <div className="flex flex-col sm:flex-row gap-4 items-center mb-6">
           <Input
             type="search"
@@ -265,17 +270,17 @@ const EmigrantsToLiberiaPage = () => {
         </div>
       </div>
 
-      {filteredEmigrants.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-xl text-gray-600">
-            {emigrants.length === 0 
-              ? "No emigrant records found in the database." 
-              : "No records found matching your search."}
-          </p>
-        </div>
-      ) : (
-        <>
-          <div className="overflow-x-auto bg-white rounded-lg shadow">
+        {filteredEmigrants.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-xl text-gray-600">
+              {emigrants.length === 0
+                ? "No emigrant records found in the database."
+                : "No records found matching your search."}
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="overflow-x-auto bg-white rounded-lg shadow">
             <table className="w-full text-sm text-left">
               <thead className="bg-brand-tan text-brand-brown">
                 <tr>
@@ -320,8 +325,8 @@ const EmigrantsToLiberiaPage = () => {
             </table>
           </div>
 
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-4 mt-6">
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-4 mt-6">
               <Button
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
@@ -360,17 +365,17 @@ const EmigrantsToLiberiaPage = () => {
               >
                 Next
               </Button>
+              </div>
+            )}
+
+            <div className="text-center text-sm text-gray-600 mt-4">
+              Page {currentPage} of {totalPages}
+              ({startIndex + 1}-{Math.min(endIndex, filteredEmigrants.length)} of {filteredEmigrants.length} records)
             </div>
-          )}
+          </>
+        )}
 
-          <div className="text-center text-sm text-gray-600 mt-4">
-            Page {currentPage} of {totalPages} 
-            ({startIndex + 1}-{Math.min(endIndex, filteredEmigrants.length)} of {filteredEmigrants.length} records)
-          </div>
-        </>
-      )}
-
-      {selectedEmigrant && (
+        {selectedEmigrant && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="relative rounded-2xl shadow-2xl border border-brand-green bg-brand-tan w-[90vw] max-w-lg p-4 md:p-8 flex flex-col items-center max-h-[80vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4 w-full">
@@ -446,7 +451,8 @@ const EmigrantsToLiberiaPage = () => {
             </div>
           </div>
         </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
