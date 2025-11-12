@@ -768,12 +768,27 @@ const AdminCollectionsPage = () => {
     setFormData({ ...record });
 
     // Set image preview for any record with image fields
-    const imageUrl = record.image || record.image_url || record.image_path || record.photo;
-    if (imageUrl && typeof imageUrl === 'string') {
-      setImagePreview(imageUrl);
-    } else {
-      setImagePreview('');
+    let imageUrl: string | null = null;
+
+    // Check direct image fields
+    if (record.image && typeof record.image === 'string') {
+      imageUrl = record.image;
+    } else if (record.image_url && typeof record.image_url === 'string') {
+      imageUrl = record.image_url;
+    } else if (record.image_path && typeof record.image_path === 'string') {
+      imageUrl = record.image_path;
+    } else if (record.photo && typeof record.photo === 'string') {
+      imageUrl = record.photo;
     }
+    // Check for related image tables (like ex_slave_pension_images)
+    else if (record.ex_slave_pension_images && typeof record.ex_slave_pension_images === 'object') {
+      const imgData = record.ex_slave_pension_images as Record<string, unknown>;
+      if (imgData.public_url && typeof imgData.public_url === 'string') {
+        imageUrl = imgData.public_url;
+      }
+    }
+
+    setImagePreview(imageUrl || '');
     setImageFile(null);
   };
 
@@ -1217,7 +1232,8 @@ const AdminCollectionsPage = () => {
                                                  key !== 'image' &&
                                                  key !== 'image_url' &&
                                                  key !== 'image_path' &&
-                                                 key !== 'photo';
+                                                 key !== 'photo' &&
+                                                 key !== 'ex_slave_pension_images';
                                         })
                                         .slice(0, 5)
                                         .map((key) => (
@@ -1228,7 +1244,8 @@ const AdminCollectionsPage = () => {
                                       {(dbRecords[0].image !== undefined ||
                                         dbRecords[0].image_url !== undefined ||
                                         dbRecords[0].image_path !== undefined ||
-                                        dbRecords[0].photo !== undefined) && (
+                                        dbRecords[0].photo !== undefined ||
+                                        dbRecords[0].ex_slave_pension_images !== undefined) && (
                                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                           Has Image
                                         </th>
@@ -1241,7 +1258,7 @@ const AdminCollectionsPage = () => {
                                   <tbody className="divide-y divide-gray-200">
                                     {filteredDbRecords.length === 0 ? (
                                       <tr>
-                                        <td colSpan={(dbRecords[0].image !== undefined || dbRecords[0].image_url !== undefined || dbRecords[0].image_path !== undefined || dbRecords[0].photo !== undefined) ? 7 : 6} className="px-4 py-12 text-center text-gray-500">
+                                        <td colSpan={(dbRecords[0].image !== undefined || dbRecords[0].image_url !== undefined || dbRecords[0].image_path !== undefined || dbRecords[0].photo !== undefined || dbRecords[0].ex_slave_pension_images !== undefined) ? 7 : 6} className="px-4 py-12 text-center text-gray-500">
                                           No records found matching &quot;{searchTerm}&quot;
                                         </td>
                                       </tr>
@@ -1268,9 +1285,17 @@ const AdminCollectionsPage = () => {
                                   {(record.image !== undefined ||
                                     record.image_url !== undefined ||
                                     record.image_path !== undefined ||
-                                    record.photo !== undefined) && (
+                                    record.photo !== undefined ||
+                                    record.ex_slave_pension_images !== undefined) && (
                                     <td className="px-4 py-3 text-sm text-gray-600 font-semibold">
-                                      {(record.image || record.image_url || record.image_path || record.photo) ? 'Y' : 'N'}
+                                      {(() => {
+                                        if (record.image || record.image_url || record.image_path || record.photo) return 'Y';
+                                        if (record.ex_slave_pension_images && typeof record.ex_slave_pension_images === 'object') {
+                                          const imgData = record.ex_slave_pension_images as Record<string, unknown>;
+                                          return imgData.public_url ? 'Y' : 'N';
+                                        }
+                                        return 'N';
+                                      })()}
                                     </td>
                                   )}
                                   <td className="px-4 py-3 text-sm">
@@ -1539,7 +1564,8 @@ const AdminCollectionsPage = () => {
               {(editingRecord.image !== undefined ||
                 editingRecord.image_url !== undefined ||
                 editingRecord.image_path !== undefined ||
-                editingRecord.photo !== undefined) && (
+                editingRecord.photo !== undefined ||
+                editingRecord.ex_slave_pension_images !== undefined) && (
                 <div className="mb-6 pb-6 border-b border-gray-200">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Image
@@ -1603,7 +1629,8 @@ const AdminCollectionsPage = () => {
                     key !== 'image' &&
                     key !== 'image_url' &&
                     key !== 'image_path' &&
-                    key !== 'photo'
+                    key !== 'photo' &&
+                    key !== 'ex_slave_pension_images'
                   )
                   .map((key) => (
                     <div key={key} className="col-span-2 sm:col-span-1">
