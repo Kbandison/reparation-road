@@ -652,7 +652,7 @@ const AdminCollectionsPage = () => {
         if (error) throw error;
 
         if (data && data.length > 0) {
-          allRecords = [...allRecords, ...data];
+          allRecords.push(...data);
           from += batchSize;
           hasMore = data.length === batchSize;
         } else {

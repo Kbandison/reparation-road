@@ -40,12 +40,17 @@ interface LetterModalProps {
   onNavigate: (letter: ExSlavePensionLetter) => void;
 }
 
-const LetterModal = React.memo<LetterModalProps>(function LetterModal({ letter, onClose, allLetters, onNavigate }) {
+const LetterModal = React.memo<LetterModalProps>(function LetterModal({
+  letter,
+  onClose,
+  allLetters,
+  onNavigate,
+}) {
   const [imageLoaded, setImageLoaded] = React.useState(false);
   const [isImageZoomed, setIsImageZoomed] = React.useState(false);
 
   // Get current letter index and navigation helpers
-  const currentIndex = allLetters.findIndex(l => l.id === letter?.id);
+  const currentIndex = allLetters.findIndex((l) => l.id === letter?.id);
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex < allLetters.length - 1;
 
@@ -66,13 +71,13 @@ const LetterModal = React.memo<LetterModalProps>(function LetterModal({ letter, 
   // Keyboard navigation
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') {
+      if (e.key === "ArrowLeft") {
         e.preventDefault();
         handlePrevLetter();
-      } else if (e.key === 'ArrowRight') {
+      } else if (e.key === "ArrowRight") {
         e.preventDefault();
         handleNextLetter();
-      } else if (e.key === 'Escape') {
+      } else if (e.key === "Escape") {
         if (isImageZoomed) {
           setIsImageZoomed(false);
         } else {
@@ -81,14 +86,15 @@ const LetterModal = React.memo<LetterModalProps>(function LetterModal({ letter, 
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handlePrevLetter, handleNextLetter, isImageZoomed, onClose]);
 
   if (!letter) return null;
 
   // Get image URL from joined images table, or fallback to constructed path
-  const imagePath = letter.ex_slave_pension_images?.[0]?.public_url ||
+  const imagePath =
+    letter.ex_slave_pension_images?.[0]?.public_url ||
     (letter.slug ? `${letter.storage_base_url}/${letter.slug}.jpg` : null);
 
   return (
@@ -110,10 +116,22 @@ const LetterModal = React.memo<LetterModalProps>(function LetterModal({ letter, 
               <h3 className="text-xl font-bold text-brand-brown">
                 {letter.book_title}
               </h3>
-              <p className="text-sm text-gray-500">Letter {currentIndex + 1} of {allLetters.length}</p>
-              {letter.book_number && <p className="text-sm text-gray-600">Book Number: {letter.book_number}</p>}
-              {letter.page_no && <p className="text-sm text-gray-600">Page: {letter.page_no}</p>}
-              {letter.letter_date && <p className="text-sm text-gray-600">Date: {new Date(letter.letter_date).toLocaleDateString()}</p>}
+              <p className="text-sm text-gray-500">
+                Letter {currentIndex + 1} of {allLetters.length}
+              </p>
+              {letter.book_number && (
+                <p className="text-sm text-gray-600">
+                  Book Number: {letter.book_number}
+                </p>
+              )}
+              {letter.page_no && (
+                <p className="text-sm text-gray-600">Page: {letter.page_no}</p>
+              )}
+              {letter.letter_date && (
+                <p className="text-sm text-gray-600">
+                  Date: {new Date(letter.letter_date).toLocaleDateString()}
+                </p>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -140,7 +158,9 @@ const LetterModal = React.memo<LetterModalProps>(function LetterModal({ letter, 
               <div className="space-y-2">
                 <h4 className="font-semibold text-brand-brown flex items-center gap-2">
                   Document Image
-                  <span className="text-xs text-gray-500 font-normal">(Click to expand)</span>
+                  <span className="text-xs text-gray-500 font-normal">
+                    (Click to expand)
+                  </span>
                 </h4>
                 <div
                   className="border rounded-lg overflow-hidden relative h-96 bg-gray-100 cursor-zoom-in group"
@@ -155,7 +175,7 @@ const LetterModal = React.memo<LetterModalProps>(function LetterModal({ letter, 
                     src={imagePath}
                     alt={`${letter.book_title}`}
                     fill
-                    className={`object-contain transition-opacity ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                    className={`object-contain transition-opacity ${imageLoaded ? "opacity-100" : "opacity-0"}`}
                     priority
                     sizes="(max-width: 1024px) 100vw, 50vw"
                     onLoad={() => setImageLoaded(true)}
@@ -171,23 +191,77 @@ const LetterModal = React.memo<LetterModalProps>(function LetterModal({ letter, 
 
             <div className="space-y-4">
               <div>
-                <h4 className="font-semibold text-brand-brown mb-2">Letter Details</h4>
+                <h4 className="font-semibold text-brand-brown mb-2">
+                  Letter Details
+                </h4>
                 <div className="space-y-1 text-sm">
-                  {letter.book_number && <p><span className="font-medium">Book Number:</span> {letter.book_number}</p>}
-                  {letter.page_no && <p><span className="font-medium">Page:</span> {letter.page_no}</p>}
-                  {letter.letter_date && <p><span className="font-medium">Date:</span> {new Date(letter.letter_date).toLocaleDateString()}</p>}
-                  {letter.recipient_name && <p><span className="font-medium">Recipient:</span> {letter.recipient_name}</p>}
-                  {letter.recipient_town && <p><span className="font-medium">Town:</span> {letter.recipient_town}</p>}
-                  {letter.recipient_county && <p><span className="font-medium">County:</span> {letter.recipient_county}</p>}
-                  {letter.recipient_state && <p><span className="font-medium">State:</span> {letter.recipient_state}</p>}
-                  {letter.source_office && <p><span className="font-medium">Source Office:</span> {letter.source_office}</p>}
-                  {letter.salutation && <p><span className="font-medium">Salutation:</span> {letter.salutation}</p>}
-                  {letter.closing && <p><span className="font-medium">Closing:</span> {letter.closing}</p>}
+                  {letter.book_number && (
+                    <p>
+                      <span className="font-medium">Book Number:</span>{" "}
+                      {letter.book_number}
+                    </p>
+                  )}
+                  {letter.page_no && (
+                    <p>
+                      <span className="font-medium">Page:</span>{" "}
+                      {letter.page_no}
+                    </p>
+                  )}
+                  {letter.letter_date && (
+                    <p>
+                      <span className="font-medium">Date:</span>{" "}
+                      {new Date(letter.letter_date).toLocaleDateString()}
+                    </p>
+                  )}
+                  {letter.recipient_name && (
+                    <p>
+                      <span className="font-medium">Recipient:</span>{" "}
+                      {letter.recipient_name}
+                    </p>
+                  )}
+                  {letter.recipient_town && (
+                    <p>
+                      <span className="font-medium">Town:</span>{" "}
+                      {letter.recipient_town}
+                    </p>
+                  )}
+                  {letter.recipient_county && (
+                    <p>
+                      <span className="font-medium">County:</span>{" "}
+                      {letter.recipient_county}
+                    </p>
+                  )}
+                  {letter.recipient_state && (
+                    <p>
+                      <span className="font-medium">State:</span>{" "}
+                      {letter.recipient_state}
+                    </p>
+                  )}
+                  {letter.source_office && (
+                    <p>
+                      <span className="font-medium">Source Office:</span>{" "}
+                      {letter.source_office}
+                    </p>
+                  )}
+                  {letter.salutation && (
+                    <p>
+                      <span className="font-medium">Salutation:</span>{" "}
+                      {letter.salutation}
+                    </p>
+                  )}
+                  {letter.closing && (
+                    <p>
+                      <span className="font-medium">Closing:</span>{" "}
+                      {letter.closing}
+                    </p>
+                  )}
                 </div>
               </div>
 
               <div>
-                <h4 className="font-semibold text-brand-brown mb-2">Letter Content</h4>
+                <h4 className="font-semibold text-brand-brown mb-2">
+                  Letter Content
+                </h4>
                 <div className="bg-gray-50 p-4 rounded-md text-sm max-h-96 overflow-y-auto">
                   <pre className="whitespace-pre-wrap font-serif text-sm">
                     {letter.letter_body}
@@ -275,10 +349,13 @@ const LetterModal = React.memo<LetterModalProps>(function LetterModal({ letter, 
 
 const ExSlavePensionPage = () => {
   const [letters, setLetters] = useState<ExSlavePensionLetter[]>([]);
-  const [filteredLetters, setFilteredLetters] = useState<ExSlavePensionLetter[]>([]);
+  const [filteredLetters, setFilteredLetters] = useState<
+    ExSlavePensionLetter[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedLetter, setSelectedLetter] = useState<ExSlavePensionLetter | null>(null);
+  const [selectedLetter, setSelectedLetter] =
+    useState<ExSlavePensionLetter | null>(null);
   const [clickedLetterId, setClickedLetterId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [bookFilter, setBookFilter] = useState<number | null>(null);
@@ -331,21 +408,30 @@ const ExSlavePensionPage = () => {
     let filtered = letters;
 
     if (searchTerm) {
-      filtered = filtered.filter(letter =>
-        letter.book_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        letter.recipient_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        letter.recipient_town?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        letter.recipient_county?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        letter.letter_body?.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter(
+        (letter) =>
+          letter.book_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          letter.recipient_name
+            ?.toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          letter.recipient_town
+            ?.toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          letter.recipient_county
+            ?.toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          letter.letter_body?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
     if (bookFilter) {
-      filtered = filtered.filter(letter => letter.book_number === bookFilter);
+      filtered = filtered.filter((letter) => letter.book_number === bookFilter);
     }
 
     if (stateFilter) {
-      filtered = filtered.filter(letter => letter.recipient_state === stateFilter);
+      filtered = filtered.filter(
+        (letter) => letter.recipient_state === stateFilter
+      );
     }
 
     setFilteredLetters(filtered);
@@ -357,26 +443,35 @@ const ExSlavePensionPage = () => {
   const endIndex = startIndex + itemsPerPage;
   const currentPageData = filteredLetters.slice(startIndex, endIndex);
 
-  const uniqueBooks = [...new Set(letters.map(l => l.book_number).filter(Boolean))].sort((a, b) => a! - b!);
-  const uniqueStates = [...new Set(letters.map(l => l.recipient_state).filter(Boolean))].sort();
+  const uniqueBooks = [
+    ...new Set(letters.map((l) => l.book_number).filter(Boolean)),
+  ].sort((a, b) => a! - b!);
+  const uniqueStates = [
+    ...new Set(letters.map((l) => l.recipient_state).filter(Boolean)),
+  ].sort();
 
-  const handleLetterClick = React.useCallback((letter: ExSlavePensionLetter) => {
-    setClickedLetterId(letter.id);
+  const handleLetterClick = React.useCallback(
+    (letter: ExSlavePensionLetter) => {
+      setClickedLetterId(letter.id);
 
-    React.startTransition(() => {
-      setTimeout(() => {
-        setSelectedLetter(letter);
-        setClickedLetterId(null);
-      }, 50);
-    });
-  }, []);
+      React.startTransition(() => {
+        setTimeout(() => {
+          setSelectedLetter(letter);
+          setClickedLetterId(null);
+        }, 50);
+      });
+    },
+    []
+  );
 
   if (loading) {
     return (
       <div className="min-h-screen bg-brand-beige flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-brand-green border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-xl text-brand-brown">Loading Ex-Slave Pension letters...</p>
+          <p className="text-xl text-brand-brown">
+            Loading Ex-Slave Pension letters...
+          </p>
         </div>
       </div>
     );
@@ -393,8 +488,10 @@ const ExSlavePensionPage = () => {
               Case Files Concerning the Formerly Enslaved
             </h1>
             <p className="text-lg text-white/90">
-              Individual case files related to pension claims by formerly enslaved persons from the Ex-Slave Pension Fraud Files collection.
-              These letters and documents provide insights into the lives and struggles of formerly enslaved individuals seeking compensation.
+              Individual case files related to pension claims by formerly
+              enslaved persons from the Ex-Slave Pension Fraud Files collection.
+              These letters and documents provide insights into the lives and
+              struggles of formerly enslaved individuals seeking compensation.
             </p>
           </div>
         </div>
@@ -421,12 +518,16 @@ const ExSlavePensionPage = () => {
             </label>
             <select
               value={bookFilter || ""}
-              onChange={(e) => setBookFilter(e.target.value ? Number(e.target.value) : null)}
+              onChange={(e) =>
+                setBookFilter(e.target.value ? Number(e.target.value) : null)
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green"
             >
               <option value="">All Books</option>
-              {uniqueBooks.map(book => (
-                <option key={book} value={book!}>Book {book}</option>
+              {uniqueBooks.map((book) => (
+                <option key={book} value={book!}>
+                  Book {book}
+                </option>
               ))}
             </select>
           </div>
@@ -441,8 +542,10 @@ const ExSlavePensionPage = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green"
             >
               <option value="">All States</option>
-              {uniqueStates.map(state => (
-                <option key={state} value={state!}>{state}</option>
+              {uniqueStates.map((state) => (
+                <option key={state} value={state!}>
+                  {state}
+                </option>
               ))}
             </select>
           </div>
@@ -468,22 +571,31 @@ const ExSlavePensionPage = () => {
       </div>
 
       {filteredLetters.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-xl text-gray-600">No letters found matching your criteria.</p>
+        <div className="container mx-auto px-4">
+          <div className="text-center py-12">
+            <p className="text-xl text-gray-600">
+              No letters found matching your criteria.
+            </p>
+          </div>
         </div>
       ) : (
-        <>
+        <div className="container mx-auto px-4 pb-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {currentPageData.map((letter) => {
-              const imagePath = letter.ex_slave_pension_images?.[0]?.public_url ||
-                (letter.slug ? `${letter.storage_base_url}/${letter.slug}.jpg` : null);
+              const imagePath =
+                letter.ex_slave_pension_images?.[0]?.public_url ||
+                (letter.slug
+                  ? `${letter.storage_base_url}/${letter.slug}.jpg`
+                  : null);
 
               return (
                 <div
                   key={letter.id}
                   onClick={() => handleLetterClick(letter)}
                   className={`bg-white rounded-lg shadow-md hover:shadow-lg transition-all cursor-pointer border relative ${
-                    clickedLetterId === letter.id ? 'ring-2 ring-brand-green scale-95' : ''
+                    clickedLetterId === letter.id
+                      ? "ring-2 ring-brand-green scale-95"
+                      : ""
                   }`}
                 >
                   {/* Bookmark Button */}
@@ -520,11 +632,29 @@ const ExSlavePensionPage = () => {
                       {letter.book_title}
                     </h3>
                     <div className="text-sm text-gray-600 space-y-1">
-                      {letter.book_number && <p>Book {letter.book_number}{letter.page_no && `, Page ${letter.page_no}`}</p>}
-                      {letter.letter_date && <p>Date: {new Date(letter.letter_date).toLocaleDateString()}</p>}
-                      {letter.recipient_name && <p>To: {letter.recipient_name}</p>}
+                      {letter.book_number && (
+                        <p>
+                          Book {letter.book_number}
+                          {letter.page_no && `, Page ${letter.page_no}`}
+                        </p>
+                      )}
+                      {letter.letter_date && (
+                        <p>
+                          Date:{" "}
+                          {new Date(letter.letter_date).toLocaleDateString()}
+                        </p>
+                      )}
+                      {letter.recipient_name && (
+                        <p>To: {letter.recipient_name}</p>
+                      )}
                       {letter.recipient_state && (
-                        <p>Location: {letter.recipient_town ? `${letter.recipient_town}, ` : ''}{letter.recipient_state}</p>
+                        <p>
+                          Location:{" "}
+                          {letter.recipient_town
+                            ? `${letter.recipient_town}, `
+                            : ""}
+                          {letter.recipient_state}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -536,7 +666,7 @@ const ExSlavePensionPage = () => {
           {totalPages > 1 && (
             <div className="flex justify-center items-center gap-4 mt-8">
               <Button
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
                 variant="outline"
               >
@@ -545,11 +675,12 @@ const ExSlavePensionPage = () => {
 
               <div className="flex gap-2">
                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  const pageNum = currentPage <= 3
-                    ? i + 1
-                    : currentPage >= totalPages - 2
-                    ? totalPages - 4 + i
-                    : currentPage - 2 + i;
+                  const pageNum =
+                    currentPage <= 3
+                      ? i + 1
+                      : currentPage >= totalPages - 2
+                        ? totalPages - 4 + i
+                        : currentPage - 2 + i;
 
                   if (pageNum < 1 || pageNum > totalPages) return null;
 
@@ -567,7 +698,9 @@ const ExSlavePensionPage = () => {
               </div>
 
               <Button
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
                 disabled={currentPage === totalPages}
                 variant="outline"
               >
@@ -577,10 +710,11 @@ const ExSlavePensionPage = () => {
           )}
 
           <div className="text-center text-sm text-gray-600 mt-4">
-            Page {currentPage} of {totalPages}
-            ({startIndex + 1}-{Math.min(endIndex, filteredLetters.length)} of {filteredLetters.length} letters)
+            Page {currentPage} of {totalPages}({startIndex + 1}-
+            {Math.min(endIndex, filteredLetters.length)} of{" "}
+            {filteredLetters.length} letters)
           </div>
-        </>
+        </div>
       )}
 
       <LetterModal
@@ -589,7 +723,6 @@ const ExSlavePensionPage = () => {
         allLetters={filteredLetters}
         onNavigate={(letter) => setSelectedLetter(letter)}
       />
-      </div>
     </div>
   );
 };
