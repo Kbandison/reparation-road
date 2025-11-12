@@ -648,9 +648,14 @@ const AdminCollectionsPage = () => {
       while (hasMore && batchCount < maxBatches) {
         console.log(`Fetching batch ${batchCount + 1}, offset ${from}...`);
 
+        // For ex-slave-pension table, include related image table
+        const selectQuery = tableName === 'ex-slave-pension'
+          ? '*, ex_slave_pension_images(public_url)'
+          : '*';
+
         const { data, error } = await supabase
           .from(tableName)
-          .select('*')
+          .select(selectQuery)
           .order(orderColumn, { ascending: true })
           .range(from, from + batchSize - 1);
 
