@@ -778,9 +778,12 @@ const AdminCollectionsPage = () => {
         updatedFormData = { ...updatedFormData, image: imageUrl };
       }
 
+      // Remove id from update data (can't update primary key)
+      const { id, ...dataToUpdate } = updatedFormData;
+
       const { error } = await supabase
         .from(editTableName)
-        .update(updatedFormData)
+        .update(dataToUpdate)
         .eq('id', editingRecord.id);
 
       if (error) throw error;
