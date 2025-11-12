@@ -795,7 +795,8 @@ const AdminCollectionsPage = () => {
       }
 
       // Remove id and other system fields from update data
-      const { id, created_at, updated_at, ...dataToUpdate } = updatedFormData;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { id: _id, created_at: _created_at, updated_at: _updated_at, ...dataToUpdate } = updatedFormData;
 
       console.log('Data to update:', dataToUpdate);
 
