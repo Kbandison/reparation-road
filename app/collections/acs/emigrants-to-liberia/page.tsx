@@ -268,7 +268,6 @@ const EmigrantsToLiberiaPage = () => {
             Showing {filteredEmigrants.length} of {emigrants.length} records
           </p>
         </div>
-      </div>
 
         {filteredEmigrants.length === 0 ? (
           <div className="text-center py-12">
