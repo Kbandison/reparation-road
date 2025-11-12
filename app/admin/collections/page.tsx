@@ -669,15 +669,26 @@ const AdminCollectionsPage = () => {
         console.log(`Fetching batch ${batchCount + 1}, offset ${from}...`);
 
         // For ex-slave-pension table, include related image table
-        const selectQuery = tableName === 'ex-slave-pension'
-          ? '*, ex_slave_pension_images(public_url)'
-          : '*';
+        let data: Record<string, unknown>[] | null = null;
+        let error = null;
 
-        const { data, error } = await supabase
-          .from(tableName)
-          .select(selectQuery)
-          .order(orderColumn, { ascending: true })
-          .range(from, from + batchSize - 1);
+        if (tableName === 'ex-slave-pension') {
+          const result = await supabase
+            .from(tableName)
+            .select('*, ex_slave_pension_images(public_url)')
+            .order(orderColumn, { ascending: true })
+            .range(from, from + batchSize - 1);
+          data = result.data as Record<string, unknown>[] | null;
+          error = result.error;
+        } else {
+          const result = await supabase
+            .from(tableName)
+            .select('*')
+            .order(orderColumn, { ascending: true })
+            .range(from, from + batchSize - 1);
+          data = result.data;
+          error = result.error;
+        }
 
         if (error) throw error;
 
