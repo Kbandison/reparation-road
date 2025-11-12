@@ -767,9 +767,10 @@ const AdminCollectionsPage = () => {
     setEditTableName(tableName);
     setFormData({ ...record });
 
-    // Set image preview for revolutionary_soldiers
-    if (tableName === 'revolutionary_soldiers' && record.image) {
-      setImagePreview(record.image as string);
+    // Set image preview for any record with image fields
+    const imageUrl = record.image || record.image_url || record.image_path || record.photo;
+    if (imageUrl && typeof imageUrl === 'string') {
+      setImagePreview(imageUrl);
     } else {
       setImagePreview('');
     }
@@ -787,11 +788,24 @@ const AdminCollectionsPage = () => {
       console.log('Record ID:', editingRecord.id);
       console.log('Form data before processing:', updatedFormData);
 
-      // Handle image upload for revolutionary_soldiers
-      if (editTableName === 'revolutionary_soldiers' && imageFile) {
-        const recordName = (formData.name as string) || 'soldier';
+      // Handle image upload for any table with image fields
+      if (imageFile) {
+        const recordName = (formData.name as string) || (formData.title as string) || `record-${editingRecord.id}`;
         const imageUrl = await uploadImageToStorage(imageFile, recordName);
-        updatedFormData = { ...updatedFormData, image: imageUrl };
+
+        // Determine which image field to update based on what exists in the record
+        if ('image' in editingRecord) {
+          updatedFormData = { ...updatedFormData, image: imageUrl };
+        } else if ('image_url' in editingRecord) {
+          updatedFormData = { ...updatedFormData, image_url: imageUrl };
+        } else if ('image_path' in editingRecord) {
+          updatedFormData = { ...updatedFormData, image_path: imageUrl };
+        } else if ('photo' in editingRecord) {
+          updatedFormData = { ...updatedFormData, photo: imageUrl };
+        } else {
+          // Default to 'image' field if no image field exists
+          updatedFormData = { ...updatedFormData, image: imageUrl };
+        }
       }
 
       // Remove id and other system fields from update data
@@ -1196,15 +1210,14 @@ const AdminCollectionsPage = () => {
                                     <tr>
                                       {Object.keys(dbRecords[0])
                                         .filter(key => {
-                                          // Filter out 'id' and 'image' for revolutionary_soldiers
-                                          if (collection.tableType === 'revolutionary_soldiers') {
-                                            return key !== 'id' && key !== 'image';
-                                          }
-                                          // For slave_voyages, filter out 'id' and use only first 5 columns
-                                          if (collection.tableType === 'slave_voyages') {
-                                            return key !== 'id';
-                                          }
-                                          return key !== 'id';
+                                          // Filter out system fields and image fields
+                                          return key !== 'id' &&
+                                                 key !== 'created_at' &&
+                                                 key !== 'updated_at' &&
+                                                 key !== 'image' &&
+                                                 key !== 'image_url' &&
+                                                 key !== 'image_path' &&
+                                                 key !== 'photo';
                                         })
                                         .slice(0, 5)
                                         .map((key) => (
@@ -1212,7 +1225,10 @@ const AdminCollectionsPage = () => {
                                             {key.replace(/_/g, ' ')}
                                           </th>
                                         ))}
-                                      {collection.tableType === 'revolutionary_soldiers' && (
+                                      {(dbRecords[0].image !== undefined ||
+                                        dbRecords[0].image_url !== undefined ||
+                                        dbRecords[0].image_path !== undefined ||
+                                        dbRecords[0].photo !== undefined) && (
                                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                           Has Image
                                         </th>
@@ -1225,7 +1241,7 @@ const AdminCollectionsPage = () => {
                                   <tbody className="divide-y divide-gray-200">
                                     {filteredDbRecords.length === 0 ? (
                                       <tr>
-                                        <td colSpan={collection.tableType === 'revolutionary_soldiers' ? 7 : 6} className="px-4 py-12 text-center text-gray-500">
+                                        <td colSpan={(dbRecords[0].image !== undefined || dbRecords[0].image_url !== undefined || dbRecords[0].image_path !== undefined || dbRecords[0].photo !== undefined) ? 7 : 6} className="px-4 py-12 text-center text-gray-500">
                                           No records found matching &quot;{searchTerm}&quot;
                                         </td>
                                       </tr>
@@ -1234,15 +1250,14 @@ const AdminCollectionsPage = () => {
                                 <tr key={String(record.id)} className="hover:bg-gray-50">
                                   {Object.entries(record)
                                     .filter(([key]) => {
-                                      // Filter out 'id' and 'image' for revolutionary_soldiers
-                                      if (collection.tableType === 'revolutionary_soldiers') {
-                                        return key !== 'id' && key !== 'image';
-                                      }
-                                      // For slave_voyages, filter out 'id' and use only first 5 columns
-                                      if (collection.tableType === 'slave_voyages') {
-                                        return key !== 'id';
-                                      }
-                                      return key !== 'id';
+                                      // Filter out system fields and image fields
+                                      return key !== 'id' &&
+                                             key !== 'created_at' &&
+                                             key !== 'updated_at' &&
+                                             key !== 'image' &&
+                                             key !== 'image_url' &&
+                                             key !== 'image_path' &&
+                                             key !== 'photo';
                                     })
                                     .slice(0, 5)
                                     .map(([, value], idx) => (
@@ -1250,9 +1265,12 @@ const AdminCollectionsPage = () => {
                                         {value !== null && value !== undefined ? String(value).substring(0, 50) : '-'}
                                       </td>
                                     ))}
-                                  {collection.tableType === 'revolutionary_soldiers' && (
+                                  {(record.image !== undefined ||
+                                    record.image_url !== undefined ||
+                                    record.image_path !== undefined ||
+                                    record.photo !== undefined) && (
                                     <td className="px-4 py-3 text-sm text-gray-600 font-semibold">
-                                      {record.image ? 'Y' : 'N'}
+                                      {(record.image || record.image_url || record.image_path || record.photo) ? 'Y' : 'N'}
                                     </td>
                                   )}
                                   <td className="px-4 py-3 text-sm">
@@ -1517,11 +1535,14 @@ const AdminCollectionsPage = () => {
             </div>
 
             <div className="p-6">
-              {/* Image Upload Section (only for revolutionary_soldiers) */}
-              {editTableName === 'revolutionary_soldiers' && (
+              {/* Image Upload Section (for any table with image fields) */}
+              {(editingRecord.image !== undefined ||
+                editingRecord.image_url !== undefined ||
+                editingRecord.image_path !== undefined ||
+                editingRecord.photo !== undefined) && (
                 <div className="mb-6 pb-6 border-b border-gray-200">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Soldier Image
+                    Image
                   </label>
 
                   <div className="flex gap-4">
@@ -1575,7 +1596,15 @@ const AdminCollectionsPage = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 {Object.keys(formData)
-                  .filter((key) => key !== 'id' && key !== 'created_at' && key !== 'updated_at' && key !== 'image')
+                  .filter((key) =>
+                    key !== 'id' &&
+                    key !== 'created_at' &&
+                    key !== 'updated_at' &&
+                    key !== 'image' &&
+                    key !== 'image_url' &&
+                    key !== 'image_path' &&
+                    key !== 'photo'
+                  )
                   .map((key) => (
                     <div key={key} className="col-span-2 sm:col-span-1">
                       <label className="block text-sm font-medium text-gray-700 mb-1 capitalize">
