@@ -1881,6 +1881,266 @@ const AdminCollectionsPage = () => {
           </div>
         </div>
       )}
+
+      {/* Edit Archive Page Modal */}
+      {editingArchivePage && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full my-8">
+            <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between rounded-t-lg">
+              <h2 className="text-2xl font-bold text-brand-brown">Edit Archive Page</h2>
+              <button
+                onClick={handleCancelArchivePageEdit}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto">
+              {/* Basic Information */}
+              <div>
+                <h3 className="text-lg font-semibold text-brand-brown mb-4">Basic Information</h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-brand-brown mb-1">
+                      Collection Slug *
+                    </label>
+                    <Input
+                      value={archivePageFormData.collection_slug}
+                      onChange={(e) => setArchivePageFormData({ ...archivePageFormData, collection_slug: e.target.value })}
+                      required
+                      placeholder="e.g., inspection-roll"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-brand-brown mb-1">
+                      Title (Optional)
+                    </label>
+                    <Input
+                      value={archivePageFormData.title}
+                      onChange={(e) => setArchivePageFormData({ ...archivePageFormData, title: e.target.value })}
+                      placeholder="Page title"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-brand-brown mb-1">
+                      Book Number *
+                    </label>
+                    <Input
+                      type="number"
+                      value={archivePageFormData.book_no}
+                      onChange={(e) => setArchivePageFormData({ ...archivePageFormData, book_no: parseInt(e.target.value) })}
+                      required
+                      min="1"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-brand-brown mb-1">
+                      Page Number *
+                    </label>
+                    <Input
+                      type="number"
+                      value={archivePageFormData.page_no}
+                      onChange={(e) => setArchivePageFormData({ ...archivePageFormData, page_no: parseInt(e.target.value) })}
+                      required
+                      min="1"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-brand-brown mb-1">
+                      Year (Optional)
+                    </label>
+                    <Input
+                      type="number"
+                      value={archivePageFormData.year}
+                      onChange={(e) => setArchivePageFormData({ ...archivePageFormData, year: parseInt(e.target.value) })}
+                      min="1600"
+                      max="2100"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-brand-brown mb-1">
+                      Location (Optional)
+                    </label>
+                    <Input
+                      value={archivePageFormData.location}
+                      onChange={(e) => setArchivePageFormData({ ...archivePageFormData, location: e.target.value })}
+                      placeholder="e.g., Virginia"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Image Section */}
+              <div>
+                <h3 className="text-lg font-semibold text-brand-brown mb-4 flex items-center gap-2">
+                  <ImageIcon className="w-5 h-5" />
+                  Document Image
+                </h3>
+                <div className="space-y-4">
+                  {/* Image Source Toggle */}
+                  <div className="flex gap-4">
+                    <button
+                      type="button"
+                      onClick={() => setArchivePageImageSource('url')}
+                      className={`flex-1 p-3 rounded-lg border-2 transition-colors ${
+                        archivePageImageSource === 'url'
+                          ? 'border-brand-green bg-brand-green/10'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <LinkIcon className="w-6 h-6 mx-auto mb-2" />
+                      <p className="font-medium">Image URL</p>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setArchivePageImageSource('upload')}
+                      className={`flex-1 p-3 rounded-lg border-2 transition-colors ${
+                        archivePageImageSource === 'upload'
+                          ? 'border-brand-green bg-brand-green/10'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <Upload className="w-6 h-6 mx-auto mb-2" />
+                      <p className="font-medium">Upload New File</p>
+                    </button>
+                  </div>
+
+                  {/* URL Input */}
+                  {archivePageImageSource === 'url' && (
+                    <div>
+                      <label className="block text-sm font-medium text-brand-brown mb-1">
+                        Image URL *
+                      </label>
+                      <Input
+                        type="url"
+                        value={archivePageImageUrl}
+                        onChange={(e) => setArchivePageImageUrl(e.target.value)}
+                        placeholder="https://example.com/image.jpg"
+                      />
+                    </div>
+                  )}
+
+                  {/* File Upload */}
+                  {archivePageImageSource === 'upload' && (
+                    <div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleArchivePageImageSelect}
+                        className="hidden"
+                        id="archive-image-upload"
+                      />
+                      <label htmlFor="archive-image-upload">
+                        <Button
+                          type="button"
+                          onClick={() => document.getElementById('archive-image-upload')?.click()}
+                          variant="outline"
+                          className="w-full flex items-center justify-center gap-2"
+                        >
+                          <Upload className="w-5 h-5" />
+                          {archivePageImageFile ? 'Change Image' : 'Select New Image File'}
+                        </Button>
+                      </label>
+                      {archivePageImageFile && (
+                        <p className="text-sm text-gray-600 mt-2">
+                          Selected: {archivePageImageFile.name}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Image Preview */}
+                  {archivePageImagePreview && (
+                    <div className="border border-gray-200 rounded-lg p-4">
+                      <p className="text-sm font-medium text-brand-brown mb-2">Current/Preview</p>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={archivePageImagePreview}
+                        alt="Preview"
+                        className="max-h-64 mx-auto rounded"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Transcription Section */}
+              <div>
+                <h3 className="text-lg font-semibold text-brand-brown mb-4 flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  Transcription (OCR Text)
+                </h3>
+                <textarea
+                  value={archivePageFormData.ocr_text}
+                  onChange={(e) => setArchivePageFormData({ ...archivePageFormData, ocr_text: e.target.value })}
+                  rows={10}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green font-mono text-sm"
+                  placeholder="Enter the transcribed text from the document..."
+                />
+              </div>
+
+              {/* Tags Section */}
+              <div>
+                <h3 className="text-lg font-semibold text-brand-brown mb-4">Tags</h3>
+                <div className="space-y-4">
+                  <div className="flex gap-2">
+                    <Input
+                      value={archivePageTagInput}
+                      onChange={(e) => setArchivePageTagInput(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddArchivePageTag())}
+                      placeholder="Add a tag"
+                    />
+                    <Button type="button" onClick={handleAddArchivePageTag} variant="outline">
+                      Add
+                    </Button>
+                  </div>
+
+                  {archivePageFormData.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {archivePageFormData.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="px-3 py-1 bg-brand-tan text-brand-brown rounded-full flex items-center gap-2"
+                        >
+                          {tag}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveArchivePageTag(tag)}
+                            className="hover:text-red-600"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="border-t border-gray-200 p-6 flex gap-4 bg-gray-50 rounded-b-lg">
+              <Button
+                onClick={handleSaveArchivePage}
+                disabled={archivePageSaving}
+                className="flex-1 bg-brand-green hover:bg-brand-darkgreen flex items-center justify-center gap-2"
+              >
+                <Save className="w-5 h-5" />
+                {archivePageSaving ? 'Saving...' : 'Update Page'}
+              </Button>
+              <Button
+                onClick={handleCancelArchivePageEdit}
+                variant="outline"
+                disabled={archivePageSaving}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
