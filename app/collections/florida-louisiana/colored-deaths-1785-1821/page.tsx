@@ -1,10 +1,35 @@
-import { ComingSoon } from '@/components/ComingSoon';
+import { FileText } from 'lucide-react';
 
-export default function ColoredDeaths17851821Page() {
+export const dynamic = 'force-dynamic';
+
+export default function Page() {
   return (
-    <ComingSoon
-      title="Colored Deaths 1785-1821 (Diocese of St Augustine)"
-      description="Death and burial records of colored individuals from the Diocese of St Augustine spanning 1785-1821. These records help trace family lines and understand life expectancy in colonial Florida."
-    />
+    <div className="min-h-screen bg-brand-beige">
+      {/* Hero Section */}
+      <div className="bg-gradient-to-r from-brand-green to-brand-darkgreen text-white py-16">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <FileText className="w-16 h-16 mx-auto mb-4" />
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+              Colored Deaths (1785-1821)
+            </h1>
+            <p className="text-lg text-white/90">
+              Death records of people of color in Florida and Louisiana from 1785 to 1821.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-12">
+        <div className="max-w-3xl mx-auto text-center">
+          <p className="text-lg text-gray-600 mb-6">
+            This collection is currently being digitized and will be available soon.
+          </p>
+          <p className="text-sm text-gray-500">
+            Check back regularly for updates as we continue to expand our historical archives.
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }

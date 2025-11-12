@@ -1,10 +1,35 @@
-import { ComingSoon } from '@/components/ComingSoon';
+import { Users } from 'lucide-react';
 
-export default function MixedBaptisms17931807Page() {
+export const dynamic = 'force-dynamic';
+
+export default function Page() {
   return (
-    <ComingSoon
-      title="Mixed Baptisms 1793-1807 (Diocese of St Augustine)"
-      description="Mixed baptism records from the Diocese of St Augustine spanning 1793-1807. These records document baptisms involving individuals of mixed racial heritage during the colonial period."
-    />
+    <div className="min-h-screen bg-brand-beige">
+      {/* Hero Section */}
+      <div className="bg-gradient-to-r from-brand-green to-brand-darkgreen text-white py-16">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <Users className="w-16 h-16 mx-auto mb-4" />
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+              Mixed Baptisms (1793-1807)
+            </h1>
+            <p className="text-lg text-white/90">
+              Baptism records from mixed congregations in Florida and Louisiana from 1793 to 1807.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-12">
+        <div className="max-w-3xl mx-auto text-center">
+          <p className="text-lg text-gray-600 mb-6">
+            This collection is currently being digitized and will be available soon.
+          </p>
+          <p className="text-sm text-gray-500">
+            Check back regularly for updates as we continue to expand our historical archives.
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }

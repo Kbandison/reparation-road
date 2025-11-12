@@ -1,10 +1,35 @@
-import { ComingSoon } from '@/components/ComingSoon';
+import { Mail } from 'lucide-react';
 
-export default function Correspondence19181922Page() {
+export const dynamic = 'force-dynamic';
+
+export default function Page() {
   return (
-    <ComingSoon
-      title="Chronological Correspondence: 1918-1922"
-      description="Official government correspondence related to ex-slave pension fraud investigations from 1918-1922, the final years of active investigation and case resolution."
-    />
+    <div className="min-h-screen bg-brand-beige">
+      {/* Hero Section */}
+      <div className="bg-gradient-to-r from-brand-green to-brand-darkgreen text-white py-16">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <Mail className="w-16 h-16 mx-auto mb-4" />
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+              Correspondence (1918-1922)
+            </h1>
+            <p className="text-lg text-white/90">
+              Letters and correspondence related to ex-slave pension claims from 1918 to 1922.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-12">
+        <div className="max-w-3xl mx-auto text-center">
+          <p className="text-lg text-gray-600 mb-6">
+            This collection is currently being digitized and will be available soon.
+          </p>
+          <p className="text-sm text-gray-500">
+            Check back regularly for updates as we continue to expand our historical archives.
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }

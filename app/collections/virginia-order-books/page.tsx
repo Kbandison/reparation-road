@@ -1,10 +1,35 @@
-import { ComingSoon } from '@/components/ComingSoon';
+import { Scale } from 'lucide-react';
 
-export default function VirginiaOrderBooksPage() {
+export const dynamic = 'force-dynamic';
+
+export default function Page() {
   return (
-    <ComingSoon
-      title="Virginia Order Books. Negro Adjudgments"
-      description="Virginia county order books containing legal judgments and court records related to African Americans."
-    />
+    <div className="min-h-screen bg-brand-beige">
+      {/* Hero Section */}
+      <div className="bg-gradient-to-r from-brand-green to-brand-darkgreen text-white py-16">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <Scale className="w-16 h-16 mx-auto mb-4" />
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+              Virginia Order Books: Negro Adjudgments
+            </h1>
+            <p className="text-lg text-white/90">
+              Court proceedings, legal judgments, and order books from Virginia courts.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-12">
+        <div className="max-w-3xl mx-auto text-center">
+          <p className="text-lg text-gray-600 mb-6">
+            This collection is currently being digitized and will be available soon.
+          </p>
+          <p className="text-sm text-gray-500">
+            Check back regularly for updates as we continue to expand our historical archives.
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }
