@@ -633,6 +633,7 @@ const AdminCollectionsPage = () => {
   const fetchDatabaseRecords = async (tableName: string) => {
     try {
       setDbLoading(true);
+      console.log(`Fetching records from ${tableName}...`);
 
       // Kentucky Catholic table uses 'page' as identifier, not 'id'
       const orderColumn = tableName === 'enslaved_catholic_kentuky' ? 'baptism_date' : 'id';
@@ -641,8 +642,12 @@ const AdminCollectionsPage = () => {
       let from = 0;
       const batchSize = 1000;
       let hasMore = true;
+      let batchCount = 0;
+      const maxBatches = 200; // Safety limit: max 200k records
 
-      while (hasMore) {
+      while (hasMore && batchCount < maxBatches) {
+        console.log(`Fetching batch ${batchCount + 1}, offset ${from}...`);
+
         const { data, error } = await supabase
           .from(tableName)
           .select('*')
@@ -655,11 +660,18 @@ const AdminCollectionsPage = () => {
           allRecords.push(...data);
           from += batchSize;
           hasMore = data.length === batchSize;
+          batchCount++;
+          console.log(`Batch ${batchCount} fetched: ${data.length} records. Total: ${allRecords.length}`);
         } else {
           hasMore = false;
         }
       }
 
+      if (batchCount >= maxBatches) {
+        console.warn(`Reached maximum batch limit (${maxBatches}). Some records may not be loaded.`);
+      }
+
+      console.log(`Finished fetching ${allRecords.length} records from ${tableName}`);
       setDbRecords(allRecords);
     } catch (error) {
       console.error('Error fetching database records:', error);
@@ -801,29 +813,34 @@ const AdminCollectionsPage = () => {
         throw new Error('No rows were updated. The record may not exist or you may not have permission to update it.');
       }
 
-      alert('Record updated successfully');
+      // Close modal and reset state immediately
       setEditingRecord(null);
       setEditTableName(null);
       setFormData({});
       setImageFile(null);
       setImagePreview('');
+      setUploading(false);
 
-      // Refresh the database records
+      alert('Record updated successfully');
+
+      // Refresh the database records in the background
       if (selectedCollection) {
         const collection = findCollection(selectedCollection);
         if (collection?.tableName) {
-          await fetchDatabaseRecords(collection.tableName);
+          console.log('Refreshing database records...');
+          fetchDatabaseRecords(collection.tableName).catch(err => {
+            console.error('Error refreshing records:', err);
+          });
         }
       }
     } catch (error) {
       console.error('Error updating record:', error);
+      setUploading(false);
       if (error instanceof Error) {
         alert(`Failed to update record: ${error.message}`);
       } else {
         alert('Failed to update record');
       }
-    } finally {
-      setUploading(false);
     }
   };
 
