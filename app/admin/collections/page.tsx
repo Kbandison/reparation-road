@@ -17,7 +17,8 @@ import {
   Upload,
   Save,
   X,
-  Loader2
+  Loader2,
+  Link as LinkIcon
 } from 'lucide-react';
 import Image from 'next/image';
 
