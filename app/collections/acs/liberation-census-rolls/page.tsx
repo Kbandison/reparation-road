@@ -314,7 +314,6 @@ const LiberationCensusRollsPage = () => {
             Showing {filteredRecords.length} of {records.length} records
           </p>
         </div>
-      </div>
 
         {filteredRecords.length === 0 ? (
           <div className="text-center py-12">
