@@ -771,6 +771,10 @@ const AdminCollectionsPage = () => {
       setUploading(true);
       let updatedFormData = { ...formData };
 
+      console.log('Saving record to table:', editTableName);
+      console.log('Record ID:', editingRecord.id);
+      console.log('Form data before processing:', updatedFormData);
+
       // Handle image upload for revolutionary_soldiers
       if (editTableName === 'revolutionary_soldiers' && imageFile) {
         const recordName = (formData.name as string) || 'soldier';
@@ -778,15 +782,24 @@ const AdminCollectionsPage = () => {
         updatedFormData = { ...updatedFormData, image: imageUrl };
       }
 
-      // Remove id from update data (can't update primary key)
-      const { id, ...dataToUpdate } = updatedFormData;
+      // Remove id and other system fields from update data
+      const { id, created_at, updated_at, ...dataToUpdate } = updatedFormData;
 
-      const { error } = await supabase
+      console.log('Data to update:', dataToUpdate);
+
+      const { data, error } = await supabase
         .from(editTableName)
         .update(dataToUpdate)
-        .eq('id', editingRecord.id);
+        .eq('id', editingRecord.id)
+        .select();
+
+      console.log('Update response:', { data, error });
 
       if (error) throw error;
+
+      if (!data || data.length === 0) {
+        throw new Error('No rows were updated. The record may not exist or you may not have permission to update it.');
+      }
 
       alert('Record updated successfully');
       setEditingRecord(null);
