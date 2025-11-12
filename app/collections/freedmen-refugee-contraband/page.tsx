@@ -14,7 +14,7 @@ export default function Page() {
               Freedmen, Refugee and Contraband Records
             </h1>
             <p className="text-lg text-white/90">
-              Freedmen's Bureau documentation and records of refugees and contraband.
+              Freedmen&apos;s Bureau documentation and records of refugees and contraband.
             </p>
           </div>
         </div>

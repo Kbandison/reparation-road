@@ -637,7 +637,7 @@ const AdminCollectionsPage = () => {
       // Kentucky Catholic table uses 'page' as identifier, not 'id'
       const orderColumn = tableName === 'enslaved_catholic_kentuky' ? 'baptism_date' : 'id';
 
-      let allRecords: Record<string, unknown>[] = [];
+      const allRecords: Record<string, unknown>[] = [];
       let from = 0;
       const batchSize = 1000;
       let hasMore = true;
