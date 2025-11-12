@@ -482,7 +482,7 @@ const AdminCollectionsPage = () => {
   const itemsPerDbPage = 50;
 
   // Archive pages editing states
-  const [editingArchivePage, setEditingArchivePage] = useState<Record<string, unknown> | null>(null);
+  const [editingArchivePage, setEditingArchivePage] = useState<ArchivePage | null>(null);
   const [archivePageFormData, setArchivePageFormData] = useState({
     collection_slug: '',
     book_no: 1,
@@ -976,20 +976,20 @@ const AdminCollectionsPage = () => {
   };
 
   // Archive page editing handlers
-  const handleEditArchivePage = (page: Record<string, unknown>) => {
+  const handleEditArchivePage = (page: ArchivePage) => {
     setEditingArchivePage(page);
     setArchivePageFormData({
-      collection_slug: page.collection_slug as string || '',
-      book_no: page.book_no as number || 1,
-      page_no: page.page_no as number || 1,
-      title: page.title as string || '',
-      year: page.year as number || new Date().getFullYear(),
-      location: page.location as string || '',
-      tags: (page.tags as string[]) || [],
-      ocr_text: page.ocr_text as string || '',
+      collection_slug: page.collection_slug || '',
+      book_no: page.book_no || 1,
+      page_no: page.page_no || 1,
+      title: page.title || '',
+      year: page.year || new Date().getFullYear(),
+      location: page.location || '',
+      tags: page.tags || [],
+      ocr_text: page.ocr_text || '',
     });
-    setArchivePageImageUrl(page.image_path as string || '');
-    setArchivePageImagePreview(page.image_path as string || '');
+    setArchivePageImageUrl(page.image_path || '');
+    setArchivePageImagePreview(page.image_path || '');
     setArchivePageImageSource('url');
     setArchivePageImageFile(null);
     setArchivePageTagInput('');
