@@ -480,6 +480,25 @@ const AdminCollectionsPage = () => {
   const [currentDbPage, setCurrentDbPage] = useState(1);
   const itemsPerDbPage = 50;
 
+  // Archive pages editing states
+  const [editingArchivePage, setEditingArchivePage] = useState<Record<string, unknown> | null>(null);
+  const [archivePageFormData, setArchivePageFormData] = useState({
+    collection_slug: '',
+    book_no: 1,
+    page_no: 1,
+    title: '',
+    year: new Date().getFullYear(),
+    location: '',
+    tags: [] as string[],
+    ocr_text: '',
+  });
+  const [archivePageImageSource, setArchivePageImageSource] = useState<'url' | 'upload'>('url');
+  const [archivePageImageUrl, setArchivePageImageUrl] = useState('');
+  const [archivePageImageFile, setArchivePageImageFile] = useState<File | null>(null);
+  const [archivePageImagePreview, setArchivePageImagePreview] = useState<string>('');
+  const [archivePageTagInput, setArchivePageTagInput] = useState('');
+  const [archivePageSaving, setArchivePageSaving] = useState(false);
+
   // Helper function to find collection including subcollections
   const findCollection = (slug: string): Collection | undefined => {
     // First search in main collections
@@ -786,10 +805,20 @@ const AdminCollectionsPage = () => {
       imageUrl = record.photo;
     }
     // Check for related image tables (like ex_slave_pension_images)
-    else if (record.ex_slave_pension_images && typeof record.ex_slave_pension_images === 'object') {
-      const imgData = record.ex_slave_pension_images as Record<string, unknown>;
-      if (imgData.public_url && typeof imgData.public_url === 'string') {
-        imageUrl = imgData.public_url;
+    else if (record.ex_slave_pension_images) {
+      // Handle array (one-to-many relationship)
+      if (Array.isArray(record.ex_slave_pension_images) && record.ex_slave_pension_images.length > 0) {
+        const imgData = record.ex_slave_pension_images[0] as Record<string, unknown>;
+        if (imgData.public_url && typeof imgData.public_url === 'string') {
+          imageUrl = imgData.public_url;
+        }
+      }
+      // Handle object (one-to-one relationship)
+      else if (typeof record.ex_slave_pension_images === 'object' && !Array.isArray(record.ex_slave_pension_images)) {
+        const imgData = record.ex_slave_pension_images as Record<string, unknown>;
+        if (imgData.public_url && typeof imgData.public_url === 'string') {
+          imageUrl = imgData.public_url;
+        }
       }
     }
 
@@ -931,6 +960,160 @@ const AdminCollectionsPage = () => {
     } catch (error) {
       console.error('Error deleting page:', error);
       alert('Failed to delete page');
+    }
+  };
+
+  // Archive page editing handlers
+  const handleEditArchivePage = (page: Record<string, unknown>) => {
+    setEditingArchivePage(page);
+    setArchivePageFormData({
+      collection_slug: page.collection_slug as string || '',
+      book_no: page.book_no as number || 1,
+      page_no: page.page_no as number || 1,
+      title: page.title as string || '',
+      year: page.year as number || new Date().getFullYear(),
+      location: page.location as string || '',
+      tags: (page.tags as string[]) || [],
+      ocr_text: page.ocr_text as string || '',
+    });
+    setArchivePageImageUrl(page.image_path as string || '');
+    setArchivePageImagePreview(page.image_path as string || '');
+    setArchivePageImageSource('url');
+    setArchivePageImageFile(null);
+    setArchivePageTagInput('');
+  };
+
+  const handleCancelArchivePageEdit = () => {
+    setEditingArchivePage(null);
+    setArchivePageFormData({
+      collection_slug: '',
+      book_no: 1,
+      page_no: 1,
+      title: '',
+      year: new Date().getFullYear(),
+      location: '',
+      tags: [],
+      ocr_text: '',
+    });
+    setArchivePageImageUrl('');
+    setArchivePageImagePreview('');
+    setArchivePageImageSource('url');
+    setArchivePageImageFile(null);
+    setArchivePageTagInput('');
+  };
+
+  const handleArchivePageImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        alert('Please select a valid image file');
+        return;
+      }
+      setArchivePageImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setArchivePageImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAddArchivePageTag = () => {
+    if (archivePageTagInput.trim() && !archivePageFormData.tags.includes(archivePageTagInput.trim())) {
+      setArchivePageFormData((prev) => ({
+        ...prev,
+        tags: [...prev.tags, archivePageTagInput.trim()],
+      }));
+      setArchivePageTagInput('');
+    }
+  };
+
+  const handleRemoveArchivePageTag = (tagToRemove: string) => {
+    setArchivePageFormData((prev) => ({
+      ...prev,
+      tags: prev.tags.filter((tag) => tag !== tagToRemove),
+    }));
+  };
+
+  const uploadArchivePageImageToStorage = async (file: File): Promise<string> => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${archivePageFormData.collection_slug}/book-${archivePageFormData.book_no}/page-${archivePageFormData.page_no}.${fileExt}`;
+      const filePath = `archives/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('archives')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) {
+        throw new Error(`Image upload failed: ${uploadError.message}`);
+      }
+
+      const { data } = supabase.storage.from('archives').getPublicUrl(filePath);
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Error in uploadArchivePageImageToStorage:', error);
+      throw error;
+    }
+  };
+
+  const handleSaveArchivePage = async () => {
+    if (!editingArchivePage) return;
+
+    setArchivePageSaving(true);
+    try {
+      // Get image path
+      let imagePath = archivePageImageUrl;
+      if (archivePageImageSource === 'upload' && archivePageImageFile) {
+        imagePath = await uploadArchivePageImageToStorage(archivePageImageFile);
+      }
+
+      if (!imagePath) {
+        throw new Error('Please provide an image URL or upload an image file');
+      }
+
+      // Update slug if book/page numbers changed
+      const slug = `${archivePageFormData.collection_slug}-book-${archivePageFormData.book_no}-page-${archivePageFormData.page_no}`;
+
+      // Prepare update data
+      const updateData = {
+        collection_slug: archivePageFormData.collection_slug,
+        book_no: archivePageFormData.book_no,
+        page_no: archivePageFormData.page_no,
+        slug,
+        image_path: imagePath,
+        title: archivePageFormData.title || null,
+        year: archivePageFormData.year || null,
+        location: archivePageFormData.location || null,
+        tags: archivePageFormData.tags,
+        ocr_text: archivePageFormData.ocr_text,
+        updated_at: new Date().toISOString(),
+      };
+
+      // Update in database
+      const { error } = await supabase
+        .from('archive_pages')
+        .update(updateData)
+        .eq('id', editingArchivePage.id);
+
+      if (error) {
+        throw new Error(`Database error: ${error.message}`);
+      }
+
+      // Refresh the page list
+      if (selectedCollection) {
+        fetchPages(selectedCollection);
+      }
+      fetchCollections();
+
+      alert('Page updated successfully!');
+      handleCancelArchivePageEdit();
+    } catch (error) {
+      console.error('Error updating page:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update page';
+      alert(errorMessage);
+    } finally {
+      setArchivePageSaving(false);
     }
   };
 
@@ -1295,9 +1478,17 @@ const AdminCollectionsPage = () => {
                                     <td className="px-4 py-3 text-sm text-gray-600 font-semibold">
                                       {(() => {
                                         if (record.image || record.image_url || record.image_path || record.photo) return 'Y';
-                                        if (record.ex_slave_pension_images && typeof record.ex_slave_pension_images === 'object') {
-                                          const imgData = record.ex_slave_pension_images as Record<string, unknown>;
-                                          return imgData.public_url ? 'Y' : 'N';
+                                        if (record.ex_slave_pension_images) {
+                                          // Handle array
+                                          if (Array.isArray(record.ex_slave_pension_images) && record.ex_slave_pension_images.length > 0) {
+                                            const imgData = record.ex_slave_pension_images[0] as Record<string, unknown>;
+                                            return imgData.public_url ? 'Y' : 'N';
+                                          }
+                                          // Handle object
+                                          else if (typeof record.ex_slave_pension_images === 'object' && !Array.isArray(record.ex_slave_pension_images)) {
+                                            const imgData = record.ex_slave_pension_images as Record<string, unknown>;
+                                            return imgData.public_url ? 'Y' : 'N';
+                                          }
                                         }
                                         return 'N';
                                       })()}
@@ -1504,7 +1695,7 @@ const AdminCollectionsPage = () => {
 
                         <div className="flex gap-2">
                           <Button
-                            onClick={() => router.push(`/admin/collections/edit/${page.id}`)}
+                            onClick={() => handleEditArchivePage(page)}
                             size="sm"
                             variant="outline"
                             className="flex items-center gap-1"
