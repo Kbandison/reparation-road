@@ -10,32 +10,44 @@ const subcollections = [
   {
     slug: 'alabama-episcopal',
     title: 'Enslaved Persons Mentioned in Alabama Episcopal Registers',
-    description: 'Episcopal church records from Alabama documenting enslaved individuals'
+    description: 'Episcopal church records from Alabama documenting enslaved individuals',
+    available: false
   },
   {
     slug: 'first-african-baptist-savannah',
     title: 'First African Baptist Church (Savannah)',
-    description: 'Historic records from the First African Baptist Church in Savannah, Georgia'
+    description: 'Historic records from the First African Baptist Church in Savannah, Georgia',
+    available: false
+  },
+  {
+    slug: 'formerly-enslaved',
+    title: 'Records of Formerly Enslaved Persons',
+    description: 'Documentation and records concerning formerly enslaved individuals',
+    available: true
   },
   {
     slug: 'kentucky-catholic',
     title: 'Kentucky Enslaved Catholic Church Records',
-    description: 'Catholic church records from Kentucky documenting enslaved persons'
+    description: 'Catholic church records from Kentucky documenting enslaved persons',
+    available: false
   },
   {
     slug: 'mother-bethel-ame',
     title: 'Mother Bethel AME (Philadelphia)',
-    description: 'Records from Mother Bethel AME Church, the oldest AME church in the nation'
+    description: 'Records from Mother Bethel AME Church, the oldest AME church in the nation',
+    available: false
   },
   {
     slug: 'nathan-morgan-bible',
     title: 'Nathan Morgan Bible',
-    description: 'Family Bible records and inscriptions from the Nathan Morgan family'
+    description: 'Family Bible records and inscriptions from the Nathan Morgan family',
+    available: false
   },
   {
     slug: 'starlight-baptist',
     title: 'Starlight Baptist Church Registers',
-    description: 'Baptist church membership and baptism registers'
+    description: 'Baptist church membership and baptism registers',
+    available: false
   }
 ];
 
@@ -116,9 +128,11 @@ export default function BiblesChurchesPage() {
                     <div className="w-12 h-12 bg-brand-tan rounded-full flex items-center justify-center flex-shrink-0">
                       <Clock className="w-6 h-6 text-brand-green" />
                     </div>
-                    <span className="px-3 py-1 bg-brand-green text-white text-xs rounded-full">
-                      Coming Soon
-                    </span>
+                    {!subcollection.available && (
+                      <span className="px-3 py-1 bg-brand-green text-white text-xs rounded-full">
+                        Coming Soon
+                      </span>
+                    )}
                   </div>
                   <h3 className="text-xl font-bold text-brand-brown mb-2">
                     {subcollection.title}
