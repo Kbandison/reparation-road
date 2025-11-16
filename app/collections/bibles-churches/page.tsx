@@ -20,12 +20,6 @@ const subcollections = [
     available: false
   },
   {
-    slug: 'formerly-enslaved',
-    title: 'Records of Formerly Enslaved Persons',
-    description: 'Documentation and records concerning formerly enslaved individuals',
-    available: true
-  },
-  {
     slug: 'kentucky-catholic',
     title: 'Kentucky Enslaved Catholic Church Records',
     description: 'Catholic church records from Kentucky documenting enslaved persons',
@@ -128,11 +122,9 @@ export default function BiblesChurchesPage() {
                     <div className="w-12 h-12 bg-brand-tan rounded-full flex items-center justify-center flex-shrink-0">
                       <Clock className="w-6 h-6 text-brand-green" />
                     </div>
-                    {!subcollection.available && (
-                      <span className="px-3 py-1 bg-brand-green text-white text-xs rounded-full">
-                        Coming Soon
-                      </span>
-                    )}
+                    <span className="px-3 py-1 bg-brand-green text-white text-xs rounded-full">
+                      Coming Soon
+                    </span>
                   </div>
                   <h3 className="text-xl font-bold text-brand-brown mb-2">
                     {subcollection.title}
