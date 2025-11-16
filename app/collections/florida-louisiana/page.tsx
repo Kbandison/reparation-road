@@ -10,27 +10,32 @@ const subcollections = [
   {
     slug: 'colored-baptisms-1784-1793',
     title: 'Colored Baptisms 1784-1793 (Diocese of St Augustine)',
-    description: 'Baptism records of colored individuals from the Diocese of St Augustine'
+    description: 'Baptism records of colored individuals from the Diocese of St Augustine',
+    available: false
   },
   {
     slug: 'colored-baptisms-1807-1848',
     title: 'Colored Baptisms 1807-1848 (Diocese of St Augustine)',
-    description: 'Baptism records of colored individuals from the Diocese of St Augustine'
+    description: 'Baptism records of colored individuals from the Diocese of St Augustine',
+    available: false
   },
   {
     slug: 'colored-deaths-1785-1821',
     title: 'Colored Deaths 1785-1821 (Diocese of St Augustine)',
-    description: 'Death records of colored individuals from the Diocese of St Augustine'
+    description: 'Death records of colored individuals from the Diocese of St Augustine',
+    available: true
   },
   {
     slug: 'colored-marriages-1784-1882',
     title: 'Colored Marriages 1784-1882 (Diocese of St Augustine)',
-    description: 'Marriage records of colored individuals from the Diocese of St Augustine'
+    description: 'Marriage records of colored individuals from the Diocese of St Augustine',
+    available: true
   },
   {
     slug: 'mixed-baptisms-1793-1807',
     title: 'Mixed Baptisms 1793-1807 (Diocese of St Augustine)',
-    description: 'Mixed baptism records from the Diocese of St Augustine'
+    description: 'Mixed baptism records from the Diocese of St Augustine',
+    available: false
   }
 ];
 
@@ -111,9 +116,11 @@ export default function FloridaLouisianaPage() {
                     <div className="w-12 h-12 bg-brand-tan rounded-full flex items-center justify-center flex-shrink-0">
                       <Clock className="w-6 h-6 text-brand-green" />
                     </div>
-                    <span className="px-3 py-1 bg-brand-green text-white text-xs rounded-full">
-                      Coming Soon
-                    </span>
+                    {!subcollection.available && (
+                      <span className="px-3 py-1 bg-brand-green text-white text-xs rounded-full">
+                        Coming Soon
+                      </span>
+                    )}
                   </div>
                   <h3 className="text-xl font-bold text-brand-brown mb-2">
                     {subcollection.title}
