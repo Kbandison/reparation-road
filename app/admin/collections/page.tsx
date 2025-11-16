@@ -42,7 +42,7 @@ interface SubCollection {
   name: string;
   pageCount?: number;
   description?: string;
-  tableType: 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'free_black_heads_of_household' | 'enslaved_persons_alabama' | 'enslaved_catholic_kentuky' | 'slave_voyages' | 'ex_slave_pension' | 'colored_deaths' | 'colored_marriages' | 'coming_soon';
+  tableType: 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'free_black_heads_of_household' | 'enslaved_persons_alabama' | 'enslaved_catholic_kentuky' | 'slave_voyages' | 'ex_slave_pension' | 'colored_deaths' | 'colored_marriages' | 'creek_census' | 'coming_soon';
   tableName?: string;
 }
 
@@ -51,7 +51,7 @@ interface Collection {
   name: string;
   pageCount: number;
   description?: string;
-  tableType: 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'free_black_heads_of_household' | 'enslaved_persons_alabama' | 'enslaved_catholic_kentuky' | 'slave_voyages' | 'ex_slave_pension' | 'colored_deaths' | 'colored_marriages' | 'coming_soon';
+  tableType: 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'free_black_heads_of_household' | 'enslaved_persons_alabama' | 'enslaved_catholic_kentuky' | 'slave_voyages' | 'ex_slave_pension' | 'colored_deaths' | 'colored_marriages' | 'creek_census' | 'coming_soon';
   tableName?: string;
   subcollections?: SubCollection[];
 }
@@ -341,7 +341,8 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
         slug: 'creek-census-1832',
         name: 'Creek Census 1832 (Parsons Abbott Roll)',
         description: 'Census of Creek Nation members conducted in 1832',
-        tableType: 'coming_soon'
+        tableType: 'creek_census',
+        tableName: 'creek-census'
       },
       {
         slug: 'early-cherokee-census',
@@ -536,7 +537,7 @@ const AdminCollectionsPage = () => {
       setLoadingData(true);
 
       // Fetch counts for each table type
-      const [archivePagesData, compensationData, emigrantsData, censusData, revolutionaryData, freeBlackData, alabamaData, kentuckyData, slaveVoyagesData, exSlavePensionData, coloredDeathsData, coloredMarriagesData] = await Promise.all([
+      const [archivePagesData, compensationData, emigrantsData, censusData, revolutionaryData, freeBlackData, alabamaData, kentuckyData, slaveVoyagesData, exSlavePensionData, coloredDeathsData, coloredMarriagesData, creekCensusData] = await Promise.all([
         supabase.from('archive_pages').select('collection_slug'),
         supabase.from('slave_compensation_claims').select('id', { count: 'exact', head: true }),
         supabase.from('emmigrants_to_liberia').select('id', { count: 'exact', head: true }),
@@ -548,7 +549,8 @@ const AdminCollectionsPage = () => {
         supabase.from('slave_voyages').select('id', { count: 'exact', head: true }),
         supabase.from('ex-slave-pension').select('id', { count: 'exact', head: true }),
         supabase.from('colored-deaths').select('id', { count: 'exact', head: true }),
-        supabase.from('colored-marriages').select('id', { count: 'exact', head: true })
+        supabase.from('colored-marriages').select('id', { count: 'exact', head: true }),
+        supabase.from('creek-census').select('id', { count: 'exact', head: true })
       ]);
 
       // Group archive_pages by collection slug
@@ -570,7 +572,8 @@ const AdminCollectionsPage = () => {
         'slave_voyages': slaveVoyagesData.count || 0,
         'ex-slave-pension': exSlavePensionData.count || 0,
         'colored-deaths': coloredDeathsData.count || 0,
-        'colored-marriages': coloredMarriagesData.count || 0
+        'colored-marriages': coloredMarriagesData.count || 0,
+        'creek-census': creekCensusData.count || 0
       };
 
       // Build collections list with appropriate counts
@@ -1353,7 +1356,8 @@ const AdminCollectionsPage = () => {
                     collection.tableType === 'slave_voyages' ||
                     collection.tableType === 'ex_slave_pension' ||
                     collection.tableType === 'colored_deaths' ||
-                    collection.tableType === 'colored_marriages')
+                    collection.tableType === 'colored_marriages' ||
+                    collection.tableType === 'creek_census')
                 ) {
                   return (
                     <div className="bg-white rounded-lg shadow-lg p-6">
