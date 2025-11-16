@@ -1348,7 +1348,8 @@ const AdminCollectionsPage = () => {
                     collection.tableType === 'enslaved_persons_alabama' ||
                     collection.tableType === 'enslaved_catholic_kentuky' ||
                     collection.tableType === 'slave_voyages' ||
-                    collection.tableType === 'ex_slave_pension')
+                    collection.tableType === 'ex_slave_pension' ||
+                    collection.tableType === 'colored_deaths')
                 ) {
                   return (
                     <div className="bg-white rounded-lg shadow-lg p-6">
