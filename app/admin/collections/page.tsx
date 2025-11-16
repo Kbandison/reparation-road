@@ -42,7 +42,7 @@ interface SubCollection {
   name: string;
   pageCount?: number;
   description?: string;
-  tableType: 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'free_black_heads_of_household' | 'enslaved_persons_alabama' | 'enslaved_catholic_kentuky' | 'slave_voyages' | 'ex_slave_pension' | 'coming_soon';
+  tableType: 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'free_black_heads_of_household' | 'enslaved_persons_alabama' | 'enslaved_catholic_kentuky' | 'slave_voyages' | 'ex_slave_pension' | 'colored_deaths' | 'coming_soon';
   tableName?: string;
 }
 
@@ -51,7 +51,7 @@ interface Collection {
   name: string;
   pageCount: number;
   description?: string;
-  tableType: 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'free_black_heads_of_household' | 'enslaved_persons_alabama' | 'enslaved_catholic_kentuky' | 'slave_voyages' | 'ex_slave_pension' | 'coming_soon';
+  tableType: 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'free_black_heads_of_household' | 'enslaved_persons_alabama' | 'enslaved_catholic_kentuky' | 'slave_voyages' | 'ex_slave_pension' | 'colored_deaths' | 'coming_soon';
   tableName?: string;
   subcollections?: SubCollection[];
 }
@@ -137,7 +137,8 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
         slug: 'colored-deaths-1785-1821',
         name: 'Colored Deaths 1785-1821 (Diocese of St Augustine)',
         description: 'Death records of colored individuals from the Diocese of St Augustine spanning 1785-1821',
-        tableType: 'coming_soon'
+        tableType: 'colored_deaths',
+        tableName: 'colored-deaths'
       },
       {
         slug: 'colored-marriages-1784-1882',
@@ -534,7 +535,7 @@ const AdminCollectionsPage = () => {
       setLoadingData(true);
 
       // Fetch counts for each table type
-      const [archivePagesData, compensationData, emigrantsData, censusData, revolutionaryData, freeBlackData, alabamaData, kentuckyData, slaveVoyagesData, exSlavePensionData] = await Promise.all([
+      const [archivePagesData, compensationData, emigrantsData, censusData, revolutionaryData, freeBlackData, alabamaData, kentuckyData, slaveVoyagesData, exSlavePensionData, coloredDeathsData] = await Promise.all([
         supabase.from('archive_pages').select('collection_slug'),
         supabase.from('slave_compensation_claims').select('id', { count: 'exact', head: true }),
         supabase.from('emmigrants_to_liberia').select('id', { count: 'exact', head: true }),
@@ -544,7 +545,8 @@ const AdminCollectionsPage = () => {
         supabase.from('enslaved_persons_alabama').select('id', { count: 'exact', head: true }),
         supabase.from('enslaved_catholic_kentuky').select('page', { count: 'exact', head: true }),
         supabase.from('slave_voyages').select('id', { count: 'exact', head: true }),
-        supabase.from('ex-slave-pension').select('id', { count: 'exact', head: true })
+        supabase.from('ex-slave-pension').select('id', { count: 'exact', head: true }),
+        supabase.from('colored-deaths').select('id', { count: 'exact', head: true })
       ]);
 
       // Group archive_pages by collection slug
@@ -564,7 +566,8 @@ const AdminCollectionsPage = () => {
         'enslaved_persons_alabama': alabamaData.count || 0,
         'enslaved_catholic_kentuky': kentuckyData.count || 0,
         'slave_voyages': slaveVoyagesData.count || 0,
-        'ex-slave-pension': exSlavePensionData.count || 0
+        'ex-slave-pension': exSlavePensionData.count || 0,
+        'colored-deaths': coloredDeathsData.count || 0
       };
 
       // Build collections list with appropriate counts
