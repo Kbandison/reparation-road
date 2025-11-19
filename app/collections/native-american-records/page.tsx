@@ -10,42 +10,50 @@ const subcollections = [
   {
     slug: 'enslaved-fleeing-to-indian-country',
     title: 'Enslaved People Fleeing to American Indian Country',
-    description: 'Records of enslaved individuals who sought freedom in Native American territories'
+    description: 'Records of enslaved individuals who sought freedom in Native American territories',
+    available: false
   },
   {
     slug: 'baker-dawes',
     title: 'Baker & Dawes',
-    description: 'Baker Roll and Dawes Roll records documenting tribal enrollment'
+    description: 'Baker Roll and Dawes Roll records documenting tribal enrollment',
+    available: false
   },
   {
     slug: 'chickasaw-removal-1837-1847',
     title: 'Chickasaw Removal Records 1837-1847',
-    description: 'Records documenting the forced removal of Chickasaw people during the Trail of Tears'
+    description: 'Records documenting the forced removal of Chickasaw people during the Trail of Tears',
+    available: false
   },
   {
     slug: 'choctaw-other-freedmen',
     title: 'Choctaw & Other Freedmen',
-    description: 'Records of formerly enslaved people within Choctaw and other Native American nations'
+    description: 'Records of formerly enslaved people within Choctaw and other Native American nations',
+    available: false
   },
   {
     slug: 'creek-census-1832',
     title: 'Creek Census 1832 (Parsons Abbott Roll)',
-    description: 'Census of Creek Nation members conducted in 1832'
+    description: 'Census of Creek Nation members conducted in 1832',
+    available: true
   },
   {
     slug: 'early-cherokee-census',
     title: 'Early Cherokee Census',
-    description: 'Early census records of Cherokee Nation members'
+    description: 'Early census records of Cherokee Nation members',
+    available: false
   },
   {
     slug: 'letters-indian-affairs',
     title: 'Letters Related to Indian Affairs',
-    description: 'Correspondence documenting interactions between Native American nations and the U.S. government'
+    description: 'Correspondence documenting interactions between Native American nations and the U.S. government',
+    available: false
   },
   {
     slug: 'non-federal-tribal-info',
     title: 'Non-Federally Recognized Tribal Info',
-    description: 'Information about tribes not federally recognized, including membership and history'
+    description: 'Information about tribes not federally recognized, including membership and history',
+    available: false
   }
 ];
 
@@ -126,9 +134,11 @@ export default function NativeAmericanRecordsPage() {
                     <div className="w-12 h-12 bg-brand-tan rounded-full flex items-center justify-center flex-shrink-0">
                       <Clock className="w-6 h-6 text-brand-green" />
                     </div>
-                    <span className="px-3 py-1 bg-brand-green text-white text-xs rounded-full">
-                      Coming Soon
-                    </span>
+                    {!subcollection.available && (
+                      <span className="px-3 py-1 bg-brand-green text-white text-xs rounded-full">
+                        Coming Soon
+                      </span>
+                    )}
                   </div>
                   <h3 className="text-xl font-bold text-brand-brown mb-2">
                     {subcollection.title}

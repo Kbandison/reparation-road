@@ -56,7 +56,8 @@ export default function CreekCensus1832Page() {
         .from("creek-census")
         .select("*")
         .order("page_number", { ascending: true })
-        .order("seq_no", { ascending: true });
+        .order("seq_no", { ascending: true })
+        .limit(100000);
 
       if (error) throw error;
 
