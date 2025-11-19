@@ -52,17 +52,32 @@ export default function CreekCensus1832Page() {
   const fetchRecords = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("creek-census")
-        .select("*")
-        .order("page_number", { ascending: true })
-        .order("seq_no", { ascending: true })
-        .limit(100000);
+      let allRecords: CreekCensusRecord[] = [];
+      let from = 0;
+      const batchSize = 1000;
+      let hasMore = true;
 
-      if (error) throw error;
+      while (hasMore) {
+        const { data, error } = await supabase
+          .from("creek-census")
+          .select("*")
+          .order("page_number", { ascending: true })
+          .order("seq_no", { ascending: true })
+          .range(from, from + batchSize - 1);
 
-      setRecords(data || []);
-      setFilteredRecords(data || []);
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          allRecords = [...allRecords, ...data];
+          from += batchSize;
+          hasMore = data.length === batchSize;
+        } else {
+          hasMore = false;
+        }
+      }
+
+      setRecords(allRecords);
+      setFilteredRecords(allRecords);
     } catch (error) {
       console.error("Error fetching records:", error);
     } finally {
