@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Search,
   X,
@@ -227,12 +227,15 @@ export default function ChesterfieldCountyPage() {
                           Enslaved Persons
                         </th>
                         <th className="px-4 py-3 text-left text-sm font-semibold">Total</th>
-                        <th className="px-4 py-3 text-left text-sm font-semibold">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                       {currentRecords.map((record) => (
-                        <tr key={record.id} className="hover:bg-gray-50">
+                        <tr
+                          key={record.id}
+                          onClick={() => setSelectedRecord(record)}
+                          className="hover:bg-brand-tan/30 cursor-pointer transition-colors"
+                        >
                           <td className="px-4 py-3 text-sm text-gray-900">
                             {record.page_number}
                           </td>
@@ -250,16 +253,6 @@ export default function ChesterfieldCountyPage() {
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-900">
                             {record.total || "-"}
-                          </td>
-                          <td className="px-4 py-3 text-sm">
-                            <Button
-                              onClick={() => setSelectedRecord(record)}
-                              size="sm"
-                              variant="outline"
-                              className="text-brand-green border-brand-green hover:bg-brand-green hover:text-white"
-                            >
-                              View Details
-                            </Button>
                           </td>
                         </tr>
                       ))}
