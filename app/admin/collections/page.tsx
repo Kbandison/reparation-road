@@ -42,7 +42,7 @@ interface SubCollection {
   name: string;
   pageCount?: number;
   description?: string;
-  tableType: 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'free_black_heads_of_household' | 'enslaved_persons_alabama' | 'enslaved_catholic_kentuky' | 'slave_voyages' | 'ex_slave_pension' | 'colored_deaths' | 'colored_marriages' | 'creek_census' | 'slave_importation_ga' | 'coming_soon';
+  tableType: 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'free_black_heads_of_household' | 'enslaved_persons_alabama' | 'enslaved_catholic_kentuky' | 'slave_voyages' | 'ex_slave_pension' | 'colored_deaths' | 'colored_marriages' | 'creek_census' | 'slave_importation_ga' | 'va_personal_chesterfield' | 'coming_soon';
   tableName?: string;
 }
 
@@ -51,7 +51,7 @@ interface Collection {
   name: string;
   pageCount: number;
   description?: string;
-  tableType: 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'free_black_heads_of_household' | 'enslaved_persons_alabama' | 'enslaved_catholic_kentuky' | 'slave_voyages' | 'ex_slave_pension' | 'colored_deaths' | 'colored_marriages' | 'creek_census' | 'slave_importation_ga' | 'coming_soon';
+  tableType: 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'free_black_heads_of_household' | 'enslaved_persons_alabama' | 'enslaved_catholic_kentuky' | 'slave_voyages' | 'ex_slave_pension' | 'colored_deaths' | 'colored_marriages' | 'creek_census' | 'slave_importation_ga' | 'va_personal_chesterfield' | 'coming_soon';
   tableName?: string;
   subcollections?: SubCollection[];
 }
@@ -444,7 +444,8 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
         slug: 'chesterfield-county-1747-1821',
         name: 'Chesterfield County 1747-1821',
         description: 'Personal property and tithe records from Chesterfield County spanning 1747-1821',
-        tableType: 'coming_soon'
+        tableType: 'va_personal_chesterfield',
+        tableName: 'va-personal-chesterfield'
       },
       {
         slug: 'franklin-county',
@@ -554,7 +555,7 @@ const AdminCollectionsPage = () => {
       setLoadingData(true);
 
       // Fetch counts for each table type
-      const [archivePagesData, compensationData, emigrantsData, censusData, revolutionaryData, freeBlackData, alabamaData, kentuckyData, slaveVoyagesData, exSlavePensionData, coloredDeathsData, coloredMarriagesData, creekCensusData, slaveImportationGaData] = await Promise.all([
+      const [archivePagesData, compensationData, emigrantsData, censusData, revolutionaryData, freeBlackData, alabamaData, kentuckyData, slaveVoyagesData, exSlavePensionData, coloredDeathsData, coloredMarriagesData, creekCensusData, slaveImportationGaData, vaPersonalChesterfieldData] = await Promise.all([
         supabase.from('archive_pages').select('collection_slug'),
         supabase.from('slave_compensation_claims').select('id', { count: 'exact', head: true }),
         supabase.from('emmigrants_to_liberia').select('id', { count: 'exact', head: true }),
@@ -568,7 +569,8 @@ const AdminCollectionsPage = () => {
         supabase.from('colored-deaths').select('id', { count: 'exact', head: true }),
         supabase.from('colored-marriages').select('id', { count: 'exact', head: true }),
         supabase.from('creek-census').select('id', { count: 'exact', head: true }),
-        supabase.from('slave-importation-ga').select('id', { count: 'exact', head: true })
+        supabase.from('slave-importation-ga').select('id', { count: 'exact', head: true }),
+        supabase.from('va-personal-chesterfield').select('id', { count: 'exact', head: true })
       ]);
 
       // Group archive_pages by collection slug
@@ -592,7 +594,8 @@ const AdminCollectionsPage = () => {
         'colored-deaths': coloredDeathsData.count || 0,
         'colored-marriages': coloredMarriagesData.count || 0,
         'creek-census': creekCensusData.count || 0,
-        'slave-importation-ga': slaveImportationGaData.count || 0
+        'slave-importation-ga': slaveImportationGaData.count || 0,
+        'va-personal-chesterfield': vaPersonalChesterfieldData.count || 0
       };
 
       // Build collections list with appropriate counts
@@ -1377,7 +1380,8 @@ const AdminCollectionsPage = () => {
                     collection.tableType === 'colored_deaths' ||
                     collection.tableType === 'colored_marriages' ||
                     collection.tableType === 'creek_census' ||
-                    collection.tableType === 'slave_importation_ga')
+                    collection.tableType === 'slave_importation_ga' ||
+                    collection.tableType === 'va_personal_chesterfield')
                 ) {
                   return (
                     <div className="bg-white rounded-lg shadow-lg p-6">

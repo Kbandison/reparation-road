@@ -21,7 +21,8 @@
       "Bash(cat:*)",
       "Bash(node -e:*)",
       "Bash(npm run build:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(git revert:*)"
     ],
     "deny": [],
     "ask": []

@@ -10,27 +10,32 @@ const subcollections = [
   {
     slug: 'chesterfield-county-1747-1821',
     title: 'Chesterfield County 1747-1821',
-    description: 'Personal property and tithe records from Chesterfield County spanning 1747-1821'
+    description: 'Personal property and tithe records from Chesterfield County spanning 1747-1821',
+    available: true
   },
   {
     slug: 'franklin-county',
     title: 'Franklin County',
-    description: 'Personal property and tithe records from Franklin County, Virginia'
+    description: 'Personal property and tithe records from Franklin County, Virginia',
+    available: false
   },
   {
     slug: 'hanover-county-1782-1786',
     title: 'Hanover County 1782-1786',
-    description: 'Personal property and tithe records from Hanover County spanning 1782-1786'
+    description: 'Personal property and tithe records from Hanover County spanning 1782-1786',
+    available: false
   },
   {
     slug: 'lancaster-county',
     title: 'Lancaster County',
-    description: 'Personal property and tithe records from Lancaster County, Virginia'
+    description: 'Personal property and tithe records from Lancaster County, Virginia',
+    available: false
   },
   {
     slug: 'richmond',
     title: 'Richmond',
-    description: 'Personal property and tithe records from Richmond, Virginia'
+    description: 'Personal property and tithe records from Richmond, Virginia',
+    available: false
   }
 ];
 
@@ -111,9 +116,11 @@ export default function VirginiaPropertyTithesPage() {
                     <div className="w-12 h-12 bg-brand-tan rounded-full flex items-center justify-center flex-shrink-0">
                       <Clock className="w-6 h-6 text-brand-green" />
                     </div>
-                    <span className="px-3 py-1 bg-brand-green text-white text-xs rounded-full">
-                      Coming Soon
-                    </span>
+                    {!subcollection.available && (
+                      <span className="px-3 py-1 bg-brand-green text-white text-xs rounded-full">
+                        Coming Soon
+                      </span>
+                    )}
                   </div>
                   <h3 className="text-xl font-bold text-brand-brown mb-2">
                     {subcollection.title}
