@@ -410,6 +410,13 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
     ]
   },
   {
+    slug: 'slave-importation-georgia',
+    name: 'Georgia Slave Importation Records',
+    description: 'Declarations of enslaved persons imported into Georgia',
+    tableType: 'slave_importation_ga',
+    tableName: 'slave-importation-ga'
+  },
+  {
     slug: 'slave-narratives',
     name: 'Slave Narratives',
     description: 'First-person accounts and narratives',
