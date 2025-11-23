@@ -42,22 +42,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchProfile = useCallback(async (userId: string) => {
     try {
-      const { data, error } = await supabase
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
+      );
+
+      const fetchPromise = supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
 
-      if (error && error.code !== 'PGRST116') {
+      const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
+
+      if (error) {
+        // If profile doesn't exist (PGRST116), that's okay - new user
+        if (error.code === 'PGRST116') {
+          console.log('[AUTH DEBUG] Profile not found for user, may need to create one');
+          return;
+        }
         console.error('Error fetching profile:', error);
-        return;
+        throw error;
       }
 
       if (data) {
         setProfile(data);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error in fetchProfile:', error);
+      // Don't throw - just log. This prevents auth from breaking completely
+      // if profile fetch fails. User is still logged in, just no profile data.
+      setProfile(null);
     }
   }, []);
 

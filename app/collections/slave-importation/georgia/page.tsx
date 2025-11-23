@@ -40,37 +40,49 @@ export default function GeorgiaSlaveImportationPage() {
   const [records, setRecords] = useState<SlaveImportationRecord[]>([]);
   const [filteredRecords, setFilteredRecords] = useState<SlaveImportationRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRecord, setSelectedRecord] = useState<SlaveImportationRecord | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [imageZoom, setImageZoom] = useState(1);
   const recordsPerPage = 20;
 
-  useEffect(() => {
-    fetchRecords();
-  }, []);
-
-  const fetchRecords = async () => {
+  const fetchRecords = useCallback(async () => {
     setLoading(true);
+    setError(null);
+
+    // Create timeout promise
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Request timeout')), 30000)
+    );
+
     try {
       let allRecords: SlaveImportationRecord[] = [];
       let from = 0;
       const batchSize = 1000;
       let hasMore = true;
+      let batchCount = 0;
+      const maxBatches = 50; // Safety limit
 
-      while (hasMore) {
-        const { data, error } = await supabase
+      while (hasMore && batchCount < maxBatches) {
+        const fetchPromise = supabase
           .from("slave-importation-ga")
           .select("*")
           .order("page_number", { ascending: true })
           .range(from, from + batchSize - 1);
 
-        if (error) throw error;
+        const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
+
+        if (error) {
+          console.error("Supabase error:", error);
+          throw new Error(error.message || "Failed to fetch records");
+        }
 
         if (data && data.length > 0) {
           allRecords = [...allRecords, ...data];
           from += batchSize;
           hasMore = data.length === batchSize;
+          batchCount++;
         } else {
           hasMore = false;
         }
@@ -78,12 +90,23 @@ export default function GeorgiaSlaveImportationPage() {
 
       setRecords(allRecords);
       setFilteredRecords(allRecords);
-    } catch (error) {
-      console.error("Error fetching records:", error);
+
+      if (allRecords.length === 0) {
+        setError("No records found in this collection.");
+      }
+    } catch (err: any) {
+      console.error("Error fetching records:", err);
+      setError(err.message || "Failed to load records. Please try again later.");
+      setRecords([]);
+      setFilteredRecords([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchRecords();
+  }, [fetchRecords]);
 
   useEffect(() => {
     const filtered = records.filter((record) => {
@@ -211,6 +234,20 @@ export default function GeorgiaSlaveImportationPage() {
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-green mx-auto"></div>
               <p className="mt-4 text-gray-600">Loading importation records...</p>
+            </div>
+          ) : error ? (
+            <div className="bg-white rounded-lg shadow-lg p-12 text-center">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <X className="w-8 h-8 text-red-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Records</h3>
+              <p className="text-gray-600 mb-4">{error}</p>
+              <Button
+                onClick={fetchRecords}
+                className="bg-brand-green hover:bg-brand-darkgreen"
+              >
+                Try Again
+              </Button>
             </div>
           ) : currentRecords.length === 0 ? (
             <div className="bg-white rounded-lg shadow-lg p-12 text-center">
