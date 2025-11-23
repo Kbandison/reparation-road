@@ -401,20 +401,13 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
     tableType: 'coming_soon',
     subcollections: [
       {
-        slug: 'georgia',
+        slug: 'slave-importation-georgia',
         name: 'Georgia Slave Importation Records',
         description: 'Declarations of enslaved persons imported into Georgia',
         tableType: 'slave_importation_ga',
         tableName: 'slave-importation-ga'
       }
     ]
-  },
-  {
-    slug: 'slave-importation-georgia',
-    name: 'Georgia Slave Importation Records',
-    description: 'Declarations of enslaved persons imported into Georgia',
-    tableType: 'slave_importation_ga',
-    tableName: 'slave-importation-ga'
   },
   {
     slug: 'slave-narratives',
@@ -530,7 +523,15 @@ const AdminCollectionsPage = () => {
       if (collection.subcollections) {
         const subcollection = collection.subcollections.find((sub) => sub.slug === slug);
         if (subcollection) {
-          return subcollection as Collection;
+          // Ensure subcollection has all required Collection properties
+          return {
+            slug: subcollection.slug,
+            name: subcollection.name,
+            pageCount: subcollection.pageCount || 0,
+            description: subcollection.description,
+            tableType: subcollection.tableType,
+            tableName: subcollection.tableName
+          };
         }
       }
     }
