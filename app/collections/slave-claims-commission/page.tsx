@@ -11,10 +11,10 @@ export default function Page() {
           <div className="max-w-4xl mx-auto text-center">
             <Scale className="w-16 h-16 mx-auto mb-4" />
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Records of Slave Claims Commission
+              Georgia State Records Concerning Persons of Color
             </h1>
             <p className="text-lg text-white/90">
-              British compensation records and claims commission documentation.
+              State records documenting persons of color in Georgia.
             </p>
           </div>
         </div>

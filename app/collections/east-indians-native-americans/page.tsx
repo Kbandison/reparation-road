@@ -11,10 +11,10 @@ export default function Page() {
           <div className="max-w-4xl mx-auto text-center">
             <Users className="w-16 h-16 mx-auto mb-4" />
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              East Indians and Native Americans in MD & VA
+              North Carolina State Records Concerning Persons of Color
             </h1>
             <p className="text-lg text-white/90">
-              Documentation of mixed heritage communities in Maryland and Virginia.
+              State records documenting persons of color in North Carolina.
             </p>
           </div>
         </div>

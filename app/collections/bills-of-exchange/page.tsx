@@ -11,10 +11,10 @@ export default function Page() {
           <div className="max-w-4xl mx-auto text-center">
             <FileText className="w-16 h-16 mx-auto mb-4" />
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              English Bills of Exchange
+              Foreign Inward Manifests and Cargo Lists
             </h1>
             <p className="text-lg text-white/90">
-              Financial transaction records and bills of exchange documenting economic activities.
+              Manifests and cargo lists documenting foreign trade and commerce.
             </p>
           </div>
         </div>

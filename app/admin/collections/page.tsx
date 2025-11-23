@@ -169,14 +169,14 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
   },
   {
     slug: 'east-indians-native-americans',
-    name: 'East Indians and Native Americans in MD/VA',
-    description: 'Records from Maryland and Virginia',
+    name: 'North Carolina State Records Concerning Persons of Color',
+    description: 'State records documenting persons of color in North Carolina',
     tableType: 'coming_soon'
   },
   {
     slug: 'bills-of-exchange',
-    name: 'English Bills of Exchange',
-    description: 'Financial transaction records',
+    name: 'Foreign Inward Manifests and Cargo Lists',
+    description: 'Manifests and cargo lists documenting foreign trade',
     tableType: 'coming_soon'
   },
   {
@@ -366,20 +366,20 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
   },
   {
     slug: 'georgia-passports',
-    name: 'Passports Issued by Governors of Georgia 1785-1809',
-    description: 'Early Georgia travel documents',
+    name: 'South Carolina Records Concerning Persons of Color',
+    description: 'State records documenting persons of color in South Carolina',
     tableType: 'coming_soon'
   },
   {
     slug: 'slave-claims-commission',
-    name: 'Records of Slave Claims Commission',
-    description: 'Commission records and claims',
+    name: 'Georgia State Records Concerning Persons of Color',
+    description: 'State records documenting persons of color in Georgia',
     tableType: 'coming_soon'
   },
   {
     slug: 'rac-vlc',
-    name: 'Records of the RAC and VOC',
-    description: 'Royal African Company and Dutch East India Company',
+    name: 'Slave Merchant Trade Records',
+    description: 'Records documenting slave merchant trade activities',
     tableType: 'coming_soon'
   },
   {
@@ -415,8 +415,8 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
   },
   {
     slug: 'southwest-georgia',
-    name: 'Southwest Georgia Obits and Burials',
-    description: 'Obituaries and burial records',
+    name: 'Mississippi State Records Concerning Persons of Color',
+    description: 'State records documenting persons of color in Mississippi',
     tableType: 'coming_soon'
   },
   {

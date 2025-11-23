@@ -11,10 +11,10 @@ export default function Page() {
           <div className="max-w-4xl mx-auto text-center">
             <FileText className="w-16 h-16 mx-auto mb-4" />
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Passports Issued by Governors of Georgia 1785-1809
+              South Carolina Records Concerning Persons of Color
             </h1>
             <p className="text-lg text-white/90">
-              Early travel documentation and passports issued by Georgia governors.
+              State records documenting persons of color in South Carolina.
             </p>
           </div>
         </div>

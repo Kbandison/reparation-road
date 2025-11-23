@@ -11,10 +11,10 @@ export default function Page() {
           <div className="max-w-4xl mx-auto text-center">
             <Ship className="w-16 h-16 mx-auto mb-4" />
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Records of the RAC and VOC
+              Slave Merchant Trade Records
             </h1>
             <p className="text-lg text-white/90">
-              Royal African Company and Dutch VOC trading records and documentation.
+              Records documenting slave merchant trade activities and transactions.
             </p>
           </div>
         </div>
