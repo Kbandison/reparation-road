@@ -28,12 +28,12 @@ const collections = [
   { name: "Clubs and Organizations", href: "/collections/clubs-organizations", tier: "premium", description: "Fraternal societies and social groups" },
   { name: "Confederate Payrolls", href: "/collections/confederate-payrolls", tier: "premium", description: "Civil War era employment records" },
   {
-    name: "East Indians and Native Americans in MD & VA",
+    name: "North Carolina State Records Concerning Persons of Color",
     href: "/collections/east-indians-native-americans",
     tier: "premium",
-    description: "Mixed heritage documentation"
+    description: "State records documenting persons of color in North Carolina"
   },
-  { name: "English Bills of Exchange", href: "/collections/bills-of-exchange", tier: "premium", description: "Financial transaction records" },
+  { name: "Foreign Inward Manifests and Cargo Lists", href: "/collections/bills-of-exchange", tier: "premium", description: "Manifests and cargo lists documenting foreign trade" },
   {
     name: "Ex-slave Pension and Fraud Files",
     href: "/collections/ex-slave-pension",
@@ -67,18 +67,18 @@ const collections = [
     description: "Indigenous peoples documentation"
   },
   {
-    name: "Passports Issued by Governors of Georgia 1785-1809",
+    name: "South Carolina Records Concerning Persons of Color",
     href: "/collections/georgia-passports",
     tier: "premium",
-    description: "Early travel documentation"
+    description: "State records documenting persons of color in South Carolina"
   },
   {
-    name: "Records of Slave Claims Commission",
+    name: "Georgia State Records Concerning Persons of Color",
     href: "/collections/slave-claims-commission",
     tier: "premium",
-    description: "British compensation records"
+    description: "State records documenting persons of color in Georgia"
   },
-  { name: "Records of the RAC and VOC", href: "/collections/rac-vlc", tier: "premium", description: "Royal African Company and Dutch trading records" },
+  { name: "Slave Merchant Trade Records", href: "/collections/rac-vlc", tier: "premium", description: "Records documenting slave merchant trade activities" },
   {
     name: "Registers of Formerly Enslaved Tennessee",
     href: "/collections/tennessee-registers",
@@ -101,10 +101,10 @@ const collections = [
   { name: "Slave Narratives", href: "/collections/slave-narratives", tier: "premium", description: "First-hand accounts of enslavement" },
   { name: "Slave Voyages", href: "/collections/slave-voyages", tier: "premium", description: "Trans-Atlantic slave trade database" },
   {
-    name: "Southwest Georgia Obits and Burials",
+    name: "Mississippi State Records Concerning Persons of Color",
     href: "/collections/southwest-georgia",
     tier: "premium",
-    description: "Death records and cemetery documentation"
+    description: "State records documenting persons of color in Mississippi"
   },
   {
     name: "Virginia Order Books. Negro Adjudgments",
