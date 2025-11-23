@@ -398,16 +398,7 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
     slug: 'slave-importation',
     name: 'Slave Importation Declaration',
     description: 'Import declarations and manifests',
-    tableType: 'coming_soon',
-    subcollections: [
-      {
-        slug: 'georgia',
-        name: 'Georgia Slave Importation Records',
-        description: 'Declarations of enslaved persons imported into Georgia',
-        tableType: 'slave_importation_ga',
-        tableName: 'slave-importation-ga'
-      }
-    ]
+    tableType: 'coming_soon'
   },
   {
     slug: 'slave-importation-georgia',
