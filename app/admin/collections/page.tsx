@@ -405,7 +405,7 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
         name: 'Georgia Slave Importation Records',
         description: 'Declarations of enslaved persons imported into Georgia',
         tableType: 'slave_importation_ga',
-        tableName: 'slave-importation-ga'
+        tableName: 'slave_importation_ga'
       }
     ]
   },
@@ -560,7 +560,7 @@ const AdminCollectionsPage = () => {
         supabase.from('colored-deaths').select('id', { count: 'exact', head: true }),
         supabase.from('colored-marriages').select('id', { count: 'exact', head: true }),
         supabase.from('creek-census').select('id', { count: 'exact', head: true }),
-        supabase.from('slave-importation-ga').select('id', { count: 'exact', head: true })
+        supabase.from('slave_importation_ga').select('id', { count: 'exact', head: true })
       ]);
 
       // Group archive_pages by collection slug
@@ -584,7 +584,7 @@ const AdminCollectionsPage = () => {
         'colored-deaths': coloredDeathsData.count || 0,
         'colored-marriages': coloredMarriagesData.count || 0,
         'creek-census': creekCensusData.count || 0,
-        'slave-importation-ga': slaveImportationGaData.count || 0
+        'slave_importation_ga': slaveImportationGaData.count || 0
       };
 
       // Build collections list with appropriate counts

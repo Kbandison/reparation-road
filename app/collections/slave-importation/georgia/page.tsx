@@ -60,7 +60,7 @@ export default function GeorgiaSlaveImportationPage() {
 
       while (hasMore) {
         const { data, error } = await supabase
-          .from("slave-importation-ga")
+          .from("slave_importation_ga")
           .select("*")
           .order("page_number", { ascending: true })
           .range(from, from + batchSize - 1);
