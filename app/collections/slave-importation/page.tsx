@@ -12,6 +12,12 @@ const subcollections = [
     title: 'Georgia Slave Importation Records',
     description: 'Declarations of enslaved persons imported into Georgia',
     available: true
+  },
+  {
+    slug: 'kentucky',
+    title: 'Kentucky Slave Importation Records',
+    description: 'Declarations of enslaved persons imported into Kentucky',
+    available: true
   }
 ];
 
