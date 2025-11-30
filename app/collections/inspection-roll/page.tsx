@@ -24,51 +24,22 @@ interface ArchivePage {
   ocr_json?: object | null;
 }
 
-interface ArchivePageModalProps {
+interface PageModalProps {
   page: ArchivePage | null;
   onClose: () => void;
   allPages: ArchivePage[];
   onNavigate: (page: ArchivePage) => void;
 }
 
-const ArchivePageModal = React.memo<ArchivePageModalProps>(function ArchivePageModal({ page, onClose, allPages, onNavigate }) {
-  const [fullPage, setFullPage] = React.useState<ArchivePage | null>(page);
-  const [loading, setLoading] = React.useState(false);
+const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose, allPages, onNavigate }) {
   const [imageLoaded, setImageLoaded] = React.useState(false);
   const [isImageZoomed, setIsImageZoomed] = React.useState(false);
 
   React.useEffect(() => {
-    setFullPage(page);
     setImageLoaded(false);
-
-    if (!page || page.ocr_text) {
-      return;
-    }
-
-    const fetchFullPage = async () => {
-      setLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from("archive_pages")
-          .select("ocr_text, ocr_json")
-          .eq("id", page.id)
-          .single();
-
-        if (error) {
-          console.error("Error fetching full page:", error);
-        } else {
-          setFullPage(prev => prev ? { ...prev, ocr_text: data.ocr_text, ocr_json: data.ocr_json } : null);
-        }
-      } catch (error) {
-        console.error("Error:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchFullPage();
   }, [page]);
 
+  // Get current page index and navigation helpers
   const currentIndex = allPages.findIndex(p => p.id === page?.id);
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex < allPages.length - 1;
@@ -85,6 +56,7 @@ const ArchivePageModal = React.memo<ArchivePageModalProps>(function ArchivePageM
     }
   }, [hasNext, currentIndex, allPages, onNavigate]);
 
+  // Keyboard navigation
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft') {
@@ -106,7 +78,7 @@ const ArchivePageModal = React.memo<ArchivePageModalProps>(function ArchivePageM
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handlePrevPage, handleNextPage, isImageZoomed, onClose]);
 
-  if (!page || !fullPage) return null;
+  if (!page) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -125,11 +97,9 @@ const ArchivePageModal = React.memo<ArchivePageModalProps>(function ArchivePageM
             </Button>
             <div>
               <h3 className="text-xl font-bold text-brand-brown">
-                {fullPage.title || `Book ${fullPage.book_no}, Page ${fullPage.page_no}`}
+                Book {page.book_no}, Page {page.page_no}
               </h3>
               <p className="text-sm text-gray-500">Page {currentIndex + 1} of {allPages.length}</p>
-              {fullPage.year && <p className="text-sm text-gray-600">Year: {fullPage.year}</p>}
-              {fullPage.location && <p className="text-sm text-gray-600">Location: {fullPage.location}</p>}
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -143,7 +113,7 @@ const ArchivePageModal = React.memo<ArchivePageModalProps>(function ArchivePageM
               Next
               <ChevronRight className="w-4 h-4" />
             </Button>
-            <BookmarkButton pageId={fullPage.id} size={24} showLabel={true} />
+            <BookmarkButton pageId={page.id} size={24} showLabel={true} />
             <Button onClick={onClose} variant="outline" size="sm">
               Close
             </Button>
@@ -152,7 +122,7 @@ const ArchivePageModal = React.memo<ArchivePageModalProps>(function ArchivePageM
 
         <div className="p-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {fullPage.image_path && (
+            {page.image_path && (
               <div className="space-y-2">
                 <h4 className="font-semibold text-brand-brown flex items-center gap-2">
                   Document Image
@@ -168,8 +138,8 @@ const ArchivePageModal = React.memo<ArchivePageModalProps>(function ArchivePageM
                     </div>
                   )}
                   <Image
-                    src={fullPage.image_path}
-                    alt={`Page ${fullPage.page_no} from Book ${fullPage.book_no}`}
+                    src={page.image_path}
+                    alt={`Book ${page.book_no}, Page ${page.page_no}`}
                     fill
                     className={`object-contain transition-opacity ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
                     priority
@@ -189,48 +159,45 @@ const ArchivePageModal = React.memo<ArchivePageModalProps>(function ArchivePageM
               <div>
                 <h4 className="font-semibold text-brand-brown mb-2">Document Details</h4>
                 <div className="space-y-1 text-sm">
-                  <p><span className="font-medium">Book Number:</span> {fullPage.book_no}</p>
-                  <p><span className="font-medium">Page Number:</span> {fullPage.page_no}</p>
-                  {fullPage.year && <p><span className="font-medium">Year:</span> {fullPage.year}</p>}
-                  {fullPage.location && <p><span className="font-medium">Location:</span> {fullPage.location}</p>}
-                  {fullPage.tags && fullPage.tags.length > 0 && (
-                    <p><span className="font-medium">Tags:</span> {fullPage.tags.join(", ")}</p>
+                  <p><span className="font-medium">Book Number:</span> {page.book_no}</p>
+                  <p><span className="font-medium">Page Number:</span> {page.page_no}</p>
+                  {page.year && <p><span className="font-medium">Year:</span> {page.year}</p>}
+                  {page.location && <p><span className="font-medium">Location:</span> {page.location}</p>}
+                  {page.tags && page.tags.length > 0 && (
+                    <p><span className="font-medium">Tags:</span> {page.tags.join(", ")}</p>
                   )}
                 </div>
               </div>
 
-              <div>
-                <h4 className="font-semibold text-brand-brown mb-2">Transcribed Text</h4>
-                {loading ? (
-                  <div className="bg-gray-50 p-3 rounded-md text-sm h-64 flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-brand-green mb-2"></div>
-                      <p className="text-sm text-gray-600">Loading transcription...</p>
-                    </div>
-                  </div>
-                ) : fullPage?.ocr_text ? (
+              {page.ocr_text ? (
+                <div>
+                  <h4 className="font-semibold text-brand-brown mb-2">Transcription</h4>
                   <div className="bg-gray-50 p-3 rounded-md text-sm max-h-64 overflow-y-auto">
                     <pre className="whitespace-pre-wrap font-mono text-xs">
-                      {fullPage.ocr_text}
+                      {page.ocr_text}
                     </pre>
                   </div>
-                ) : (
+                </div>
+              ) : (
+                <div>
+                  <h4 className="font-semibold text-brand-brown mb-2">Transcription</h4>
                   <div className="bg-gray-50 p-3 rounded-md text-sm h-32 flex items-center justify-center">
                     <p className="text-gray-500">No transcription available for this page.</p>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
 
       {/* Fullscreen Image Zoom Overlay */}
-      {isImageZoomed && fullPage.image_path && (
+      {isImageZoomed && page.image_path && (
         <div
           className="fixed inset-0 bg-black bg-opacity-95 z-[60] flex items-center justify-center p-4"
           onClick={() => setIsImageZoomed(false)}
         >
+          {/* Close Button */}
           <button
             onClick={() => setIsImageZoomed(false)}
             className="absolute top-4 right-4 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors z-10"
@@ -238,6 +205,7 @@ const ArchivePageModal = React.memo<ArchivePageModalProps>(function ArchivePageM
             <X className="w-6 h-6 text-gray-700" />
           </button>
 
+          {/* Navigation Buttons */}
           {hasPrev && (
             <button
               onClick={(e) => {
@@ -261,19 +229,21 @@ const ArchivePageModal = React.memo<ArchivePageModalProps>(function ArchivePageM
             </button>
           )}
 
+          {/* Page Counter */}
           <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white px-4 py-2 rounded-full shadow-lg z-10">
             <p className="text-sm font-medium text-gray-700">
               Page {currentIndex + 1} of {allPages.length}
             </p>
           </div>
 
+          {/* Zoomed Image */}
           <div
             className="relative w-full h-full flex items-center justify-center"
             onClick={(e) => e.stopPropagation()}
           >
             <Image
-              src={fullPage.image_path}
-              alt={`Page ${fullPage.page_no} from Book ${fullPage.book_no}`}
+              src={page.image_path}
+              alt={`Book ${page.book_no}, Page ${page.page_no}`}
               fill
               className="object-contain"
               priority
@@ -286,7 +256,7 @@ const ArchivePageModal = React.memo<ArchivePageModalProps>(function ArchivePageM
   );
 });
 
-const InspectionRollOfNegroesPage = () => {
+const InspectionRollPage = () => {
   const [pages, setPages] = useState<ArchivePage[]>([]);
   const [filteredPages, setFilteredPages] = useState<ArchivePage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -295,7 +265,6 @@ const InspectionRollOfNegroesPage = () => {
   const [clickedPageId, setClickedPageId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [bookFilter, setBookFilter] = useState<number | null>(null);
-  const [yearFilter, setYearFilter] = useState<number | null>(null);
   const itemsPerPage = 20;
 
   useEffect(() => {
@@ -303,13 +272,13 @@ const InspectionRollOfNegroesPage = () => {
       try {
         const { data, error } = await supabase
           .from("archive_pages")
-          .select("id, collection_slug, book_no, page_no, slug, image_path, title, year, location, tags")
+          .select("*")
           .eq("collection_slug", "inspection-roll-of-negroes")
           .order("book_no", { ascending: true })
           .order("page_no", { ascending: true });
 
         if (error) {
-          console.error("Error fetching archive pages:", error);
+          console.error("Error fetching inspection roll pages:", error);
         } else if (data) {
           setPages(data);
           setFilteredPages(data);
@@ -329,23 +298,21 @@ const InspectionRollOfNegroesPage = () => {
 
     if (searchTerm) {
       filtered = filtered.filter(page =>
+        page.book_no.toString().includes(searchTerm) ||
+        page.page_no.toString().includes(searchTerm) ||
         page.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         page.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        page.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+        page.year?.toString().includes(searchTerm)
       );
     }
 
-    if (bookFilter) {
+    if (bookFilter !== null) {
       filtered = filtered.filter(page => page.book_no === bookFilter);
-    }
-
-    if (yearFilter) {
-      filtered = filtered.filter(page => page.year === yearFilter);
     }
 
     setFilteredPages(filtered);
     setCurrentPage(1);
-  }, [searchTerm, bookFilter, yearFilter, pages]);
+  }, [searchTerm, bookFilter, pages]);
 
   const totalPages = Math.ceil(filteredPages.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -353,7 +320,6 @@ const InspectionRollOfNegroesPage = () => {
   const currentPageData = filteredPages.slice(startIndex, endIndex);
 
   const uniqueBooks = [...new Set(pages.map(p => p.book_no))].sort((a, b) => a - b);
-  const uniqueYears = [...new Set(pages.map(p => p.year).filter(Boolean))].sort((a, b) => a! - b!);
 
   const handlePageClick = React.useCallback((page: ArchivePage) => {
     setClickedPageId(page.id);
@@ -369,7 +335,7 @@ const InspectionRollOfNegroesPage = () => {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-center items-center h-64">
-          <p className="text-xl">Loading Inspection Roll documents...</p>
+          <p className="text-xl">Loading Inspection Roll pages...</p>
         </div>
       </div>
     );
@@ -377,6 +343,7 @@ const InspectionRollOfNegroesPage = () => {
 
   return (
     <div className="min-h-screen bg-brand-beige">
+      {/* Hero Section */}
       <div className="bg-gradient-to-r from-brand-green to-brand-darkgreen text-white py-16">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
@@ -385,9 +352,8 @@ const InspectionRollOfNegroesPage = () => {
               Inspection Roll of Negroes
             </h1>
             <p className="text-lg text-white/90">
-              Explore historical documents from the Inspection Roll of Negroes collection.
-              These documents contain important historical records.
-              Click on any document to view the full image and transcribed text.
+              Historical inspection roll documents from the colonial period.
+              Click on any page to view the full image and transcriptions.
             </p>
           </div>
         </div>
@@ -395,14 +361,14 @@ const InspectionRollOfNegroesPage = () => {
 
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end mb-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Search
               </label>
               <Input
                 type="search"
-                placeholder="Search titles, locations, tags..."
+                placeholder="Search book, page, title, location..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full"
@@ -414,8 +380,8 @@ const InspectionRollOfNegroesPage = () => {
                 Book Number
               </label>
               <select
-                value={bookFilter || ""}
-                onChange={(e) => setBookFilter(e.target.value ? Number(e.target.value) : null)}
+                value={bookFilter === null ? "" : bookFilter.toString()}
+                onChange={(e) => setBookFilter(e.target.value === "" ? null : Number(e.target.value))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green"
               >
                 <option value="">All Books</option>
@@ -426,27 +392,10 @@ const InspectionRollOfNegroesPage = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Year
-              </label>
-              <select
-                value={yearFilter || ""}
-                onChange={(e) => setYearFilter(e.target.value ? Number(e.target.value) : null)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green"
-              >
-                <option value="">All Years</option>
-                {uniqueYears.map(year => (
-                  <option key={year} value={year!}>{year}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
               <Button
                 onClick={() => {
                   setSearchTerm("");
                   setBookFilter(null);
-                  setYearFilter(null);
                 }}
                 variant="outline"
                 className="w-full"
@@ -457,13 +406,13 @@ const InspectionRollOfNegroesPage = () => {
           </div>
 
           <p className="text-sm text-gray-600">
-            Showing {filteredPages.length} of {pages.length} documents
+            Showing {filteredPages.length} of {pages.length} pages
           </p>
         </div>
 
         {filteredPages.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-xl text-gray-600">No documents found matching your criteria.</p>
+            <p className="text-xl text-gray-600">No pages found matching your criteria.</p>
           </div>
         ) : (
           <>
@@ -476,6 +425,7 @@ const InspectionRollOfNegroesPage = () => {
                     clickedPageId === page.id ? 'ring-2 ring-brand-green scale-95' : ''
                   }`}
                 >
+                  {/* Bookmark Button */}
                   <div
                     className="absolute top-3 right-3 z-10 bg-white rounded-full p-2 shadow-md"
                     onClick={(e) => e.stopPropagation()}
@@ -483,6 +433,7 @@ const InspectionRollOfNegroesPage = () => {
                     <BookmarkButton pageId={page.id} size={18} />
                   </div>
 
+                  {/* Loading Overlay when clicked */}
                   {clickedPageId === page.id && (
                     <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-20 rounded-lg">
                       <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-brand-green"></div>
@@ -490,15 +441,16 @@ const InspectionRollOfNegroesPage = () => {
                   )}
 
                   {page.image_path && (
-                    <div className="h-48 overflow-hidden rounded-t-lg relative bg-gray-100" style={{ aspectRatio: '4/3' }}>
+                    <div className="h-48 overflow-hidden rounded-t-lg relative bg-gray-100">
                       <Image
                         src={page.image_path}
                         alt={`Book ${page.book_no}, Page ${page.page_no}`}
                         fill
                         className="object-cover"
+                        loading="lazy"
                         sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                        loading="eager"
-                        unoptimized={true}
+                        placeholder="blur"
+                        blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2VlZSIvPjwvc3ZnPg=="
                       />
                     </div>
                   )}
@@ -562,12 +514,12 @@ const InspectionRollOfNegroesPage = () => {
 
             <div className="text-center text-sm text-gray-600 mt-4">
               Page {currentPage} of {totalPages}
-              ({startIndex + 1}-{Math.min(endIndex, filteredPages.length)} of {filteredPages.length} documents)
+              ({startIndex + 1}-{Math.min(endIndex, filteredPages.length)} of {filteredPages.length} pages)
             </div>
           </>
         )}
 
-        <ArchivePageModal
+        <PageModal
           page={selectedPage}
           onClose={() => setSelectedPage(null)}
           allPages={filteredPages}
@@ -581,7 +533,7 @@ const InspectionRollOfNegroesPage = () => {
 const WrappedInspectionRollPage = () => {
   return (
     <ProtectedRoute requiresPaid={false}>
-      <InspectionRollOfNegroesPage />
+      <InspectionRollPage />
     </ProtectedRoute>
   );
 };
