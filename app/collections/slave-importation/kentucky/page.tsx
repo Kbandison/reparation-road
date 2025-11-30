@@ -70,7 +70,8 @@ export default function KentuckySlaveImportationPage() {
           .order("page_number", { ascending: true })
           .range(from, from + batchSize - 1);
 
-        const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
+        const result = await Promise.race([fetchPromise, timeoutPromise]);
+        const { data, error } = result as { data: KentuckyImportationRecord[] | null; error: Error | null };
 
         if (error) {
           console.error("Supabase error:", error);
@@ -93,9 +94,9 @@ export default function KentuckySlaveImportationPage() {
       if (allRecords.length === 0) {
         setError("No records found in this collection.");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error fetching records:", err);
-      setError(err.message || "Failed to load records. Please try again later.");
+      setError(err instanceof Error ? err.message : "Failed to load records. Please try again later.");
       setRecords([]);
       setFilteredRecords([]);
     } finally {

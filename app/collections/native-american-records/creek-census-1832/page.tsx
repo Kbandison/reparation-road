@@ -141,7 +141,7 @@ export default function CreekCensus1832Page() {
     };
     window.addEventListener("keydown", handleArrowKeys);
     return () => window.removeEventListener("keydown", handleArrowKeys);
-  }, [selectedRecord, filteredRecords]);
+  }, [selectedRecord, filteredRecords, navigateRecord]);
 
   if (!isPremiumOrAdmin) {
     return (
