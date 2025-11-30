@@ -72,7 +72,7 @@ export default function GeorgiaSlaveImportationPage() {
           .range(from, from + batchSize - 1);
 
         const result = await Promise.race([fetchPromise, timeoutPromise]);
-        const { data, error } = result as { data: GeorgiaImportationRecord[] | null; error: Error | null };
+        const { data, error } = result as { data: SlaveImportationRecord[] | null; error: Error | null };
 
         if (error) {
           console.error("Supabase error:", error);
