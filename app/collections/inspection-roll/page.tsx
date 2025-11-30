@@ -618,6 +618,7 @@ const InspectionRollOfNegroesPage = () => {
                       alt={`Book ${page.book_no}, Page ${page.page_no}`}
                       fill
                       className="object-cover"
+                      priority
                       sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
                       placeholder="blur"
                       blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2VlZSIvPjwvc3ZnPg=="
