@@ -490,13 +490,15 @@ const InspectionRollOfNegroesPage = () => {
                   )}
 
                   {page.image_path && (
-                    <div className="h-48 overflow-hidden rounded-t-lg relative bg-gray-100">
+                    <div className="h-48 overflow-hidden rounded-t-lg relative bg-gray-100" style={{ aspectRatio: '4/3' }}>
                       <Image
                         src={page.image_path}
                         alt={`Book ${page.book_no}, Page ${page.page_no}`}
                         fill
                         className="object-cover"
                         sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                        loading="eager"
+                        unoptimized={true}
                       />
                     </div>
                   )}

@@ -447,16 +447,15 @@ const ColoredDeathsPage = () => {
                   )}
 
                   {record.image_url && (
-                    <div className="h-48 overflow-hidden rounded-t-lg relative bg-gray-100">
+                    <div className="h-48 overflow-hidden rounded-t-lg relative bg-gray-100" style={{ aspectRatio: '4/3' }}>
                       <Image
                         src={record.image_url}
                         alt={`Page ${record.page_number}`}
                         fill
                         className="object-cover"
-                        loading="lazy"
                         sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                        placeholder="blur"
-                        blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2VlZSIvPjwvc3ZnPg=="
+                        loading="eager"
+                        unoptimized={true}
                       />
                     </div>
                   )}
