@@ -303,6 +303,8 @@ const InspectionRollOfNegroesPage = () => {
   const [pages, setPages] = useState<ArchivePage[]>([]);
   const [filteredPages, setFilteredPages] = useState<ArchivePage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filteringInProgress, setFilteringInProgress] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPage, setSelectedPage] = useState<ArchivePage | null>(null);
   const [clickedPageId, setClickedPageId] = useState<string | null>(null);
@@ -313,14 +315,24 @@ const InspectionRollOfNegroesPage = () => {
 
   useEffect(() => {
     const fetchPages = async () => {
+      setLoading(true);
+      setError(null);
+
+      // Create timeout promise
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Request timeout - please try again')), 30000)
+      );
+
       try {
         let allPages: ArchivePage[] = [];
         let from = 0;
         const batchSize = 1000;
         let hasMore = true;
+        let batchCount = 0;
+        const maxBatches = 50; // Safety limit
 
-        while (hasMore) {
-          const { data, error } = await supabase
+        while (hasMore && batchCount < maxBatches) {
+          const fetchPromise = supabase
             .from("archive_pages")
             .select("id, collection_slug, book_no, page_no, slug, image_path, title, year, location, tags")
             .eq("collection_slug", "inspection-roll-of-negroes")
@@ -328,15 +340,18 @@ const InspectionRollOfNegroesPage = () => {
             .order("page_no", { ascending: true })
             .range(from, from + batchSize - 1);
 
+          const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
+
           if (error) {
             console.error("Error fetching archive pages:", error);
-            break;
+            throw new Error(error.message || "Failed to fetch documents");
           }
 
           if (data && data.length > 0) {
             allPages = [...allPages, ...data];
             from += batchSize;
             hasMore = data.length === batchSize;
+            batchCount++;
           } else {
             hasMore = false;
           }
@@ -344,8 +359,9 @@ const InspectionRollOfNegroesPage = () => {
 
         setPages(allPages);
         setFilteredPages(allPages);
-      } catch (error) {
-        console.error("Error:", error);
+      } catch (err: any) {
+        console.error("Error:", err);
+        setError(err.message || "Failed to load documents. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -354,16 +370,16 @@ const InspectionRollOfNegroesPage = () => {
     fetchPages();
   }, []);
 
-  useEffect(() => {
+  // Use useMemo to optimize filtering
+  const computedFilteredPages = React.useMemo(() => {
     let filtered = pages;
 
     if (searchTerm) {
-      // Note: Text search now only searches title, location, and tags
-      // For full OCR text search, consider implementing server-side search
+      const searchLower = searchTerm.toLowerCase();
       filtered = filtered.filter(page =>
-        page.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        page.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        page.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+        page.title?.toLowerCase().includes(searchLower) ||
+        page.location?.toLowerCase().includes(searchLower) ||
+        page.tags?.some(tag => tag.toLowerCase().includes(searchLower))
       );
     }
 
@@ -375,9 +391,24 @@ const InspectionRollOfNegroesPage = () => {
       filtered = filtered.filter(page => page.year === yearFilter);
     }
 
-    setFilteredPages(filtered);
-    setCurrentPage(1);
+    return filtered;
   }, [searchTerm, bookFilter, yearFilter, pages]);
+
+  // Apply filtered pages with a slight delay to show loading state
+  useEffect(() => {
+    if (searchTerm || bookFilter || yearFilter) {
+      setFilteringInProgress(true);
+      const timer = setTimeout(() => {
+        setFilteredPages(computedFilteredPages);
+        setCurrentPage(1);
+        setFilteringInProgress(false);
+      }, 100);
+      return () => clearTimeout(timer);
+    } else {
+      setFilteredPages(computedFilteredPages);
+      setCurrentPage(1);
+    }
+  }, [computedFilteredPages, searchTerm, bookFilter, yearFilter]);
 
   const totalPages = Math.ceil(filteredPages.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -404,9 +435,54 @@ const InspectionRollOfNegroesPage = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-center items-center h-64">
-          <p className="text-xl">Loading Inspection Roll documents...</p>
+      <div className="min-h-screen bg-brand-beige">
+        <div className="bg-gradient-to-r from-brand-green to-brand-darkgreen text-white py-16">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto text-center">
+              <ScrollText className="w-16 h-16 mx-auto mb-4" />
+              <h1 className="text-4xl md:text-5xl font-bold mb-4">
+                Inspection Roll of Negroes
+              </h1>
+            </div>
+          </div>
+        </div>
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex flex-col justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-green mb-4"></div>
+            <p className="text-xl">Loading Inspection Roll documents...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-brand-beige">
+        <div className="bg-gradient-to-r from-brand-green to-brand-darkgreen text-white py-16">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto text-center">
+              <ScrollText className="w-16 h-16 mx-auto mb-4" />
+              <h1 className="text-4xl md:text-5xl font-bold mb-4">
+                Inspection Roll of Negroes
+              </h1>
+            </div>
+          </div>
+        </div>
+        <div className="container mx-auto px-4 py-8">
+          <div className="bg-white rounded-lg shadow-lg p-12 text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <X className="w-8 h-8 text-red-600" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Documents</h3>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <Button
+              onClick={() => window.location.reload()}
+              className="bg-brand-green hover:bg-brand-darkgreen"
+            >
+              Reload Page
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -495,9 +571,14 @@ const InspectionRollOfNegroesPage = () => {
           </div>
         </div>
 
-        <p className="text-sm text-gray-600">
-          Showing {filteredPages.length} of {pages.length} documents
-        </p>
+        <div className="flex items-center gap-2">
+          {filteringInProgress && (
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-brand-green"></div>
+          )}
+          <p className="text-sm text-gray-600">
+            {filteringInProgress ? 'Filtering...' : `Showing ${filteredPages.length} of ${pages.length} documents`}
+          </p>
+        </div>
       </div>
 
       {filteredPages.length === 0 ? (
