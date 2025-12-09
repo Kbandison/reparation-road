@@ -156,28 +156,42 @@ const CollectionPage = () => {
     fetchClaims();
   }, []);
 
-  const handleSearch = async (query: string) => {
+  const handleSearch = async (query: string, forceFullSearch = false) => {
+    console.log('[CLIENT] Search initiated for:', query, 'forceFullSearch:', forceFullSearch);
     setSearchQuery(query);
+
+    // If it's just typing (not a submit), only filter collections
+    if (!forceFullSearch) {
+      const queryLower = query.toLowerCase();
+      const matchingCollections = collections.filter(collection =>
+        collection.name.toLowerCase().includes(queryLower) ||
+        collection.description.toLowerCase().includes(queryLower)
+      );
+      console.log('[CLIENT] Filtering collections, found', matchingCollections.length, 'matches');
+      return;
+    }
+
+    // Full search - search database records
     setIsSearching(true);
     setShowResults(true);
 
     try {
-      console.log('[CLIENT] Searching for:', query);
+      console.log('[CLIENT] Performing full database search for:', query);
       const response = await fetch(`/api/search?q=${encodeURIComponent(query)}&limit=100`);
       const data = await response.json();
 
-      console.log('[CLIENT] Search response:', data);
+      console.log('[CLIENT] Database search response:', data);
 
       if (data.errors) {
-        console.error('[CLIENT] Search errors:', data.errors);
+        console.error('[CLIENT] Search errors from API:', data.errors);
       }
 
       if (data.results) {
         setSearchResults(data.results);
-        console.log('[CLIENT] Set', data.results.length, 'results');
+        console.log('[CLIENT] Found', data.results.length, 'database results');
       } else {
         setSearchResults([]);
-        console.log('[CLIENT] No results found');
+        console.log('[CLIENT] No database results found');
       }
     } catch (error) {
       console.error('[CLIENT] Search error:', error);

@@ -15,7 +15,7 @@ interface SearchResult {
 }
 
 interface SearchAutocompleteProps {
-  onSearch: (query: string) => void;
+  onSearch: (query: string, isSubmit?: boolean) => void;
   onResultSelect?: (result: SearchResult) => void;
   placeholder?: string;
 }
@@ -83,15 +83,24 @@ export const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
   }, [query]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setQuery(e.target.value);
+    const newQuery = e.target.value;
+    console.log('[AUTOCOMPLETE] Query changed to:', newQuery);
+    setQuery(newQuery);
     setSelectedIndex(-1);
+
+    // Call onSearch for filtering as user types (isSubmit=false)
+    if (onSearch && newQuery.length >= 2) {
+      onSearch(newQuery, false);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[AUTOCOMPLETE] Form submitted with query:', query);
     if (query.trim()) {
       setShowSuggestions(false);
-      onSearch(query);
+      // Call onSearch with isSubmit=true for full database search
+      onSearch(query, true);
     }
   };
 
