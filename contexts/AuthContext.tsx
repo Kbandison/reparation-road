@@ -40,51 +40,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
   const [inactivityTimeout, setInactivityTimeout] = useState<NodeJS.Timeout | null>(null);
 
-  const fetchProfile = useCallback(async (userId: string, retryCount = 0) => {
-    const maxRetries = 3;
-
+  const fetchProfile = useCallback(async (userId: string) => {
     try {
-      // Increased timeout to 30 seconds and added retry logic
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Profile fetch timeout')), 30000)
-      );
+      console.log('[AUTH DEBUG] Fetching profile for user:', userId);
 
-      const fetchPromise = supabase
+      // Remove timeout - let Supabase handle it naturally
+      const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
 
-      const result = await Promise.race([fetchPromise, timeoutPromise]);
-      const { data, error } = result as { data: Profile | null; error: Error | null };
-
       if (error) {
+        console.error('[AUTH ERROR] Error fetching profile:', error, {
+          code: error.code,
+          message: error.message,
+          details: error.details
+        });
+
         // If profile doesn't exist (PGRST116), that's okay - new user
         if (error.code === 'PGRST116') {
           console.log('[AUTH DEBUG] Profile not found for user, may need to create one');
           return;
         }
-        console.error('Error fetching profile:', error);
-        throw error;
+
+        // For other errors, don't throw - user stays logged in
+        console.warn('[AUTH WARN] Profile fetch failed, user will have limited access');
+        return;
       }
 
       if (data) {
         setProfile(data);
-        console.log('[AUTH DEBUG] Profile loaded successfully:', { role: data.role, subscription: data.subscription_status });
+        console.log('[AUTH DEBUG] Profile loaded successfully:', {
+          role: data.role,
+          subscription: data.subscription_status,
+          email: data.email
+        });
+      } else {
+        console.warn('[AUTH WARN] Profile query succeeded but returned no data');
       }
     } catch (error: unknown) {
-      console.error('[AUTH ERROR] Error in fetchProfile (attempt ' + (retryCount + 1) + '):', error);
-
-      // Retry if we haven't exceeded max retries
-      if (retryCount < maxRetries) {
-        console.log('[AUTH DEBUG] Retrying profile fetch...');
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
-        return fetchProfile(userId, retryCount + 1);
-      }
-
-      // After max retries, keep existing profile if we have one, otherwise set to null
-      console.error('[AUTH ERROR] Max retries exceeded. Profile fetch failed.');
-      // Don't set profile to null here - keep whatever profile we had
+      console.error('[AUTH ERROR] Unexpected error in fetchProfile:', error);
+      // Don't set profile to null - keep whatever we had
+      // User stays logged in, just without profile data loaded
     }
   }, []);
 
