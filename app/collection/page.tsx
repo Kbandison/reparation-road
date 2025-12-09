@@ -5,10 +5,10 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { SearchAutocomplete } from "@/components/SearchAutocomplete";
 import ClaimModal from "@/components/ClaimModal";
-import { Search, Sparkles, TrendingUp, Lock } from "lucide-react";
+import { Sparkles, TrendingUp, Lock, Loader2, FileText, ExternalLink } from "lucide-react";
 
 const collections = [
   { name: "African Colonization Society", href: "/collections/acs", tier: "premium", description: "Emigrants to Liberia and census rolls" },
@@ -136,6 +136,9 @@ const CollectionPage = () => {
   const [claims, setClaims] = useState<any[] | null>(null);
   const [selectedClaim, setSelectedClaim] = useState<any | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showResults, setShowResults] = useState(false);
   const { user, hasPremiumAccess } = useAuth();
 
   useEffect(() => {
@@ -152,6 +155,46 @@ const CollectionPage = () => {
 
     fetchClaims();
   }, []);
+
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query);
+    setIsSearching(true);
+    setShowResults(true);
+
+    try {
+      const response = await fetch(`/api/search?q=${encodeURIComponent(query)}&limit=100`);
+      const data = await response.json();
+
+      if (data.results) {
+        setSearchResults(data.results);
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleResultSelect = (result: any) => {
+    // Navigate to the collection page
+    window.location.href = `/collections/${result._collectionSlug}`;
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery("");
+    setSearchResults([]);
+    setShowResults(false);
+  };
+
+  // Group results by collection
+  const groupedResults = searchResults.reduce((acc: any, result: any) => {
+    const collection = result._collection;
+    if (!acc[collection]) {
+      acc[collection] = [];
+    }
+    acc[collection].push(result);
+    return acc;
+  }, {});
 
   const filteredCollections = collections.filter(collection =>
     collection.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -187,16 +230,19 @@ const CollectionPage = () => {
 
             {/* Search Bar */}
             <div className="max-w-2xl mx-auto relative z-10">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none z-10" />
-                <Input
-                  type="search"
-                  placeholder="Search collections by name or topic..."
-                  className="w-full pl-12 pr-4 py-6 text-lg rounded-full border-2 border-white/20 bg-white/95 backdrop-blur-sm focus:bg-white focus:border-brand-tan relative z-10"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
+              <SearchAutocomplete
+                onSearch={handleSearch}
+                onResultSelect={handleResultSelect}
+                placeholder="Search all records by name, location, owner, or any keyword..."
+              />
+              {showResults && (
+                <button
+                  onClick={handleClearSearch}
+                  className="mt-4 text-white/90 hover:text-white text-sm underline"
+                >
+                  ← Back to Collections
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -210,9 +256,99 @@ const CollectionPage = () => {
       </div>
 
       <div className="container mx-auto px-4 py-12">
-        <div className="flex flex-col lg:flex-row gap-12">
-          {/* Main Content */}
-          <main className="w-full lg:w-3/4">
+        {/* Search Results Section */}
+        {showResults ? (
+          <div className="mb-12">
+            <div className="mb-6">
+              <h2 className="text-3xl font-bold text-brand-brown">
+                {isSearching ? 'Searching...' : `Search Results for "${searchQuery}"`}
+              </h2>
+              {!isSearching && (
+                <p className="text-gray-600 mt-2">
+                  Found {searchResults.length} record{searchResults.length !== 1 ? 's' : ''} across {Object.keys(groupedResults).length} collection{Object.keys(groupedResults).length !== 1 ? 's' : ''}
+                </p>
+              )}
+            </div>
+
+            {isSearching ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-brand-green" />
+              </div>
+            ) : searchResults.length === 0 ? (
+              <div className="text-center py-12">
+                <FileText className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                <p className="text-xl text-gray-600">No results found for &quot;{searchQuery}&quot;</p>
+                <p className="text-gray-500 mt-2">Try different keywords or check your spelling</p>
+              </div>
+            ) : (
+              <div className="space-y-8">
+                {Object.entries(groupedResults).map(([collection, results]: [string, any]) => (
+                  <div key={collection} className="border rounded-lg p-6 bg-white shadow-sm">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-2xl font-bold text-brand-brown">{collection}</h3>
+                      <span className="text-sm font-semibold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                        {results.length} result{results.length !== 1 ? 's' : ''}
+                      </span>
+                    </div>
+
+                    <div className="grid gap-4">
+                      {results.slice(0, 5).map((result: any) => (
+                        <div
+                          key={`${result._table}-${result.id}`}
+                          className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                          onClick={() => handleResultSelect(result)}
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-lg text-gray-900 mb-2">
+                                {result._identifier}
+                              </h4>
+                              {result._snippet && (
+                                <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+                                  {result._snippet}
+                                </p>
+                              )}
+                              <div className="flex flex-wrap gap-2 text-xs text-gray-500">
+                                {Object.entries(result)
+                                  .filter(([key]) => !key.startsWith('_') && key !== 'id' && key !== 'created_at' && key !== 'updated_at')
+                                  .slice(0, 4)
+                                  .map(([key, value]: [string, any]) => (
+                                    value && (
+                                      <span key={key} className="bg-gray-100 px-2 py-1 rounded">
+                                        <span className="font-medium capitalize">{key.replace(/_/g, ' ')}:</span> {value}
+                                      </span>
+                                    )
+                                  ))}
+                              </div>
+                            </div>
+                            <ExternalLink className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                          </div>
+                        </div>
+                      ))}
+
+                      {results.length > 5 && (
+                        <div className="text-center">
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              const firstResult = results[0];
+                              window.location.href = `/collections/${firstResult._collectionSlug}`;
+                            }}
+                          >
+                            View all {results.length} results in {collection}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="flex flex-col lg:flex-row gap-12">
+            {/* Main Content */}
+            <main className="w-full lg:w-3/4">
             {/* Free Collections */}
             {freeCollections.length > 0 && (
               <div className="mb-12">
@@ -364,6 +500,7 @@ const CollectionPage = () => {
             </aside>
           )}
         </div>
+        )}
       </div>
 
       <ClaimModal
