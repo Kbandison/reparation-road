@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useRouter, useSearchParams } from "next/navigation";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { SignupForm } from "@/components/auth/SignupForm";
-import { FileText } from "lucide-react";
+import { FileText, Loader2 } from "lucide-react";
 
 const UpgradePrompt = () => {
   const router = useRouter();
@@ -363,7 +363,13 @@ const SlaveCompensationPage = () => {
 const WrappedSlaveCompensationPage = () => {
   return (
     <ProtectedRoute requiresPaid={true} fallback={<UpgradePrompt />}>
-      <SlaveCompensationPage />
+      <Suspense fallback={
+        <div className="min-h-screen bg-brand-beige flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-brand-green" />
+        </div>
+      }>
+        <SlaveCompensationPage />
+      </Suspense>
     </ProtectedRoute>
   );
 };
