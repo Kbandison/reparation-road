@@ -365,35 +365,18 @@ const ExSlavePensionPage = () => {
   useEffect(() => {
     const fetchLetters = async () => {
       try {
-        let allLetters: ExSlavePensionLetter[] = [];
-        let from = 0;
-        const batchSize = 1000;
-        let hasMore = true;
+        const { data, error } = await supabase
+          .from("ex-slave-pension")
+          .select("*, ex_slave_pension_images(public_url)")
+          .order("book_number", { ascending: true })
+          .order("page_no", { ascending: true });
 
-        while (hasMore) {
-          const { data, error } = await supabase
-            .from("ex-slave-pension")
-            .select("*, ex_slave_pension_images(public_url)")
-            .order("book_number", { ascending: true })
-            .order("page_no", { ascending: true })
-            .range(from, from + batchSize - 1);
-
-          if (error) {
-            console.error("Error fetching letters:", error);
-            break;
-          }
-
-          if (data && data.length > 0) {
-            allLetters = [...allLetters, ...data];
-            from += batchSize;
-            hasMore = data.length === batchSize;
-          } else {
-            hasMore = false;
-          }
+        if (error) {
+          console.error("Error fetching letters:", error);
+        } else if (data) {
+          setLetters(data);
+          setFilteredLetters(data);
         }
-
-        setLetters(allLetters);
-        setFilteredLetters(allLetters);
       } catch (error) {
         console.error("Error:", error);
       } finally {
@@ -633,27 +616,15 @@ const ExSlavePensionPage = () => {
                     </h3>
                     <div className="text-sm text-gray-600 space-y-1">
                       {letter.book_number && (
-                        <p>
+                        <p className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-brand-green"></span>
                           Book {letter.book_number}
                           {letter.page_no && `, Page ${letter.page_no}`}
                         </p>
                       )}
                       {letter.letter_date && (
-                        <p>
-                          Date:{" "}
+                        <p className="text-xs text-gray-500">
                           {new Date(letter.letter_date).toLocaleDateString()}
-                        </p>
-                      )}
-                      {letter.recipient_name && (
-                        <p>To: {letter.recipient_name}</p>
-                      )}
-                      {letter.recipient_state && (
-                        <p>
-                          Location:{" "}
-                          {letter.recipient_town
-                            ? `${letter.recipient_town}, `
-                            : ""}
-                          {letter.recipient_state}
                         </p>
                       )}
                     </div>
