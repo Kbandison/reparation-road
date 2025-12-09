@@ -18,7 +18,9 @@ import {
   Save,
   X,
   Loader2,
-  Link as LinkIcon
+  Link as LinkIcon,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -499,6 +501,7 @@ const AdminCollectionsPage = () => {
   const { user, profile, loading } = useAuth();
   const [collections, setCollections] = useState<Collection[]>([]);
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
+  const [expandedCollections, setExpandedCollections] = useState<Set<string>>(new Set());
   const [pages, setPages] = useState<ArchivePage[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loadingData, setLoadingData] = useState(true);
@@ -531,6 +534,19 @@ const AdminCollectionsPage = () => {
   const [archivePageImagePreview, setArchivePageImagePreview] = useState<string>('');
   const [archivePageTagInput, setArchivePageTagInput] = useState('');
   const [archivePageSaving, setArchivePageSaving] = useState(false);
+
+  // Toggle collection expansion
+  const toggleCollection = (slug: string) => {
+    setExpandedCollections(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(slug)) {
+        newSet.delete(slug);
+      } else {
+        newSet.add(slug);
+      }
+      return newSet;
+    });
+  };
 
   // Helper function to find collection including subcollections
   const findCollection = (slug: string): Collection | undefined => {
@@ -1238,84 +1254,44 @@ const AdminCollectionsPage = () => {
                 {collections.length} collection{collections.length !== 1 ? 's' : ''}
               </p>
 
-              <div className="space-y-2">
+              <div className="space-y-1">
                 {collections.map((collection) => (
-                  <div key={collection.slug}>
-                    <button
-                      onClick={() => handleSelectCollection(collection.slug)}
-                      className={`w-full text-left p-3 rounded-lg transition-colors ${
-                        selectedCollection === collection.slug
-                          ? 'bg-brand-green text-white'
-                          : 'bg-gray-50 hover:bg-gray-100 text-brand-brown'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1 pr-2">
-                          <div className="flex items-center gap-2 mb-1">
-                            <p className="font-medium">{collection.name}</p>
-                            {collection.tableType !== 'archive_pages' && collection.tableType !== 'coming_soon' && (
-                              <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${
-                                selectedCollection === collection.slug
-                                  ? 'bg-white/20 text-white'
-                                  : 'bg-blue-100 text-blue-700'
-                              }`}>
-                                DB
-                              </span>
+                  <div key={collection.slug} className="border-b border-gray-100 last:border-0">
+                    {/* Parent Collection or Standalone Collection */}
+                    {collection.subcollections && collection.subcollections.length > 0 ? (
+                      // Collection with subcollections - show as dropdown
+                      <>
+                        <button
+                          onClick={() => toggleCollection(collection.slug)}
+                          className="w-full text-left px-3 py-2 hover:bg-gray-50 transition-colors flex items-center justify-between text-sm"
+                        >
+                          <div className="flex items-center gap-2 flex-1">
+                            {expandedCollections.has(collection.slug) ? (
+                              <ChevronDown className="w-4 h-4 text-gray-400" />
+                            ) : (
+                              <ChevronRight className="w-4 h-4 text-gray-400" />
                             )}
-                            {collection.tableType === 'coming_soon' && (
-                              <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${
-                                selectedCollection === collection.slug
-                                  ? 'bg-white/20 text-white'
-                                  : 'bg-gray-200 text-gray-600'
-                              }`}>
-                                Soon
-                              </span>
-                            )}
+                            <span className="font-medium text-brand-brown">{collection.name}</span>
                           </div>
-                          {collection.description && (
-                            <p
-                              className={`text-xs mt-1 ${
-                                selectedCollection === collection.slug
-                                  ? 'text-white/70'
-                                  : 'text-gray-400'
-                              }`}
-                            >
-                              {collection.description}
-                            </p>
-                          )}
-                          <p
-                            className={`text-xs mt-1 ${
-                              selectedCollection === collection.slug
-                                ? 'text-white/80'
-                                : 'text-gray-500'
-                            }`}
-                          >
-                            {collection.pageCount} {collection.tableType === 'archive_pages' ? 'page' : 'record'}{collection.pageCount !== 1 ? 's' : ''}
-                          </p>
-                        </div>
-                        <FileText className="w-5 h-5 flex-shrink-0 mt-1" />
-                      </div>
-                    </button>
+                        </button>
 
-                    {/* Render subcollections if they exist */}
-                    {collection.subcollections && collection.subcollections.length > 0 && (
-                      <div className="ml-4 mt-1 space-y-1">
-                        {collection.subcollections.map((subcollection) => (
-                          <button
-                            key={subcollection.slug}
-                            onClick={() => handleSelectCollection(subcollection.slug)}
-                            className={`w-full text-left p-2 rounded-lg transition-colors text-sm ${
-                              selectedCollection === subcollection.slug
-                                ? 'bg-brand-green text-white'
-                                : 'bg-gray-100 hover:bg-gray-200 text-brand-brown'
-                            }`}
-                          >
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1 pr-2">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <p className="font-medium">{subcollection.name}</p>
+                        {/* Subcollections dropdown */}
+                        {expandedCollections.has(collection.slug) && (
+                          <div className="ml-6 space-y-1 pb-2">
+                            {collection.subcollections.map((subcollection) => (
+                              <button
+                                key={subcollection.slug}
+                                onClick={() => handleSelectCollection(subcollection.slug)}
+                                className={`w-full text-left px-3 py-1.5 rounded transition-colors text-xs flex items-center justify-between ${
+                                  selectedCollection === subcollection.slug
+                                    ? 'bg-brand-green text-white'
+                                    : 'hover:bg-gray-100 text-gray-700'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2 flex-1">
+                                  <span>{subcollection.name}</span>
                                   {subcollection.tableType !== 'archive_pages' && subcollection.tableType !== 'coming_soon' && (
-                                    <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${
+                                    <span className={`px-1 py-0.5 text-[9px] font-medium rounded ${
                                       selectedCollection === subcollection.slug
                                         ? 'bg-white/20 text-white'
                                         : 'bg-blue-100 text-blue-700'
@@ -1323,32 +1299,67 @@ const AdminCollectionsPage = () => {
                                       DB
                                     </span>
                                   )}
-                                </div>
-                                {subcollection.description && (
-                                  <p
-                                    className={`text-xs mt-1 ${
+                                  {subcollection.tableType === 'coming_soon' && (
+                                    <span className={`px-1 py-0.5 text-[9px] font-medium rounded ${
                                       selectedCollection === subcollection.slug
-                                        ? 'text-white/70'
-                                        : 'text-gray-400'
-                                    }`}
-                                  >
-                                    {subcollection.description}
-                                  </p>
-                                )}
-                                <p
-                                  className={`text-xs mt-1 ${
-                                    selectedCollection === subcollection.slug
-                                      ? 'text-white/80'
-                                      : 'text-gray-500'
-                                  }`}
-                                >
-                                  {subcollection.pageCount} record{subcollection.pageCount !== 1 ? 's' : ''}
-                                </p>
-                              </div>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
+                                        ? 'bg-white/20 text-white'
+                                        : 'bg-gray-200 text-gray-600'
+                                    }`}>
+                                      Soon
+                                    </span>
+                                  )}
+                                </div>
+                                <span className={`text-[10px] ${
+                                  selectedCollection === subcollection.slug
+                                    ? 'text-white/70'
+                                    : 'text-gray-500'
+                                }`}>
+                                  {subcollection.pageCount || 0}
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      // Standalone collection - show directly
+                      <button
+                        onClick={() => handleSelectCollection(collection.slug)}
+                        className={`w-full text-left px-3 py-2 rounded transition-colors text-sm flex items-center justify-between ${
+                          selectedCollection === collection.slug
+                            ? 'bg-brand-green text-white'
+                            : 'hover:bg-gray-50 text-brand-brown'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 flex-1">
+                          <span className="font-medium">{collection.name}</span>
+                          {collection.tableType !== 'archive_pages' && collection.tableType !== 'coming_soon' && (
+                            <span className={`px-1 py-0.5 text-[9px] font-medium rounded ${
+                              selectedCollection === collection.slug
+                                ? 'bg-white/20 text-white'
+                                : 'bg-blue-100 text-blue-700'
+                            }`}>
+                              DB
+                            </span>
+                          )}
+                          {collection.tableType === 'coming_soon' && (
+                            <span className={`px-1 py-0.5 text-[9px] font-medium rounded ${
+                              selectedCollection === collection.slug
+                                ? 'bg-white/20 text-white'
+                                : 'bg-gray-200 text-gray-600'
+                            }`}>
+                              Soon
+                            </span>
+                          )}
+                        </div>
+                        <span className={`text-[10px] ${
+                          selectedCollection === collection.slug
+                            ? 'text-white/70'
+                            : 'text-gray-500'
+                        }`}>
+                          {collection.pageCount || 0}
+                        </span>
+                      </button>
                     )}
                   </div>
                 ))}
