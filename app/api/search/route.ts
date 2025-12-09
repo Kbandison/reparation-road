@@ -1,103 +1,79 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
-// Define searchable tables and their key fields
+// Define searchable tables and their key fields - based on actual database schema
 const SEARCHABLE_TABLES = [
   {
     table: 'slave_compensation_claims',
     collection: 'Slave Compensation Claims',
     collectionSlug: 'slave-compensation',
-    searchFields: ['first_name', 'last_name', 'place_of_birth', 'owner_name'],
-    displayFields: ['first_name', 'last_name', 'age', 'place_of_birth', 'owner_name'],
+    searchFields: ['first_name', 'last_name', 'place_of_birth', 'former_slave_owner', 'owner_residence', 'regiment'],
+    displayFields: ['first_name', 'last_name', 'age', 'place_of_birth', 'former_slave_owner'],
     identifierFields: ['first_name', 'last_name']
   },
   {
     table: 'archive_pages',
     collection: 'Inspection Roll of Negroes',
     collectionSlug: 'inspection-roll',
-    searchFields: ['ocr_text', 'title', 'location', 'tags'],
+    searchFields: ['ocr_text', 'title', 'location'],
     displayFields: ['title', 'book_no', 'page_no', 'location', 'year'],
-    identifierFields: ['title', 'book_no', 'page_no']
+    identifierFields: ['title']
   },
   {
     table: 'emmigrants_to_liberia',
     collection: 'ACS: Emigrants to Liberia',
     collectionSlug: 'acs-emigrants-to-liberia',
-    searchFields: ['name', 'age', 'sex', 'residence', 'former_owner'],
-    displayFields: ['name', 'age', 'sex', 'residence', 'former_owner'],
+    searchFields: ['name', 'state_of_origin', 'emancipated_by', 'location_on_arrival', 'profession'],
+    displayFields: ['name', 'age', 'state_of_origin', 'emancipated_by'],
     identifierFields: ['name']
   },
   {
     table: 'liberation_census_rolls',
     collection: 'ACS: Liberian Census Rolls',
     collectionSlug: 'acs-liberation-census-rolls',
-    searchFields: ['name', 'age', 'occupation', 'location'],
-    displayFields: ['name', 'age', 'occupation', 'location'],
+    searchFields: ['name', 'town', 'where_born', 'profession', 'education'],
+    displayFields: ['name', 'age', 'town', 'profession'],
     identifierFields: ['name']
   },
   {
     table: 'revolutionary_soldiers',
     collection: 'African-American Revolutionary Soldiers',
     collectionSlug: 'revolutionary-soldiers',
-    searchFields: ['name', 'state', 'service_type', 'regiment'],
-    displayFields: ['name', 'state', 'service_type', 'regiment'],
+    searchFields: ['name', 'state', 'regiment'],
+    displayFields: ['name', 'state', 'regiment'],
     identifierFields: ['name']
   },
   {
-    table: 'ex_slave_pension',
-    collection: 'Ex-slave Pension Files',
-    collectionSlug: 'ex-slave-pension/case-files-formerly-enslaved',
-    searchFields: ['sender_name', 'recipient_name', 'letter_content'],
-    displayFields: ['sender_name', 'recipient_name', 'book_number', 'page_no'],
-    identifierFields: ['sender_name', 'recipient_name']
-  },
-  {
-    table: 'colored_deaths',
-    collection: 'Colored Deaths (1785-1821)',
-    collectionSlug: 'florida-louisiana/colored-deaths-1785-1821',
-    searchFields: ['name', 'age', 'death_date', 'burial_location', 'occupation'],
-    displayFields: ['name', 'age', 'death_date', 'burial_location'],
+    table: 'free_black_heads_of_household',
+    collection: 'Free Black Heads of Household (1790 Census)',
+    collectionSlug: 'free-black-census-1790',
+    searchFields: ['name', 'state', 'notes'],
+    displayFields: ['name', 'state', 'num_in_family'],
     identifierFields: ['name']
   },
   {
-    table: 'colored_marriages',
-    collection: 'Colored Marriages (1784-1882)',
-    collectionSlug: 'florida-louisiana/colored-marriages-1784-1882',
-    searchFields: ['groom_name', 'bride_name', 'marriage_date', 'location'],
-    displayFields: ['groom_name', 'bride_name', 'marriage_date', 'location'],
-    identifierFields: ['groom_name', 'bride_name']
-  },
-  {
-    table: 'creek_census',
-    collection: 'Creek Census 1832',
-    collectionSlug: 'native-american-records/creek-census-1832',
-    searchFields: ['name', 'town', 'age', 'relationship'],
-    displayFields: ['name', 'town', 'age', 'relationship'],
+    table: 'enslaved_persons_alabama',
+    collection: 'Enslaved Persons - Alabama',
+    collectionSlug: 'bibles-churches/enslaved-persons-alabama',
+    searchFields: ['name', 'Parish', 'Minister', 'Parents', 'Notes'],
+    displayFields: ['name', 'Entry Type', 'Parish', 'Minister'],
     identifierFields: ['name']
   },
   {
-    table: 'slave_importation_ga',
-    collection: 'Georgia Slave Importation',
-    collectionSlug: 'slave-importation/georgia',
-    searchFields: ['enslaved_name', 'owner_name', 'origin', 'destination'],
-    displayFields: ['enslaved_name', 'owner_name', 'origin', 'destination'],
-    identifierFields: ['enslaved_name']
+    table: 'enslaved_catholic_kentuky',
+    collection: 'Enslaved Catholic Kentucky',
+    collectionSlug: 'bibles-churches/enslaved-catholic-kentucky',
+    searchFields: ['child', 'church', 'county', 'mother_s_first', 'father_s_first', 'transcription'],
+    displayFields: ['child', 'church', 'baptism_date', 'county'],
+    identifierFields: ['child']
   },
   {
-    table: 'slave_importation_ky',
-    collection: 'Kentucky Slave Importation',
-    collectionSlug: 'slave-importation/kentucky',
-    searchFields: ['enslaved_name', 'owner_name', 'county', 'year'],
-    displayFields: ['enslaved_name', 'owner_name', 'county', 'year'],
-    identifierFields: ['enslaved_name']
-  },
-  {
-    table: 'va_personal_chesterfield',
-    collection: 'Virginia Property Tithes - Chesterfield County',
-    collectionSlug: 'virginia-property-tithes/chesterfield-county-1747-1821',
-    searchFields: ['owner_name', 'enslaved_name', 'year', 'location'],
-    displayFields: ['owner_name', 'enslaved_name', 'year', 'location'],
-    identifierFields: ['owner_name', 'enslaved_name']
+    table: 'slave_voyages',
+    collection: 'Slave Voyages',
+    collectionSlug: 'slave-voyages',
+    searchFields: ['place_where_vessel_s_voyage_began_imp', 'principal_place_where_captives_were_landed_imp', 'principal_place_where_captives_were_purchased', 'flag_of_vessel_imp'],
+    displayFields: ['voyage_id', 'year_arrived_with_captives', 'flag_of_vessel_imp', 'total_disembarked_imp'],
+    identifierFields: ['voyage_id']
   }
 ];
 
