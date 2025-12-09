@@ -163,8 +163,8 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
   },
   {
     slug: 'confederate-payrolls',
-    name: 'Confederate Payrolls',
-    description: 'Confederate army payroll records',
+    name: 'Maryland State Records Concerning Persons of Color',
+    description: 'State records documenting persons of color in Maryland',
     tableType: 'coming_soon'
   },
   {
@@ -384,14 +384,14 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
   },
   {
     slug: 'tennessee-registers',
-    name: 'Registers of Formerly Enslaved Tennessee',
-    description: 'Tennessee emancipation registers',
+    name: 'Tennessee State Records Concerning Persons of Color',
+    description: 'State records documenting persons of color in Tennessee',
     tableType: 'coming_soon'
   },
   {
     slug: 'mississippi-registers',
-    name: 'Registers of Formerly Enslaved Mississippi',
-    description: 'Mississippi emancipation registers',
+    name: 'Kentucky State Records Concerning Persons of Color',
+    description: 'State records documenting persons of color in Kentucky',
     tableType: 'coming_soon'
   },
   {

@@ -26,7 +26,7 @@ const collections = [
     description: "Colonial period documentation"
   },
   { name: "Clubs and Organizations", href: "/collections/clubs-organizations", tier: "premium", description: "Fraternal societies and social groups" },
-  { name: "Confederate Payrolls", href: "/collections/confederate-payrolls", tier: "premium", description: "Civil War era employment records" },
+  { name: "Maryland State Records Concerning Persons of Color", href: "/collections/confederate-payrolls", tier: "premium", description: "State records documenting persons of color in Maryland" },
   {
     name: "North Carolina State Records Concerning Persons of Color",
     href: "/collections/east-indians-native-americans",
@@ -80,16 +80,16 @@ const collections = [
   },
   { name: "Slave Merchant Trade Records", href: "/collections/rac-vlc", tier: "premium", description: "Records documenting slave merchant trade activities" },
   {
-    name: "Registers of Formerly Enslaved Tennessee",
+    name: "Tennessee State Records Concerning Persons of Color",
     href: "/collections/tennessee-registers",
     tier: "premium",
-    description: "Post-emancipation registration records"
+    description: "State records documenting persons of color in Tennessee"
   },
   {
-    name: "Registers of Formerly Enslaved Mississippi",
+    name: "Kentucky State Records Concerning Persons of Color",
     href: "/collections/mississippi-registers",
     tier: "premium",
-    description: "Post-emancipation registration records"
+    description: "State records documenting persons of color in Kentucky"
   },
   { name: "Slave Compensation", href: "/collections/slave-compensation", tier: "premium", description: "British slavery abolition compensation" },
   {

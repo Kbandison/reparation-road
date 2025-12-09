@@ -22,7 +22,7 @@ const collections = [
     tier: "premium"
   },
   { name: "Clubs and Organizations", href: "/collections/clubs-organizations", tier: "premium" },
-  { name: "Confederate Payrolls", href: "/collections/confederate-payrolls", tier: "premium" },
+  { name: "Maryland State Records Concerning Persons of Color", href: "/collections/confederate-payrolls", tier: "premium" },
   {
     name: "East Indians and Native Americans in Maryland and Virginia",
     href: "/collections/east-indians-native-americans",
@@ -68,12 +68,12 @@ const collections = [
   },
   { name: "Records of the RAC and VOC", href: "/collections/rac-vlc", tier: "premium" },
   {
-    name: "Registers of Formerly Enslaved Tennessee",
+    name: "Tennessee State Records Concerning Persons of Color",
     href: "/collections/tennessee-registers",
     tier: "premium"
   },
   {
-    name: "Registers of Formerly Enslaved Mississippi",
+    name: "Kentucky State Records Concerning Persons of Color",
     href: "/collections/mississippi-registers",
     tier: "premium"
   },

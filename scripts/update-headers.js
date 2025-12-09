@@ -64,19 +64,19 @@ const pages = [
   // Standalone Collections
   { path: 'app/collections/bills-of-exchange/page.tsx', icon: 'FileText', title: 'English Bills of Exchange', description: 'Financial transaction records and bills of exchange documenting economic activities.' },
   { path: 'app/collections/clubs-organizations/page.tsx', icon: 'Users', title: 'Clubs and Organizations', description: 'Records from fraternal societies, social clubs, and community organizations.' },
-  { path: 'app/collections/confederate-payrolls/page.tsx', icon: 'ScrollText', title: 'Confederate Payrolls', description: 'Civil War era employment and payment records from the Confederate States.' },
+  { path: 'app/collections/confederate-payrolls/page.tsx', icon: 'ScrollText', title: 'Maryland State Records Concerning Persons of Color', description: 'State records documenting persons of color in Maryland.' },
   { path: 'app/collections/east-indians-native-americans/page.tsx', icon: 'Users', title: 'East Indians and Native Americans in MD & VA', description: 'Documentation of mixed heritage communities in Maryland and Virginia.' },
   { path: 'app/collections/freedmen-refugee-contraband/page.tsx', icon: 'FileText', title: 'Freedmen, Refugee and Contraband Records', description: 'Freedmen\'s Bureau documentation and records of refugees and contraband.' },
   { path: 'app/collections/fugitive-slave-cases/page.tsx', icon: 'Scale', title: 'Fugitive and Slave Case Files', description: 'Legal cases, court records, and documentation related to fugitive slave cases.' },
   { path: 'app/collections/georgia-passports/page.tsx', icon: 'FileText', title: 'Passports Issued by Governors of Georgia 1785-1809', description: 'Early travel documentation and passports issued by Georgia governors.' },
-  { path: 'app/collections/mississippi-registers/page.tsx', icon: 'BookOpen', title: 'Registers of Formerly Enslaved Mississippi', description: 'Post-emancipation registration records from Mississippi.' },
+  { path: 'app/collections/mississippi-registers/page.tsx', icon: 'BookOpen', title: 'Kentucky State Records Concerning Persons of Color', description: 'State records documenting persons of color in Kentucky.' },
   { path: 'app/collections/new-rules/page.tsx', icon: 'FileText', title: 'New Rules Collection', description: 'Historical records and documentation collection.' },
   { path: 'app/collections/rac-vlc/page.tsx', icon: 'Ship', title: 'Records of the RAC and VOC', description: 'Royal African Company and Dutch VOC trading records and documentation.' },
   { path: 'app/collections/slave-claims-commission/page.tsx', icon: 'Scale', title: 'Records of Slave Claims Commission', description: 'British compensation records and claims commission documentation.' },
   { path: 'app/collections/slave-importation/page.tsx', icon: 'Ship', title: 'Slave Importation Declaration', description: 'Ships and cargo manifests documenting slave trade voyages and imports.' },
   { path: 'app/collections/slave-narratives/page.tsx', icon: 'BookOpen', title: 'Slave Narratives', description: 'First-hand accounts and narratives of enslavement from formerly enslaved individuals.' },
   { path: 'app/collections/southwest-georgia/page.tsx', icon: 'FileText', title: 'Southwest Georgia Obits and Burials', description: 'Death records, obituaries, and cemetery documentation from Southwest Georgia.' },
-  { path: 'app/collections/tennessee-registers/page.tsx', icon: 'BookOpen', title: 'Registers of Formerly Enslaved Tennessee', description: 'Post-emancipation registration records from Tennessee.' },
+  { path: 'app/collections/tennessee-registers/page.tsx', icon: 'BookOpen', title: 'Tennessee State Records Concerning Persons of Color', description: 'State records documenting persons of color in Tennessee.' },
   { path: 'app/collections/virginia-order-books/page.tsx', icon: 'Scale', title: 'Virginia Order Books: Negro Adjudgments', description: 'Court proceedings, legal judgments, and order books from Virginia courts.' },
 ];
 
