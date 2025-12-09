@@ -183,8 +183,8 @@ const SearchPage = () => {
             "url('/20250626_0830_Vintage Desk Legacy_simple_compose_01jyp3brxdfdtbe2693rmngbcx.png')",
         }}
       >
-        <div className="absolute inset-0 bg-black opacity-50 rounded-lg"></div>
-        <div className="relative z-10 text-center text-white p-4">
+        <div className="absolute inset-0 bg-black opacity-50 rounded-lg pointer-events-none"></div>
+        <div className="relative z-10 text-center text-white p-4 w-full">
           <h1 className="text-4xl md:text-5xl font-bold">
             Search All Collections
           </h1>
