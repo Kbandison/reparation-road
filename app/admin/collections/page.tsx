@@ -1245,9 +1245,9 @@ const AdminCollectionsPage = () => {
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-4 gap-6">
+        <div className="grid lg:grid-cols-7 gap-6">
           {/* Collections Sidebar */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-2">
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
               <div className="mb-6">
                 <h2 className="text-xl font-bold text-brand-brown">Collections</h2>
@@ -1273,7 +1273,7 @@ const AdminCollectionsPage = () => {
                             ) : (
                               <ChevronRight className="w-4 h-4 text-gray-500 flex-shrink-0" />
                             )}
-                            <span className="font-semibold text-sm text-gray-800 leading-tight">{collection.name}</span>
+                            <span className="font-semibold text-sm text-gray-800 leading-tight" title={collection.name}>{collection.name}</span>
                           </div>
                           <span className="text-xs font-medium text-gray-500 ml-2 bg-white px-2 py-1 rounded">
                             {collection.subcollections.length}
@@ -1297,7 +1297,7 @@ const AdminCollectionsPage = () => {
                                   <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
                                     selectedCollection === subcollection.slug ? 'bg-white' : 'bg-gray-400'
                                   }`} />
-                                  <span className="text-sm font-medium truncate leading-tight">{subcollection.name}</span>
+                                  <span className="text-sm font-medium truncate leading-tight" title={subcollection.name}>{subcollection.name}</span>
                                   {subcollection.tableType !== 'archive_pages' && subcollection.tableType !== 'coming_soon' && (
                                     <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full flex-shrink-0 ${
                                       selectedCollection === subcollection.slug
@@ -1343,7 +1343,7 @@ const AdminCollectionsPage = () => {
                           <FileText className={`w-4 h-4 flex-shrink-0 ${
                             selectedCollection === collection.slug ? 'text-white' : 'text-gray-400'
                           }`} />
-                          <span className="font-semibold text-sm truncate leading-tight">{collection.name}</span>
+                          <span className="font-semibold text-sm truncate leading-tight" title={collection.name}>{collection.name}</span>
                           {collection.tableType !== 'archive_pages' && collection.tableType !== 'coming_soon' && (
                             <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full flex-shrink-0 ${
                               selectedCollection === collection.slug
@@ -1383,7 +1383,7 @@ const AdminCollectionsPage = () => {
           </div>
 
           {/* Pages List */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-5">
             {selectedCollection ? (
               (() => {
                 const collection = findCollection(selectedCollection);
