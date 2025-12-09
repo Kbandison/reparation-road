@@ -1263,7 +1263,7 @@ const AdminCollectionsPage = () => {
                     {/* Parent Collection or Standalone Collection */}
                     {collection.subcollections && collection.subcollections.length > 0 ? (
                       // Collection with subcollections - show as dropdown
-                      <div className="bg-gray-50/50 rounded-lg overflow-hidden border border-gray-100">
+                      <div className="bg-gray-50/50 rounded-lg border border-gray-100">
                         <button
                           onClick={() => toggleCollection(collection.slug)}
                           className="w-full text-left px-3 py-2.5 hover:bg-gray-100/80 transition-all flex items-center justify-between"
