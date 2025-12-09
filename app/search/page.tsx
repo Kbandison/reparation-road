@@ -4,8 +4,9 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { SearchAutocomplete } from "@/components/SearchAutocomplete";
+import { ExternalLink, Loader2, FileText } from "lucide-react";
 import ClaimModal from "@/components/ClaimModal";
 
 const collections = [
@@ -115,6 +116,10 @@ const collections = [
 const SearchPage = () => {
   const [claims, setClaims] = useState<any[] | null>(null);
   const [selectedClaim, setSelectedClaim] = useState<any | null>(null);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showResults, setShowResults] = useState(false);
 
   useEffect(() => {
     const fetchClaims = async () => {
@@ -130,6 +135,40 @@ const SearchPage = () => {
 
     fetchClaims();
   }, []);
+
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query);
+    setIsSearching(true);
+    setShowResults(true);
+
+    try {
+      const response = await fetch(`/api/search?q=${encodeURIComponent(query)}&limit=100`);
+      const data = await response.json();
+
+      if (data.results) {
+        setSearchResults(data.results);
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleResultSelect = (result: any) => {
+    // Navigate to the collection page
+    window.location.href = `/collections/${result._collectionSlug}`;
+  };
+
+  // Group results by collection
+  const groupedResults = searchResults.reduce((acc: any, result: any) => {
+    const collection = result._collection;
+    if (!acc[collection]) {
+      acc[collection] = [];
+    }
+    acc[collection].push(result);
+    return acc;
+  }, {});
 
   // Assume user is logged in for now
   const isLoggedIn = true;
@@ -147,23 +186,112 @@ const SearchPage = () => {
         <div className="absolute inset-0 bg-black opacity-50 rounded-lg"></div>
         <div className="relative z-10 text-center text-white p-4">
           <h1 className="text-4xl md:text-5xl font-bold">
-            Search the Collection
+            Search All Collections
           </h1>
           <p className="text-lg md:text-xl mt-4">
-            Explore historical slave compensation claims.
+            Search across all historical records and collections.
           </p>
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-2 focus:ring-[var(--color-brand-green)]">
-            <Input
-              type="search"
-              placeholder="Search by name, location, or owner..."
-              className="w-full max-w-md text-black"
+          <div className="mt-8">
+            <SearchAutocomplete
+              onSearch={handleSearch}
+              onResultSelect={handleResultSelect}
+              placeholder="Search by name, location, owner, or any keyword..."
+              className="flex flex-col sm:flex-row items-center justify-center"
             />
-            <Button type="submit" className="w-full sm:w-auto">
-              Search
-            </Button>
           </div>
         </div>
       </div>
+
+      {/* Search Results Section */}
+      {showResults && (
+        <div className="mt-12">
+          <div className="mb-6">
+            <h2 className="text-3xl font-bold">
+              {isSearching ? 'Searching...' : `Search Results for "${searchQuery}"`}
+            </h2>
+            {!isSearching && (
+              <p className="text-gray-600 mt-2">
+                Found {searchResults.length} record{searchResults.length !== 1 ? 's' : ''} across {Object.keys(groupedResults).length} collection{Object.keys(groupedResults).length !== 1 ? 's' : ''}
+              </p>
+            )}
+          </div>
+
+          {isSearching ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-brand-green" />
+            </div>
+          ) : searchResults.length === 0 ? (
+            <div className="text-center py-12">
+              <FileText className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+              <p className="text-xl text-gray-600">No results found for &quot;{searchQuery}&quot;</p>
+              <p className="text-gray-500 mt-2">Try different keywords or check your spelling</p>
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {Object.entries(groupedResults).map(([collection, results]: [string, any]) => (
+                <div key={collection} className="border rounded-lg p-6 bg-white shadow-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-2xl font-bold text-brand-brown">{collection}</h3>
+                    <span className="text-sm font-semibold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                      {results.length} result{results.length !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+
+                  <div className="grid gap-4">
+                    {results.slice(0, 5).map((result: any) => (
+                      <div
+                        key={`${result._table}-${result.id}`}
+                        className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                        onClick={() => handleResultSelect(result)}
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-lg text-gray-900 mb-2">
+                              {result._identifier}
+                            </h4>
+                            {result._snippet && (
+                              <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+                                {result._snippet}
+                              </p>
+                            )}
+                            <div className="flex flex-wrap gap-2 text-xs text-gray-500">
+                              {Object.entries(result)
+                                .filter(([key]) => !key.startsWith('_') && key !== 'id' && key !== 'created_at' && key !== 'updated_at')
+                                .slice(0, 4)
+                                .map(([key, value]: [string, any]) => (
+                                  value && (
+                                    <span key={key} className="bg-gray-100 px-2 py-1 rounded">
+                                      <span className="font-medium capitalize">{key.replace(/_/g, ' ')}:</span> {value}
+                                    </span>
+                                  )
+                                ))}
+                            </div>
+                          </div>
+                          <ExternalLink className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                        </div>
+                      </div>
+                    ))}
+
+                    {results.length > 5 && (
+                      <div className="text-center">
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            const firstResult = results[0];
+                            window.location.href = `/collections/${firstResult._collectionSlug}`;
+                          }}
+                        >
+                          View all {results.length} results in {collection}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="flex flex-col md:flex-row gap-8 mt-12">
         {/* Main Content */}
