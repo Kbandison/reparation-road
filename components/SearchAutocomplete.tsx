@@ -156,34 +156,31 @@ export const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
 
   return (
     <div ref={wrapperRef} className="relative w-full">
-      <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row items-center gap-2 w-full">
-        <div className="relative w-full max-w-md mx-auto">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10" />
+      <form onSubmit={handleSubmit} className="w-full">
+        <div className="relative w-full">
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none z-10" />
           <Input
-            type="text"
+            type="search"
             value={query}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             onFocus={() => query.length >= 2 && setShowSuggestions(true)}
             placeholder={placeholder}
-            className="w-full pl-10 pr-10 text-black relative z-10 bg-white"
+            className="w-full pl-12 pr-12 py-6 text-lg rounded-full border-2 border-white/20 bg-white/95 backdrop-blur-sm focus:bg-white focus:border-brand-tan relative z-10"
           />
           {query && !isLoading && (
             <button
               type="button"
               onClick={handleClear}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 z-20"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 z-20"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5" />
             </button>
           )}
           {isLoading && (
-            <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-brand-green pointer-events-none z-20" />
+            <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 animate-spin text-brand-green pointer-events-none z-20" />
           )}
         </div>
-        <Button type="submit" className="w-full sm:w-auto" disabled={!query.trim()}>
-          Search
-        </Button>
       </form>
 
       {/* Suggestions Dropdown */}

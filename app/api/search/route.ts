@@ -108,6 +108,8 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50');
     const suggest = searchParams.get('suggest') === 'true';
 
+    console.log('[SEARCH API] Query:', query);
+
     if (!query || query.trim().length < 2) {
       return NextResponse.json({
         results: [],
@@ -119,10 +121,13 @@ export async function GET(request: NextRequest) {
     const searchTerm = query.trim().toLowerCase();
     const allResults: any[] = [];
     const suggestions = new Set<string>();
+    const errors: any[] = [];
 
     // Search across all tables
     for (const config of SEARCHABLE_TABLES) {
       try {
+        console.log(`[SEARCH API] Searching ${config.table}...`);
+
         // Build the search query for this table
         let supabaseQuery = supabase
           .from(config.table)
@@ -138,9 +143,12 @@ export async function GET(request: NextRequest) {
         const { data, error } = await supabaseQuery.limit(limit);
 
         if (error) {
-          console.error(`Error searching ${config.table}:`, error);
+          console.error(`[SEARCH API] Error searching ${config.table}:`, error);
+          errors.push({ table: config.table, error: error.message });
           continue;
         }
+
+        console.log(`[SEARCH API] ${config.table} returned ${data?.length || 0} results`);
 
         if (data && data.length > 0) {
           // Add collection info to each result
@@ -200,11 +208,14 @@ export async function GET(request: NextRequest) {
       return 0;
     });
 
+    console.log(`[SEARCH API] Total results: ${allResults.length}`);
+
     return NextResponse.json({
       results: allResults.slice(0, limit),
       suggestions: suggest ? Array.from(suggestions).slice(0, 10) : [],
       total: allResults.length,
-      query: query
+      query: query,
+      errors: errors.length > 0 ? errors : undefined
     });
 
   } catch (error) {
