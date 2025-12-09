@@ -1266,7 +1266,7 @@ const AdminCollectionsPage = () => {
                       <div className="bg-gray-50/50 rounded-lg overflow-hidden border border-gray-100">
                         <button
                           onClick={() => toggleCollection(collection.slug)}
-                          className="w-full text-left px-4 py-3.5 hover:bg-gray-100/80 transition-all flex items-center justify-between"
+                          className="w-full text-left px-3 py-2.5 hover:bg-gray-100/80 transition-all flex items-center justify-between"
                         >
                           <div className="flex items-center gap-3 flex-1">
                             {expandedCollections.has(collection.slug) ? (
@@ -1290,7 +1290,7 @@ const AdminCollectionsPage = () => {
                               <button
                                 key={subcollection.slug}
                                 onClick={() => handleSelectCollection(subcollection.slug)}
-                                className={`w-full text-left px-4 py-3 transition-all flex items-center justify-between group ${
+                                className={`w-full text-left px-3 py-2 transition-all flex items-center justify-between group ${
                                   selectedCollection === subcollection.slug
                                     ? 'bg-brand-green text-white'
                                     : 'hover:bg-gray-50 text-gray-700'
@@ -1338,7 +1338,7 @@ const AdminCollectionsPage = () => {
                       // Standalone collection - show directly
                       <button
                         onClick={() => handleSelectCollection(collection.slug)}
-                        className={`w-full text-left px-4 py-3.5 rounded-lg transition-all flex items-center justify-between border ${
+                        className={`w-full text-left px-3 py-2.5 rounded-lg transition-all flex items-center justify-between border ${
                           selectedCollection === collection.slug
                             ? 'bg-brand-green text-white shadow-sm border-brand-green'
                             : 'bg-gray-50/50 hover:bg-gray-100/80 text-gray-800 border-gray-100'
