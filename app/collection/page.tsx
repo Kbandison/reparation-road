@@ -186,13 +186,13 @@ const CollectionPage = () => {
             </p>
 
             {/* Search Bar */}
-            <div className="max-w-2xl mx-auto">
+            <div className="max-w-2xl mx-auto relative z-10">
               <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none z-10" />
                 <Input
                   type="search"
                   placeholder="Search collections by name or topic..."
-                  className="w-full pl-12 pr-4 py-6 text-lg rounded-full border-2 border-white/20 bg-white/95 backdrop-blur-sm focus:bg-white focus:border-brand-tan"
+                  className="w-full pl-12 pr-4 py-6 text-lg rounded-full border-2 border-white/20 bg-white/95 backdrop-blur-sm focus:bg-white focus:border-brand-tan relative z-10"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
