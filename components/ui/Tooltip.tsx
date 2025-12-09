@@ -48,7 +48,7 @@ export const Tooltip: React.FC<TooltipProps> = ({ content, children, delay = 300
       </div>
       {show && createPortal(
         <div
-          className="fixed z-[9999] pointer-events-none"
+          className="fixed z-[99999] pointer-events-none"
           style={{
             top: `${position.top - 8}px`,
             left: `${position.left}px`,
