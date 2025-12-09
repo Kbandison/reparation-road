@@ -1246,9 +1246,9 @@ const AdminCollectionsPage = () => {
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-5 gap-6">
+        <div className="grid lg:grid-cols-7 gap-6">
           {/* Collections Sidebar */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-2">
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
               <div className="mb-6">
                 <h2 className="text-xl font-bold text-brand-brown">Collections</h2>
