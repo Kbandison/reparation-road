@@ -162,14 +162,26 @@ const CollectionPage = () => {
     setShowResults(true);
 
     try {
+      console.log('[CLIENT] Searching for:', query);
       const response = await fetch(`/api/search?q=${encodeURIComponent(query)}&limit=100`);
       const data = await response.json();
 
+      console.log('[CLIENT] Search response:', data);
+
+      if (data.errors) {
+        console.error('[CLIENT] Search errors:', data.errors);
+      }
+
       if (data.results) {
         setSearchResults(data.results);
+        console.log('[CLIENT] Set', data.results.length, 'results');
+      } else {
+        setSearchResults([]);
+        console.log('[CLIENT] No results found');
       }
     } catch (error) {
-      console.error('Search error:', error);
+      console.error('[CLIENT] Search error:', error);
+      setSearchResults([]);
     } finally {
       setIsSearching(false);
     }
