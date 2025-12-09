@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Tooltip } from '@/components/ui/Tooltip';
 import {
   Plus,
   Search,
@@ -1273,7 +1274,9 @@ const AdminCollectionsPage = () => {
                             ) : (
                               <ChevronRight className="w-4 h-4 text-gray-500 flex-shrink-0" />
                             )}
-                            <span className="font-semibold text-sm text-gray-800 leading-tight" title={collection.name}>{collection.name}</span>
+                            <Tooltip content={collection.name}>
+                              <span className="font-semibold text-sm text-gray-800 leading-tight truncate block">{collection.name}</span>
+                            </Tooltip>
                           </div>
                           <span className="text-xs font-medium text-gray-500 ml-2 bg-white px-2 py-1 rounded">
                             {collection.subcollections.length}
@@ -1297,7 +1300,9 @@ const AdminCollectionsPage = () => {
                                   <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
                                     selectedCollection === subcollection.slug ? 'bg-white' : 'bg-gray-400'
                                   }`} />
-                                  <span className="text-sm font-medium truncate leading-tight" title={subcollection.name}>{subcollection.name}</span>
+                                  <Tooltip content={subcollection.name}>
+                                    <span className="text-sm font-medium truncate leading-tight block">{subcollection.name}</span>
+                                  </Tooltip>
                                   {subcollection.tableType !== 'archive_pages' && subcollection.tableType !== 'coming_soon' && (
                                     <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full flex-shrink-0 ${
                                       selectedCollection === subcollection.slug
@@ -1343,7 +1348,9 @@ const AdminCollectionsPage = () => {
                           <FileText className={`w-4 h-4 flex-shrink-0 ${
                             selectedCollection === collection.slug ? 'text-white' : 'text-gray-400'
                           }`} />
-                          <span className="font-semibold text-sm truncate leading-tight" title={collection.name}>{collection.name}</span>
+                          <Tooltip content={collection.name}>
+                            <span className="font-semibold text-sm truncate leading-tight block">{collection.name}</span>
+                          </Tooltip>
                           {collection.tableType !== 'archive_pages' && collection.tableType !== 'coming_soon' && (
                             <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full flex-shrink-0 ${
                               selectedCollection === collection.slug
