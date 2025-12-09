@@ -18,14 +18,12 @@ interface SearchAutocompleteProps {
   onSearch: (query: string) => void;
   onResultSelect?: (result: SearchResult) => void;
   placeholder?: string;
-  className?: string;
 }
 
 export const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
   onSearch,
   onResultSelect,
-  placeholder = "Search by name, location, or owner...",
-  className = ""
+  placeholder = "Search by name, location, or owner..."
 }) => {
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<SearchResult[]>([]);
@@ -157,10 +155,10 @@ export const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
   };
 
   return (
-    <div ref={wrapperRef} className={`relative ${className}`}>
-      <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row items-center gap-2">
-        <div className="relative w-full max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+    <div ref={wrapperRef} className="relative w-full">
+      <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row items-center gap-2 w-full">
+        <div className="relative w-full max-w-md mx-auto">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10" />
           <Input
             type="text"
             value={query}
@@ -168,19 +166,19 @@ export const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
             onKeyDown={handleKeyDown}
             onFocus={() => query.length >= 2 && setShowSuggestions(true)}
             placeholder={placeholder}
-            className="w-full pl-10 pr-10 text-black"
+            className="w-full pl-10 pr-10 text-black relative z-10 bg-white"
           />
-          {query && (
+          {query && !isLoading && (
             <button
               type="button"
               onClick={handleClear}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 z-20"
             >
               <X className="w-4 h-4" />
             </button>
           )}
           {isLoading && (
-            <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-brand-green" />
+            <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-brand-green pointer-events-none z-20" />
           )}
         </div>
         <Button type="submit" className="w-full sm:w-auto" disabled={!query.trim()}>
@@ -190,7 +188,7 @@ export const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
 
       {/* Suggestions Dropdown */}
       {showSuggestions && suggestions.length > 0 && (
-        <div className="absolute z-50 w-full max-w-md mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-96 overflow-y-auto">
+        <div className="absolute z-[100] w-full max-w-md mx-auto left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-96 overflow-y-auto">
           {suggestions.map((result, index) => (
             <div
               key={`${result._table}-${result.id}`}
@@ -222,7 +220,7 @@ export const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
 
       {/* No results message */}
       {showSuggestions && !isLoading && query.trim().length >= 2 && suggestions.length === 0 && (
-        <div className="absolute z-50 w-full max-w-md mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-4">
+        <div className="absolute z-[100] w-full max-w-md mx-auto left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-4">
           <p className="text-sm text-gray-600 text-center">
             No results found for &quot;{query}&quot;
           </p>

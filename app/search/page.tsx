@@ -191,13 +191,14 @@ const SearchPage = () => {
           <p className="text-lg md:text-xl mt-4">
             Search across all historical records and collections.
           </p>
-          <div className="mt-8">
-            <SearchAutocomplete
-              onSearch={handleSearch}
-              onResultSelect={handleResultSelect}
-              placeholder="Search by name, location, owner, or any keyword..."
-              className="flex flex-col sm:flex-row items-center justify-center"
-            />
+          <div className="mt-8 w-full flex justify-center">
+            <div className="w-full max-w-2xl">
+              <SearchAutocomplete
+                onSearch={handleSearch}
+                onResultSelect={handleResultSelect}
+                placeholder="Search by name, location, owner, or any keyword..."
+              />
+            </div>
           </div>
         </div>
       </div>
