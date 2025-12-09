@@ -40,11 +40,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
   const [inactivityTimeout, setInactivityTimeout] = useState<NodeJS.Timeout | null>(null);
 
-  const fetchProfile = useCallback(async (userId: string) => {
+  const fetchProfile = useCallback(async (userId: string, retryCount = 0) => {
+    const maxRetries = 3;
+
     try {
-      // Add timeout to prevent hanging
+      // Increased timeout to 30 seconds and added retry logic
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 30000)
       );
 
       const fetchPromise = supabase
@@ -53,7 +55,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq('id', userId)
         .single();
 
-      const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
+      const result = await Promise.race([fetchPromise, timeoutPromise]);
+      const { data, error } = result as { data: Profile | null; error: Error | null };
 
       if (error) {
         // If profile doesn't exist (PGRST116), that's okay - new user
@@ -67,12 +70,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (data) {
         setProfile(data);
+        console.log('[AUTH DEBUG] Profile loaded successfully:', { role: data.role, subscription: data.subscription_status });
       }
-    } catch (error: any) {
-      console.error('Error in fetchProfile:', error);
-      // Don't throw - just log. This prevents auth from breaking completely
-      // if profile fetch fails. User is still logged in, just no profile data.
-      setProfile(null);
+    } catch (error: unknown) {
+      console.error('[AUTH ERROR] Error in fetchProfile (attempt ' + (retryCount + 1) + '):', error);
+
+      // Retry if we haven't exceeded max retries
+      if (retryCount < maxRetries) {
+        console.log('[AUTH DEBUG] Retrying profile fetch...');
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+        return fetchProfile(userId, retryCount + 1);
+      }
+
+      // After max retries, keep existing profile if we have one, otherwise set to null
+      console.error('[AUTH ERROR] Max retries exceeded. Profile fetch failed.');
+      // Don't set profile to null here - keep whatever profile we had
     }
   }, []);
 
