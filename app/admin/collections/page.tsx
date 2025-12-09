@@ -1245,53 +1245,61 @@ const AdminCollectionsPage = () => {
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="grid lg:grid-cols-4 gap-6">
           {/* Collections Sidebar */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-2xl font-semibold text-brand-brown mb-4">Collections</h2>
-              <p className="text-sm text-gray-600 mb-4">
-                {collections.length} collection{collections.length !== 1 ? 's' : ''}
-              </p>
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+              <div className="mb-6">
+                <h2 className="text-xl font-bold text-brand-brown">Collections</h2>
+                <p className="text-xs text-gray-500 mt-1">
+                  {collections.length} total
+                </p>
+              </div>
 
-              <div className="space-y-1">
+              <div className="space-y-2 max-h-[calc(100vh-300px)] overflow-y-auto pr-2">
                 {collections.map((collection) => (
-                  <div key={collection.slug} className="border-b border-gray-100 last:border-0">
+                  <div key={collection.slug}>
                     {/* Parent Collection or Standalone Collection */}
                     {collection.subcollections && collection.subcollections.length > 0 ? (
                       // Collection with subcollections - show as dropdown
-                      <>
+                      <div className="bg-gray-50/50 rounded-lg overflow-hidden border border-gray-100">
                         <button
                           onClick={() => toggleCollection(collection.slug)}
-                          className="w-full text-left px-3 py-2 hover:bg-gray-50 transition-colors flex items-center justify-between text-sm"
+                          className="w-full text-left px-4 py-3.5 hover:bg-gray-100/80 transition-all flex items-center justify-between"
                         >
-                          <div className="flex items-center gap-2 flex-1">
+                          <div className="flex items-center gap-3 flex-1">
                             {expandedCollections.has(collection.slug) ? (
-                              <ChevronDown className="w-4 h-4 text-gray-400" />
+                              <ChevronDown className="w-4 h-4 text-gray-500 flex-shrink-0" />
                             ) : (
-                              <ChevronRight className="w-4 h-4 text-gray-400" />
+                              <ChevronRight className="w-4 h-4 text-gray-500 flex-shrink-0" />
                             )}
-                            <span className="font-medium text-brand-brown">{collection.name}</span>
+                            <span className="font-semibold text-sm text-gray-800 leading-tight">{collection.name}</span>
                           </div>
+                          <span className="text-xs font-medium text-gray-500 ml-2 bg-white px-2 py-1 rounded">
+                            {collection.subcollections.length}
+                          </span>
                         </button>
 
                         {/* Subcollections dropdown */}
                         {expandedCollections.has(collection.slug) && (
-                          <div className="ml-6 space-y-1 pb-2">
+                          <div className="bg-white border-t border-gray-200 py-2">
                             {collection.subcollections.map((subcollection) => (
                               <button
                                 key={subcollection.slug}
                                 onClick={() => handleSelectCollection(subcollection.slug)}
-                                className={`w-full text-left px-3 py-1.5 rounded transition-colors text-xs flex items-center justify-between ${
+                                className={`w-full text-left px-4 py-3 transition-all flex items-center justify-between group ${
                                   selectedCollection === subcollection.slug
                                     ? 'bg-brand-green text-white'
-                                    : 'hover:bg-gray-100 text-gray-700'
+                                    : 'hover:bg-gray-50 text-gray-700'
                                 }`}
                               >
-                                <div className="flex items-center gap-2 flex-1">
-                                  <span>{subcollection.name}</span>
+                                <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                                    selectedCollection === subcollection.slug ? 'bg-white' : 'bg-gray-400'
+                                  }`} />
+                                  <span className="text-sm font-medium truncate leading-tight">{subcollection.name}</span>
                                   {subcollection.tableType !== 'archive_pages' && subcollection.tableType !== 'coming_soon' && (
-                                    <span className={`px-1 py-0.5 text-[9px] font-medium rounded ${
+                                    <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full flex-shrink-0 ${
                                       selectedCollection === subcollection.slug
                                         ? 'bg-white/20 text-white'
                                         : 'bg-blue-100 text-blue-700'
@@ -1300,18 +1308,18 @@ const AdminCollectionsPage = () => {
                                     </span>
                                   )}
                                   {subcollection.tableType === 'coming_soon' && (
-                                    <span className={`px-1 py-0.5 text-[9px] font-medium rounded ${
+                                    <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full flex-shrink-0 ${
                                       selectedCollection === subcollection.slug
                                         ? 'bg-white/20 text-white'
-                                        : 'bg-gray-200 text-gray-600'
+                                        : 'bg-amber-100 text-amber-700'
                                     }`}>
                                       Soon
                                     </span>
                                   )}
                                 </div>
-                                <span className={`text-[10px] ${
+                                <span className={`text-xs font-semibold ml-3 flex-shrink-0 ${
                                   selectedCollection === subcollection.slug
-                                    ? 'text-white/70'
+                                    ? 'text-white/80'
                                     : 'text-gray-500'
                                 }`}>
                                   {subcollection.pageCount || 0}
@@ -1320,21 +1328,24 @@ const AdminCollectionsPage = () => {
                             ))}
                           </div>
                         )}
-                      </>
+                      </div>
                     ) : (
                       // Standalone collection - show directly
                       <button
                         onClick={() => handleSelectCollection(collection.slug)}
-                        className={`w-full text-left px-3 py-2 rounded transition-colors text-sm flex items-center justify-between ${
+                        className={`w-full text-left px-4 py-3.5 rounded-lg transition-all flex items-center justify-between border ${
                           selectedCollection === collection.slug
-                            ? 'bg-brand-green text-white'
-                            : 'hover:bg-gray-50 text-brand-brown'
+                            ? 'bg-brand-green text-white shadow-sm border-brand-green'
+                            : 'bg-gray-50/50 hover:bg-gray-100/80 text-gray-800 border-gray-100'
                         }`}
                       >
-                        <div className="flex items-center gap-2 flex-1">
-                          <span className="font-medium">{collection.name}</span>
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <FileText className={`w-4 h-4 flex-shrink-0 ${
+                            selectedCollection === collection.slug ? 'text-white' : 'text-gray-400'
+                          }`} />
+                          <span className="font-semibold text-sm truncate leading-tight">{collection.name}</span>
                           {collection.tableType !== 'archive_pages' && collection.tableType !== 'coming_soon' && (
-                            <span className={`px-1 py-0.5 text-[9px] font-medium rounded ${
+                            <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full flex-shrink-0 ${
                               selectedCollection === collection.slug
                                 ? 'bg-white/20 text-white'
                                 : 'bg-blue-100 text-blue-700'
@@ -1343,18 +1354,18 @@ const AdminCollectionsPage = () => {
                             </span>
                           )}
                           {collection.tableType === 'coming_soon' && (
-                            <span className={`px-1 py-0.5 text-[9px] font-medium rounded ${
+                            <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full flex-shrink-0 ${
                               selectedCollection === collection.slug
                                 ? 'bg-white/20 text-white'
-                                : 'bg-gray-200 text-gray-600'
+                                : 'bg-amber-100 text-amber-700'
                             }`}>
                               Soon
                             </span>
                           )}
                         </div>
-                        <span className={`text-[10px] ${
+                        <span className={`text-xs font-semibold ml-3 flex-shrink-0 ${
                           selectedCollection === collection.slug
-                            ? 'text-white/70'
+                            ? 'text-white/80'
                             : 'text-gray-500'
                         }`}>
                           {collection.pageCount || 0}
@@ -1365,14 +1376,14 @@ const AdminCollectionsPage = () => {
                 ))}
 
                 {collections.length === 0 && (
-                  <p className="text-gray-500 text-center py-8">No collections found</p>
+                  <p className="text-gray-400 text-center py-12 text-sm">No collections found</p>
                 )}
               </div>
             </div>
           </div>
 
           {/* Pages List */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-3">
             {selectedCollection ? (
               (() => {
                 const collection = findCollection(selectedCollection);
