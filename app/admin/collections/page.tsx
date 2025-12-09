@@ -1268,17 +1268,17 @@ const AdminCollectionsPage = () => {
                           onClick={() => toggleCollection(collection.slug)}
                           className="w-full text-left px-3 py-2.5 hover:bg-gray-100/80 transition-all flex items-center justify-between"
                         >
-                          <div className="flex items-center gap-3 flex-1">
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
                             {expandedCollections.has(collection.slug) ? (
                               <ChevronDown className="w-4 h-4 text-gray-500 flex-shrink-0" />
                             ) : (
                               <ChevronRight className="w-4 h-4 text-gray-500 flex-shrink-0" />
                             )}
                             <Tooltip content={collection.name}>
-                              <span className="font-semibold text-sm text-gray-800 leading-tight truncate block">{collection.name}</span>
+                              <span className="font-semibold text-sm text-gray-800 leading-tight truncate block min-w-0">{collection.name}</span>
                             </Tooltip>
                           </div>
-                          <span className="text-xs font-medium text-gray-500 ml-2 bg-white px-2 py-1 rounded">
+                          <span className="text-xs font-medium text-gray-500 ml-2 bg-white px-2 py-1 rounded flex-shrink-0">
                             {collection.subcollections.length}
                           </span>
                         </button>
@@ -1296,31 +1296,33 @@ const AdminCollectionsPage = () => {
                                     : 'hover:bg-gray-50 text-gray-700'
                                 }`}
                               >
-                                <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-1 min-w-0">
                                   <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
                                     selectedCollection === subcollection.slug ? 'bg-white' : 'bg-gray-400'
                                   }`} />
-                                  <Tooltip content={subcollection.name}>
-                                    <span className="text-sm font-medium truncate leading-tight block">{subcollection.name}</span>
-                                  </Tooltip>
-                                  {subcollection.tableType !== 'archive_pages' && subcollection.tableType !== 'coming_soon' && (
-                                    <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full flex-shrink-0 ${
-                                      selectedCollection === subcollection.slug
-                                        ? 'bg-white/20 text-white'
-                                        : 'bg-blue-100 text-blue-700'
-                                    }`}>
-                                      DB
-                                    </span>
-                                  )}
-                                  {subcollection.tableType === 'coming_soon' && (
-                                    <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full flex-shrink-0 ${
-                                      selectedCollection === subcollection.slug
-                                        ? 'bg-white/20 text-white'
-                                        : 'bg-amber-100 text-amber-700'
-                                    }`}>
-                                      Soon
-                                    </span>
-                                  )}
+                                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                                    <Tooltip content={subcollection.name}>
+                                      <span className="text-sm font-medium truncate leading-tight block min-w-0">{subcollection.name}</span>
+                                    </Tooltip>
+                                    {subcollection.tableType !== 'archive_pages' && subcollection.tableType !== 'coming_soon' && (
+                                      <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full flex-shrink-0 ${
+                                        selectedCollection === subcollection.slug
+                                          ? 'bg-white/20 text-white'
+                                          : 'bg-blue-100 text-blue-700'
+                                      }`}>
+                                        DB
+                                      </span>
+                                    )}
+                                    {subcollection.tableType === 'coming_soon' && (
+                                      <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full flex-shrink-0 ${
+                                        selectedCollection === subcollection.slug
+                                          ? 'bg-white/20 text-white'
+                                          : 'bg-amber-100 text-amber-700'
+                                      }`}>
+                                        Soon
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
                                 <span className={`text-xs font-semibold ml-3 flex-shrink-0 ${
                                   selectedCollection === subcollection.slug
@@ -1344,31 +1346,33 @@ const AdminCollectionsPage = () => {
                             : 'bg-gray-50/50 hover:bg-gray-100/80 text-gray-800 border-gray-100'
                         }`}
                       >
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
                           <FileText className={`w-4 h-4 flex-shrink-0 ${
                             selectedCollection === collection.slug ? 'text-white' : 'text-gray-400'
                           }`} />
-                          <Tooltip content={collection.name}>
-                            <span className="font-semibold text-sm truncate leading-tight block">{collection.name}</span>
-                          </Tooltip>
-                          {collection.tableType !== 'archive_pages' && collection.tableType !== 'coming_soon' && (
-                            <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full flex-shrink-0 ${
-                              selectedCollection === collection.slug
-                                ? 'bg-white/20 text-white'
-                                : 'bg-blue-100 text-blue-700'
-                            }`}>
-                              DB
-                            </span>
-                          )}
-                          {collection.tableType === 'coming_soon' && (
-                            <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full flex-shrink-0 ${
-                              selectedCollection === collection.slug
-                                ? 'bg-white/20 text-white'
-                                : 'bg-amber-100 text-amber-700'
-                            }`}>
-                              Soon
-                            </span>
-                          )}
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <Tooltip content={collection.name}>
+                              <span className="font-semibold text-sm truncate leading-tight block min-w-0">{collection.name}</span>
+                            </Tooltip>
+                            {collection.tableType !== 'archive_pages' && collection.tableType !== 'coming_soon' && (
+                              <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full flex-shrink-0 ${
+                                selectedCollection === collection.slug
+                                  ? 'bg-white/20 text-white'
+                                  : 'bg-blue-100 text-blue-700'
+                              }`}>
+                                DB
+                              </span>
+                            )}
+                            {collection.tableType === 'coming_soon' && (
+                              <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full flex-shrink-0 ${
+                                selectedCollection === collection.slug
+                                  ? 'bg-white/20 text-white'
+                                  : 'bg-amber-100 text-amber-700'
+                              }`}>
+                                Soon
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <span className={`text-xs font-semibold ml-3 flex-shrink-0 ${
                           selectedCollection === collection.slug

@@ -27,11 +27,11 @@ export const Tooltip: React.FC<TooltipProps> = ({ content, children, delay = 300
   };
 
   return (
-    <div className="relative inline-block">
+    <div className="relative inline-block min-w-0 overflow-hidden">
       <div
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        className="inline-block"
+        className="inline-block min-w-0 overflow-hidden"
       >
         {children}
       </div>
