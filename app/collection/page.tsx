@@ -160,23 +160,21 @@ const CollectionPage = () => {
     console.log('[CLIENT] Search initiated for:', query, 'forceFullSearch:', forceFullSearch);
     setSearchQuery(query);
 
-    // If it's just typing (not a submit), only filter collections
-    if (!forceFullSearch) {
-      const queryLower = query.toLowerCase();
-      const matchingCollections = collections.filter(collection =>
-        collection.name.toLowerCase().includes(queryLower) ||
-        collection.description.toLowerCase().includes(queryLower)
-      );
-      console.log('[CLIENT] Filtering collections, found', matchingCollections.length, 'matches');
+    // If query is empty, reset to showing all collections
+    if (!query || query.trim().length === 0) {
+      console.log('[CLIENT] Query empty, resetting to collections view');
+      setShowResults(false);
+      setSearchResults([]);
+      setIsSearching(false);
       return;
     }
 
-    // Full search - search database records
+    // Always search database records in real-time as user types
     setIsSearching(true);
     setShowResults(true);
 
     try {
-      console.log('[CLIENT] Performing full database search for:', query);
+      console.log('[CLIENT] Performing database search for:', query);
       const response = await fetch(`/api/search?q=${encodeURIComponent(query)}&limit=100`);
       const data = await response.json();
 
@@ -291,10 +289,42 @@ const CollectionPage = () => {
               </h2>
               {!isSearching && (
                 <p className="text-gray-600 mt-2">
-                  Found {searchResults.length} record{searchResults.length !== 1 ? 's' : ''} across {Object.keys(groupedResults).length} collection{Object.keys(groupedResults).length !== 1 ? 's' : ''}
+                  Found {filteredCollections.length} matching collection{filteredCollections.length !== 1 ? 's' : ''} and {searchResults.length} record{searchResults.length !== 1 ? 's' : ''} across {Object.keys(groupedResults).length} collection{Object.keys(groupedResults).length !== 1 ? 's' : ''}
                 </p>
               )}
             </div>
+
+            {/* Matching Collections */}
+            {filteredCollections.length > 0 && (
+              <div className="mb-8">
+                <h3 className="text-2xl font-bold text-brand-brown mb-4">Matching Collections</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredCollections.map((collection) => (
+                    <Link
+                      href={hasPremiumAccess || collection.tier === 'free' ? collection.href : "/membership"}
+                      key={collection.name}
+                      className="group"
+                    >
+                      <div className="relative border border-gray-200 rounded-xl p-4 bg-white hover:shadow-lg hover:border-brand-green transition-all">
+                        <div className={`absolute top-3 right-3 px-2 py-1 rounded-full text-xs font-bold ${
+                          collection.tier === 'free'
+                            ? 'bg-brand-green text-white'
+                            : 'bg-amber-500 text-white'
+                        }`}>
+                          {collection.tier === 'free' ? 'FREE' : 'PREMIUM'}
+                        </div>
+                        <h4 className="font-bold text-brand-brown mb-2 pr-16 group-hover:text-brand-green transition-colors">
+                          {collection.name}
+                        </h4>
+                        <p className="text-sm text-gray-600 line-clamp-2">
+                          {collection.description}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {isSearching ? (
               <div className="flex items-center justify-center py-12">
@@ -303,11 +333,13 @@ const CollectionPage = () => {
             ) : searchResults.length === 0 ? (
               <div className="text-center py-12">
                 <FileText className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                <p className="text-xl text-gray-600">No results found for &quot;{searchQuery}&quot;</p>
+                <p className="text-xl text-gray-600">No database records found for &quot;{searchQuery}&quot;</p>
                 <p className="text-gray-500 mt-2">Try different keywords or check your spelling</p>
               </div>
             ) : (
-              <div className="space-y-8">
+              <div>
+                <h3 className="text-2xl font-bold text-brand-brown mb-6">Matching Records</h3>
+                <div className="space-y-8">
                 {Object.entries(groupedResults).map(([collection, results]: [string, any]) => (
                   <div key={collection} className="border rounded-lg p-6 bg-white shadow-sm">
                     <div className="flex items-center justify-between mb-4">
@@ -318,9 +350,9 @@ const CollectionPage = () => {
                     </div>
 
                     <div className="grid gap-4">
-                      {results.slice(0, 5).map((result: any) => (
+                      {results.slice(0, 5).map((result: any, idx: number) => (
                         <div
-                          key={`${result._table}-${result.id}`}
+                          key={`${result._table}-${result.id || idx}-${result._identifier || idx}`}
                           className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer"
                           onClick={() => handleResultSelect(result)}
                         >
@@ -368,6 +400,7 @@ const CollectionPage = () => {
                     </div>
                   </div>
                 ))}
+                </div>
               </div>
             )}
           </div>

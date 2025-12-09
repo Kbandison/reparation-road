@@ -192,32 +192,19 @@ export const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
         </div>
       </form>
 
-      {/* Suggestions Dropdown */}
+      {/* Autocomplete Suggestions - Names Only */}
       {showSuggestions && suggestions.length > 0 && (
-        <div className="absolute z-[100] w-full max-w-md mx-auto left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-96 overflow-y-auto">
+        <div className="absolute z-[99999] w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-xl max-h-64 overflow-y-auto">
           {suggestions.map((result, index) => (
             <div
-              key={`${result._table}-${result.id}`}
+              key={`${result._table}-${result.id || index}`}
               onClick={() => handleSuggestionClick(result)}
-              className={`p-3 cursor-pointer border-b border-gray-100 last:border-b-0 hover:bg-gray-50 ${
+              className={`px-4 py-2 cursor-pointer border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors ${
                 index === selectedIndex ? 'bg-gray-50' : ''
               }`}
             >
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-sm text-gray-900 truncate">
-                    {highlightMatch(result._identifier, query)}
-                  </div>
-                  {result._snippet && (
-                    <div className="text-xs text-gray-600 mt-1 line-clamp-2">
-                      {highlightMatch(result._snippet, query)}
-                    </div>
-                  )}
-                  <div className="text-xs text-brand-green mt-1 font-medium">
-                    {result._collection}
-                  </div>
-                </div>
-                <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
+              <div className="font-medium text-sm text-gray-900 truncate">
+                {highlightMatch(result._identifier, query)}
               </div>
             </div>
           ))}
@@ -226,7 +213,7 @@ export const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
 
       {/* No results message */}
       {showSuggestions && !isLoading && query.trim().length >= 2 && suggestions.length === 0 && (
-        <div className="absolute z-[100] w-full max-w-md mx-auto left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-4">
+        <div className="absolute z-[99999] w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-xl p-4">
           <p className="text-sm text-gray-600 text-center">
             No results found for &quot;{query}&quot;
           </p>
