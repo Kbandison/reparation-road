@@ -107,6 +107,18 @@ const collections = [
     description: "State records documenting persons of color in Mississippi"
   },
   {
+    name: "Pennsylvania State Records Concerning Persons of Color",
+    href: "/collections/pennsylvania-registers",
+    tier: "premium",
+    description: "State records documenting persons of color in Pennsylvania"
+  },
+  {
+    name: "New York State Records Concerning Persons of Color",
+    href: "/collections/new-york-registers",
+    tier: "premium",
+    description: "State records documenting persons of color in New York"
+  },
+  {
     name: "Virginia Order Books. Negro Adjudgments",
     href: "/collections/virginia-order-books",
     tier: "premium",

@@ -77,6 +77,8 @@ const pages = [
   { path: 'app/collections/slave-narratives/page.tsx', icon: 'BookOpen', title: 'Slave Narratives', description: 'First-hand accounts and narratives of enslavement from formerly enslaved individuals.' },
   { path: 'app/collections/southwest-georgia/page.tsx', icon: 'FileText', title: 'Southwest Georgia Obits and Burials', description: 'Death records, obituaries, and cemetery documentation from Southwest Georgia.' },
   { path: 'app/collections/tennessee-registers/page.tsx', icon: 'BookOpen', title: 'Tennessee State Records Concerning Persons of Color', description: 'State records documenting persons of color in Tennessee.' },
+  { path: 'app/collections/pennsylvania-registers/page.tsx', icon: 'ScrollText', title: 'Pennsylvania State Records Concerning Persons of Color', description: 'State records documenting persons of color in Pennsylvania.' },
+  { path: 'app/collections/new-york-registers/page.tsx', icon: 'ScrollText', title: 'New York State Records Concerning Persons of Color', description: 'State records documenting persons of color in New York.' },
   { path: 'app/collections/virginia-order-books/page.tsx', icon: 'Scale', title: 'Virginia Order Books: Negro Adjudgments', description: 'Court proceedings, legal judgments, and order books from Virginia courts.' },
 ];
 

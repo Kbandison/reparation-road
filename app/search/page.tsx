@@ -77,6 +77,16 @@ const collections = [
     href: "/collections/mississippi-registers",
     tier: "premium"
   },
+  {
+    name: "Pennsylvania State Records Concerning Persons of Color",
+    href: "/collections/pennsylvania-registers",
+    tier: "premium"
+  },
+  {
+    name: "New York State Records Concerning Persons of Color",
+    href: "/collections/new-york-registers",
+    tier: "premium"
+  },
   { name: "Slave Compensation", href: "/collections/slave-compensation", tier: "premium" },
   {
     name: "Slave Importation Declaration",

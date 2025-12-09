@@ -436,6 +436,18 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
     tableType: 'coming_soon'
   },
   {
+    slug: 'pennsylvania-registers',
+    name: 'Pennsylvania State Records Concerning Persons of Color',
+    description: 'State records documenting persons of color in Pennsylvania',
+    tableType: 'coming_soon'
+  },
+  {
+    slug: 'new-york-registers',
+    name: 'New York State Records Concerning Persons of Color',
+    description: 'State records documenting persons of color in New York',
+    tableType: 'coming_soon'
+  },
+  {
     slug: 'virginia-order-books',
     name: 'Virginia Order Books. Negro Adjudgments',
     description: 'Court order books and judgments',
