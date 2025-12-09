@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { BookmarkButton } from "@/components/ui/BookmarkButton";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, X, ZoomIn, ScrollText } from "lucide-react";
 
 interface ArchivePage {
@@ -257,6 +258,7 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
 });
 
 const InspectionRollPage = () => {
+  const searchParams = useSearchParams();
   const [pages, setPages] = useState<ArchivePage[]>([]);
   const [filteredPages, setFilteredPages] = useState<ArchivePage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -266,6 +268,25 @@ const InspectionRollPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [bookFilter, setBookFilter] = useState<number | null>(null);
   const itemsPerPage = 20;
+
+  // Initialize search from URL params
+  useEffect(() => {
+    const urlSearch = searchParams.get('search');
+    if (urlSearch) {
+      setSearchTerm(urlSearch);
+    }
+  }, [searchParams]);
+
+  // Open modal for specific record from URL params
+  useEffect(() => {
+    const recordId = searchParams.get('record');
+    if (recordId && pages.length > 0) {
+      const record = pages.find(p => p.id === recordId);
+      if (record) {
+        setSelectedPage(record);
+      }
+    }
+  }, [searchParams, pages]);
 
   useEffect(() => {
     const fetchPages = async () => {

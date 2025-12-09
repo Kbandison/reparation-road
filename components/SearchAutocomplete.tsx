@@ -105,13 +105,12 @@ export const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
   };
 
   const handleSuggestionClick = (result: SearchResult) => {
-    setQuery(result._identifier);
+    const identifier = result._identifier;
+    console.log('[AUTOCOMPLETE] Suggestion clicked:', identifier);
+    setQuery(identifier);
     setShowSuggestions(false);
-    if (onResultSelect) {
-      onResultSelect(result);
-    } else {
-      onSearch(result._identifier);
-    }
+    // Just fill the search bar and trigger search, don't navigate
+    onSearch(identifier, true);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

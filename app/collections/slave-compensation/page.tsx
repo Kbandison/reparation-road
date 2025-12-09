@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import ClaimModal from "@/components/ClaimModal";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { SignupForm } from "@/components/auth/SignupForm";
 import { FileText } from "lucide-react";
@@ -127,6 +127,7 @@ interface Claim {
 }
 
 const SlaveCompensationPage = () => {
+  const searchParams = useSearchParams();
   const [claims, setClaims] = useState<Claim[]>([]);
   const [filteredClaims, setFilteredClaims] = useState<Claim[]>([]);
   const [loading, setLoading] = useState(true);
@@ -134,6 +135,25 @@ const SlaveCompensationPage = () => {
   const [selectedClaim, setSelectedClaim] = useState<Claim | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 25;
+
+  // Initialize search from URL params
+  useEffect(() => {
+    const urlSearch = searchParams.get('search');
+    if (urlSearch) {
+      setSearchTerm(urlSearch);
+    }
+  }, [searchParams]);
+
+  // Open modal for specific record from URL params
+  useEffect(() => {
+    const recordId = searchParams.get('record');
+    if (recordId && claims.length > 0) {
+      const record = claims.find(c => c.id === parseInt(recordId));
+      if (record) {
+        setSelectedClaim(record);
+      }
+    }
+  }, [searchParams, claims]);
 
   useEffect(() => {
     const fetchClaims = async () => {

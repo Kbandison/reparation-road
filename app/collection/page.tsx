@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -133,6 +134,8 @@ const collections = [
 ];
 
 const CollectionPage = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [claims, setClaims] = useState<any[] | null>(null);
   const [selectedClaim, setSelectedClaim] = useState<any | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -140,6 +143,53 @@ const CollectionPage = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const { user, hasPremiumAccess } = useAuth();
+
+  // Initialize search from URL on page load and when URL changes (e.g., back button)
+  useEffect(() => {
+    const urlSearch = searchParams.get('search');
+    if (urlSearch && urlSearch !== searchQuery) {
+      // Perform search without updating URL again
+      performSearch(urlSearch);
+    } else if (!urlSearch && searchQuery) {
+      // URL has no search param but we have a search query - clear it
+      setSearchQuery("");
+      setSearchResults([]);
+      setShowResults(false);
+      setIsSearching(false);
+    }
+  }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Separate search logic that doesn't update URL
+  const performSearch = async (query: string) => {
+    console.log('[CLIENT] Performing search for:', query);
+    setSearchQuery(query);
+
+    if (!query || query.trim().length === 0) {
+      setShowResults(false);
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    setShowResults(true);
+
+    try {
+      const response = await fetch(`/api/search?q=${encodeURIComponent(query)}&limit=100`);
+      const data = await response.json();
+
+      if (data.results) {
+        setSearchResults(data.results);
+      } else {
+        setSearchResults([]);
+      }
+    } catch (error) {
+      console.error('[CLIENT] Search error:', error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   useEffect(() => {
     const fetchClaims = async () => {
@@ -166,8 +216,13 @@ const CollectionPage = () => {
       setShowResults(false);
       setSearchResults([]);
       setIsSearching(false);
+      // Remove search param from URL
+      router.push('/collection', { scroll: false });
       return;
     }
+
+    // Update URL with search query
+    router.push(`/collection?search=${encodeURIComponent(query)}`, { scroll: false });
 
     // Always search database records in real-time as user types
     setIsSearching(true);
@@ -200,14 +255,37 @@ const CollectionPage = () => {
   };
 
   const handleResultSelect = (result: any) => {
-    // Navigate to the collection page
-    window.location.href = `/collections/${result._collectionSlug}`;
+    // Navigate to the collection page with search query and record ID
+    const params = new URLSearchParams();
+    params.set('search', searchQuery);
+    params.set('record', result.id || '');
+    params.set('table', result._table || '');
+    window.location.href = `/collections/${result._collectionSlug}?${params.toString()}`;
   };
 
   const handleClearSearch = () => {
     setSearchQuery("");
     setSearchResults([]);
     setShowResults(false);
+    // Remove search param from URL
+    router.push('/collection', { scroll: false });
+  };
+
+  // Highlight matching text in search results
+  const highlightMatch = (text: string, searchQuery: string) => {
+    if (!text || !searchQuery) return text;
+    const regex = new RegExp(`(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    const parts = text.toString().split(regex);
+
+    return parts.map((part, index) =>
+      regex.test(part) ? (
+        <span key={index} className="font-semibold text-brand-green bg-brand-green/10 px-1 rounded">
+          {part}
+        </span>
+      ) : (
+        <span key={index}>{part}</span>
+      )
+    );
   };
 
   // Group results by collection
@@ -359,11 +437,11 @@ const CollectionPage = () => {
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex-1">
                               <h4 className="font-semibold text-lg text-gray-900 mb-2">
-                                {result._identifier}
+                                {highlightMatch(result._identifier, searchQuery)}
                               </h4>
                               {result._snippet && (
                                 <p className="text-sm text-gray-600 line-clamp-2 mb-2">
-                                  {result._snippet}
+                                  {highlightMatch(result._snippet, searchQuery)}
                                 </p>
                               )}
                               <div className="flex flex-wrap gap-2 text-xs text-gray-500">
@@ -373,7 +451,7 @@ const CollectionPage = () => {
                                   .map(([key, value]: [string, any]) => (
                                     value && (
                                       <span key={key} className="bg-gray-100 px-2 py-1 rounded">
-                                        <span className="font-medium capitalize">{key.replace(/_/g, ' ')}:</span> {value}
+                                        <span className="font-medium capitalize">{key.replace(/_/g, ' ')}:</span> {highlightMatch(String(value), searchQuery)}
                                       </span>
                                     )
                                   ))}
@@ -390,7 +468,9 @@ const CollectionPage = () => {
                             variant="outline"
                             onClick={() => {
                               const firstResult = results[0];
-                              window.location.href = `/collections/${firstResult._collectionSlug}`;
+                              const params = new URLSearchParams();
+                              params.set('search', searchQuery);
+                              window.location.href = `/collections/${firstResult._collectionSlug}?${params.toString()}`;
                             }}
                           >
                             View all {results.length} results in {collection}
