@@ -82,6 +82,78 @@ const SEARCHABLE_TABLES = [
     searchFields: ['ocr_text'],
     displayFields: ['book_no', 'page_no'],
     identifierFields: ['book_no', 'page_no']
+  },
+  {
+    table: 'register_free_persons_baldwin',
+    collection: 'Register of Free Persons of Color, Baldwin',
+    collectionSlug: 'slave-claims-commission/register-free-persons-baldwin',
+    searchFields: ['ocr_text'],
+    displayFields: ['book_no', 'page_no'],
+    identifierFields: ['book_no', 'page_no']
+  },
+  {
+    table: 'register_free_persons_camden',
+    collection: 'Register of Free Persons of Color, Camden',
+    collectionSlug: 'slave-claims-commission/register-free-persons-camden',
+    searchFields: ['ocr_text'],
+    displayFields: ['book_no', 'page_no'],
+    identifierFields: ['book_no', 'page_no']
+  },
+  {
+    table: 'register_free_persons_columbia',
+    collection: 'Register of Free Persons of Color, Columbia',
+    collectionSlug: 'slave-claims-commission/register-free-persons-columbia',
+    searchFields: ['ocr_text'],
+    displayFields: ['book_no', 'page_no'],
+    identifierFields: ['book_no', 'page_no']
+  },
+  {
+    table: 'register_free_persons_hancock',
+    collection: 'Register of Free Persons of Color, Hancock',
+    collectionSlug: 'slave-claims-commission/register-free-persons-hancock',
+    searchFields: ['ocr_text'],
+    displayFields: ['book_no', 'page_no'],
+    identifierFields: ['book_no', 'page_no']
+  },
+  {
+    table: 'register_free_persons_lincoln',
+    collection: 'Register of Free Persons of Color, Lincoln',
+    collectionSlug: 'slave-claims-commission/register-free-persons-lincoln',
+    searchFields: ['ocr_text'],
+    displayFields: ['book_no', 'page_no'],
+    identifierFields: ['book_no', 'page_no']
+  },
+  {
+    table: 'register_free_persons_lumpkin',
+    collection: 'Register of Free Persons of Color, Lumpkin',
+    collectionSlug: 'slave-claims-commission/register-free-persons-lumpkin',
+    searchFields: ['ocr_text'],
+    displayFields: ['book_no', 'page_no'],
+    identifierFields: ['book_no', 'page_no']
+  },
+  {
+    table: 'register_free_persons_richmond',
+    collection: 'Register of Free Persons of Color, Richmond',
+    collectionSlug: 'slave-claims-commission/register-free-persons-richmond',
+    searchFields: ['ocr_text'],
+    displayFields: ['book_no', 'page_no'],
+    identifierFields: ['book_no', 'page_no']
+  },
+  {
+    table: 'register_free_persons_thomas',
+    collection: 'Register of Free Persons of Color, Thomas',
+    collectionSlug: 'slave-claims-commission/register-free-persons-thomas',
+    searchFields: ['ocr_text'],
+    displayFields: ['book_no', 'page_no'],
+    identifierFields: ['book_no', 'page_no']
+  },
+  {
+    table: 'register_free_persons_warren',
+    collection: 'Register of Free Persons of Color, Warren',
+    collectionSlug: 'slave-claims-commission/register-free-persons-warren',
+    searchFields: ['ocr_text'],
+    displayFields: ['book_no', 'page_no'],
+    identifierFields: ['book_no', 'page_no']
   }
 ];
 

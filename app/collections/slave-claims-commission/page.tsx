@@ -5,9 +5,63 @@ export const dynamic = 'force-dynamic';
 
 const subcollections = [
   {
+    name: 'Register of Free Persons of Color, Baldwin',
+    href: '/collections/slave-claims-commission/register-free-persons-baldwin',
+    description: 'Historical records documenting free persons of color in Baldwin County, Georgia.',
+    icon: ScrollText
+  },
+  {
+    name: 'Register of Free Persons of Color, Camden',
+    href: '/collections/slave-claims-commission/register-free-persons-camden',
+    description: 'Historical records documenting free persons of color in Camden County, Georgia.',
+    icon: ScrollText
+  },
+  {
+    name: 'Register of Free Persons of Color, Columbia',
+    href: '/collections/slave-claims-commission/register-free-persons-columbia',
+    description: 'Historical records documenting free persons of color in Columbia County, Georgia.',
+    icon: ScrollText
+  },
+  {
+    name: 'Register of Free Persons of Color, Hancock',
+    href: '/collections/slave-claims-commission/register-free-persons-hancock',
+    description: 'Historical records documenting free persons of color in Hancock County, Georgia.',
+    icon: ScrollText
+  },
+  {
     name: 'Register of Free Persons of Color, Jefferson',
     href: '/collections/slave-claims-commission/register-free-persons-jefferson',
     description: 'Historical records documenting free persons of color in Jefferson County, Georgia.',
+    icon: ScrollText
+  },
+  {
+    name: 'Register of Free Persons of Color, Lincoln',
+    href: '/collections/slave-claims-commission/register-free-persons-lincoln',
+    description: 'Historical records documenting free persons of color in Lincoln County, Georgia.',
+    icon: ScrollText
+  },
+  {
+    name: 'Register of Free Persons of Color, Lumpkin',
+    href: '/collections/slave-claims-commission/register-free-persons-lumpkin',
+    description: 'Historical records documenting free persons of color in Lumpkin County, Georgia.',
+    icon: ScrollText
+  },
+  {
+    name: 'Register of Free Persons of Color, Richmond',
+    href: '/collections/slave-claims-commission/register-free-persons-richmond',
+    description: 'Historical records documenting free persons of color in Richmond County, Georgia.',
+    icon: ScrollText
+  },
+  {
+    name: 'Register of Free Persons of Color, Thomas',
+    href: '/collections/slave-claims-commission/register-free-persons-thomas',
+    description: 'Historical records documenting free persons of color in Thomas County, Georgia.',
+    icon: ScrollText
+  },
+  {
+    name: 'Register of Free Persons of Color, Warren',
+    href: '/collections/slave-claims-commission/register-free-persons-warren',
+    description: 'Historical records documenting free persons of color in Warren County, Georgia.',
     icon: ScrollText
   }
 ];

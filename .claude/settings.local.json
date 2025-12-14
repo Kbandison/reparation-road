@@ -22,7 +22,10 @@
       "Bash(node -e:*)",
       "Bash(npm run build:*)",
       "Bash(npx tsc:*)",
-      "Bash(git revert:*)"
+      "Bash(git revert:*)",
+      "Bash(npm install:*)",
+      "Bash(npm audit fix:*)",
+      "Bash(mkdir:*)"
     ],
     "deny": [],
     "ask": []

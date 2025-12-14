@@ -40,12 +40,14 @@ interface ArchivePage {
   created_at: string;
 }
 
+type TableType = 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'free_black_heads_of_household' | 'enslaved_persons_alabama' | 'enslaved_catholic_kentuky' | 'slave_voyages' | 'ex_slave_pension' | 'colored_deaths' | 'colored_marriages' | 'creek_census' | 'slave_importation_ga' | 'slave_importation_ky' | 'va_personal_chesterfield' | 'register_free_persons_jefferson' | 'register_free_persons_baldwin' | 'register_free_persons_camden' | 'register_free_persons_columbia' | 'register_free_persons_hancock' | 'register_free_persons_lincoln' | 'register_free_persons_lumpkin' | 'register_free_persons_richmond' | 'register_free_persons_thomas' | 'register_free_persons_warren' | 'coming_soon';
+
 interface SubCollection {
   slug: string;
   name: string;
   pageCount?: number;
   description?: string;
-  tableType: 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'free_black_heads_of_household' | 'enslaved_persons_alabama' | 'enslaved_catholic_kentuky' | 'slave_voyages' | 'ex_slave_pension' | 'colored_deaths' | 'colored_marriages' | 'creek_census' | 'slave_importation_ga' | 'slave_importation_ky' | 'va_personal_chesterfield' | 'coming_soon';
+  tableType: TableType;
   tableName?: string;
 }
 
@@ -54,7 +56,7 @@ interface Collection {
   name: string;
   pageCount: number;
   description?: string;
-  tableType: 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'free_black_heads_of_household' | 'enslaved_persons_alabama' | 'enslaved_catholic_kentuky' | 'slave_voyages' | 'ex_slave_pension' | 'colored_deaths' | 'colored_marriages' | 'creek_census' | 'slave_importation_ga' | 'slave_importation_ky' | 'va_personal_chesterfield' | 'coming_soon';
+  tableType: TableType;
   tableName?: string;
   subcollections?: SubCollection[];
 }
@@ -377,7 +379,79 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
     slug: 'slave-claims-commission',
     name: 'Georgia State Records Concerning Persons of Color',
     description: 'State records documenting persons of color in Georgia',
-    tableType: 'coming_soon'
+    tableType: 'coming_soon',
+    subcollections: [
+      {
+        slug: 'register-free-persons-baldwin',
+        name: 'Register of Free Persons of Color, Baldwin',
+        description: 'Historical records documenting free persons of color in Baldwin County, Georgia',
+        tableType: 'register_free_persons_baldwin',
+        tableName: 'register_free_persons_baldwin'
+      },
+      {
+        slug: 'register-free-persons-camden',
+        name: 'Register of Free Persons of Color, Camden',
+        description: 'Historical records documenting free persons of color in Camden County, Georgia',
+        tableType: 'register_free_persons_camden',
+        tableName: 'register_free_persons_camden'
+      },
+      {
+        slug: 'register-free-persons-columbia',
+        name: 'Register of Free Persons of Color, Columbia',
+        description: 'Historical records documenting free persons of color in Columbia County, Georgia',
+        tableType: 'register_free_persons_columbia',
+        tableName: 'register_free_persons_columbia'
+      },
+      {
+        slug: 'register-free-persons-hancock',
+        name: 'Register of Free Persons of Color, Hancock',
+        description: 'Historical records documenting free persons of color in Hancock County, Georgia',
+        tableType: 'register_free_persons_hancock',
+        tableName: 'register_free_persons_hancock'
+      },
+      {
+        slug: 'register-free-persons-jefferson',
+        name: 'Register of Free Persons of Color, Jefferson',
+        description: 'Historical records documenting free persons of color in Jefferson County, Georgia',
+        tableType: 'register_free_persons_jefferson',
+        tableName: 'register_free_persons_jefferson'
+      },
+      {
+        slug: 'register-free-persons-lincoln',
+        name: 'Register of Free Persons of Color, Lincoln',
+        description: 'Historical records documenting free persons of color in Lincoln County, Georgia',
+        tableType: 'register_free_persons_lincoln',
+        tableName: 'register_free_persons_lincoln'
+      },
+      {
+        slug: 'register-free-persons-lumpkin',
+        name: 'Register of Free Persons of Color, Lumpkin',
+        description: 'Historical records documenting free persons of color in Lumpkin County, Georgia',
+        tableType: 'register_free_persons_lumpkin',
+        tableName: 'register_free_persons_lumpkin'
+      },
+      {
+        slug: 'register-free-persons-richmond',
+        name: 'Register of Free Persons of Color, Richmond',
+        description: 'Historical records documenting free persons of color in Richmond County, Georgia',
+        tableType: 'register_free_persons_richmond',
+        tableName: 'register_free_persons_richmond'
+      },
+      {
+        slug: 'register-free-persons-thomas',
+        name: 'Register of Free Persons of Color, Thomas',
+        description: 'Historical records documenting free persons of color in Thomas County, Georgia',
+        tableType: 'register_free_persons_thomas',
+        tableName: 'register_free_persons_thomas'
+      },
+      {
+        slug: 'register-free-persons-warren',
+        name: 'Register of Free Persons of Color, Warren',
+        description: 'Historical records documenting free persons of color in Warren County, Georgia',
+        tableType: 'register_free_persons_warren',
+        tableName: 'register_free_persons_warren'
+      }
+    ]
   },
   {
     slug: 'rac-vlc',
