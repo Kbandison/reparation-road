@@ -74,6 +74,14 @@ const SEARCHABLE_TABLES = [
     searchFields: ['place_where_vessel_s_voyage_began_imp', 'principal_place_where_captives_were_landed_imp', 'principal_place_where_captives_were_purchased', 'flag_of_vessel_imp'],
     displayFields: ['voyage_id', 'year_arrived_with_captives', 'flag_of_vessel_imp', 'total_disembarked_imp'],
     identifierFields: ['voyage_id']
+  },
+  {
+    table: 'register_free_persons_jefferson',
+    collection: 'Register of Free Persons of Color, Jefferson',
+    collectionSlug: 'slave-claims-commission/register-free-persons-jefferson',
+    searchFields: ['ocr_text'],
+    displayFields: ['book_no', 'page_no'],
+    identifierFields: ['book_no', 'page_no']
   }
 ];
 

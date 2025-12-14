@@ -1,6 +1,16 @@
-import { Scale } from 'lucide-react';
+import Link from 'next/link';
+import { Scale, ScrollText, ChevronRight } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
+
+const subcollections = [
+  {
+    name: 'Register of Free Persons of Color, Jefferson',
+    href: '/collections/slave-claims-commission/register-free-persons-jefferson',
+    description: 'Historical records documenting free persons of color in Jefferson County, Georgia.',
+    icon: ScrollText
+  }
+];
 
 export default function Page() {
   return (
@@ -21,13 +31,43 @@ export default function Page() {
       </div>
 
       <div className="container mx-auto px-4 py-12">
-        <div className="max-w-3xl mx-auto text-center">
-          <p className="text-lg text-gray-600 mb-6">
-            This collection is currently being digitized and will be available soon.
-          </p>
-          <p className="text-sm text-gray-500">
-            Check back regularly for updates as we continue to expand our historical archives.
-          </p>
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-2xl font-bold text-brand-brown mb-6">Available Subcollections</h2>
+
+          <div className="grid gap-4">
+            {subcollections.map((subcollection) => {
+              const Icon = subcollection.icon;
+              return (
+                <Link
+                  key={subcollection.href}
+                  href={subcollection.href}
+                  className="group bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-all border border-gray-100 hover:border-brand-green/30"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="flex-shrink-0 w-12 h-12 bg-brand-green/10 rounded-lg flex items-center justify-center group-hover:bg-brand-green/20 transition-colors">
+                      <Icon className="w-6 h-6 text-brand-green" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-brand-brown group-hover:text-brand-green transition-colors">
+                        {subcollection.name}
+                      </h3>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {subcollection.description}
+                      </p>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-brand-green group-hover:translate-x-1 transition-all" />
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+
+          <div className="mt-8 p-6 bg-brand-tan/30 rounded-xl">
+            <p className="text-gray-600 text-center">
+              More subcollections are being digitized and will be available soon.
+              Check back regularly for updates.
+            </p>
+          </div>
         </div>
       </div>
     </div>
