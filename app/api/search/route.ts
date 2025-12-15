@@ -100,8 +100,8 @@ const SEARCHABLE_TABLES = [
     identifierFields: ['book_no', 'page_no']
   },
   {
-    table: 'register_free_persons_columbia',
-    collection: 'Register of Free Persons of Color, Columbia',
+    table: 'register_free_persons_colombia',
+    collection: 'Register of Free Persons of Color, Colombia',
     collectionSlug: 'slave-claims-commission/register-free-persons-columbia',
     searchFields: ['ocr_text'],
     displayFields: ['book_no', 'page_no'],
@@ -151,6 +151,38 @@ const SEARCHABLE_TABLES = [
     table: 'register_free_persons_warren',
     collection: 'Register of Free Persons of Color, Warren',
     collectionSlug: 'slave-claims-commission/register-free-persons-warren',
+    searchFields: ['ocr_text'],
+    displayFields: ['book_no', 'page_no'],
+    identifierFields: ['book_no', 'page_no']
+  },
+  {
+    table: 'cherokee_henderson',
+    collection: 'Cherokee Census - Henderson Roll',
+    collectionSlug: 'native-american-records/cherokee-henderson',
+    searchFields: ['ocr_text'],
+    displayFields: ['book_no', 'page_no'],
+    identifierFields: ['book_no', 'page_no']
+  },
+  {
+    table: 'slave_importation_ms',
+    collection: 'Slave Importation - Mississippi',
+    collectionSlug: 'slave-importation/mississippi',
+    searchFields: ['ocr_text'],
+    displayFields: ['book_no', 'page_no'],
+    identifierFields: ['book_no', 'page_no']
+  },
+  {
+    table: 'va_personal_hanover',
+    collection: 'Virginia Personal Property - Hanover County',
+    collectionSlug: 'virginia-property-tithes/hanover',
+    searchFields: ['ocr_text'],
+    displayFields: ['book_no', 'page_no'],
+    identifierFields: ['book_no', 'page_no']
+  },
+  {
+    table: 'va_personal_henrico',
+    collection: 'Virginia Personal Property - Henrico County',
+    collectionSlug: 'virginia-property-tithes/henrico',
     searchFields: ['ocr_text'],
     displayFields: ['book_no', 'page_no'],
     identifierFields: ['book_no', 'page_no']

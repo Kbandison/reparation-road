@@ -154,7 +154,7 @@ const RegisterFreePersonsColumbiaPage = () => {
   useEffect(() => {
     const fetchPages = async () => {
       try {
-        const { data, error } = await supabase.from("register_free_persons_columbia").select("*").order("book_no", { ascending: true }).order("page_no", { ascending: true });
+        const { data, error } = await supabase.from("register_free_persons_colombia").select("*").order("book_no", { ascending: true }).order("page_no", { ascending: true });
         if (error) console.error("Error fetching register pages:", error);
         else if (data) { setPages(data); setFilteredPages(data); }
       } catch (error) { console.error("Error:", error); }

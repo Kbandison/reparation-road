@@ -40,7 +40,7 @@ interface ArchivePage {
   created_at: string;
 }
 
-type TableType = 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'free_black_heads_of_household' | 'enslaved_persons_alabama' | 'enslaved_catholic_kentuky' | 'slave_voyages' | 'ex_slave_pension' | 'colored_deaths' | 'colored_marriages' | 'creek_census' | 'slave_importation_ga' | 'slave_importation_ky' | 'va_personal_chesterfield' | 'register_free_persons_jefferson' | 'register_free_persons_baldwin' | 'register_free_persons_camden' | 'register_free_persons_columbia' | 'register_free_persons_hancock' | 'register_free_persons_lincoln' | 'register_free_persons_lumpkin' | 'register_free_persons_richmond' | 'register_free_persons_thomas' | 'register_free_persons_warren' | 'coming_soon';
+type TableType = 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'free_black_heads_of_household' | 'enslaved_persons_alabama' | 'enslaved_catholic_kentuky' | 'slave_voyages' | 'ex_slave_pension' | 'colored_deaths' | 'colored_marriages' | 'creek_census' | 'slave_importation_ga' | 'slave_importation_ky' | 'slave_importation_ms' | 'va_personal_chesterfield' | 'va_personal_hanover' | 'va_personal_henrico' | 'register_free_persons_jefferson' | 'register_free_persons_baldwin' | 'register_free_persons_camden' | 'register_free_persons_colombia' | 'register_free_persons_hancock' | 'register_free_persons_lincoln' | 'register_free_persons_lumpkin' | 'register_free_persons_richmond' | 'register_free_persons_thomas' | 'register_free_persons_warren' | 'cherokee_henderson' | 'coming_soon';
 
 interface SubCollection {
   slug: string;
@@ -366,6 +366,13 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
         name: 'Non-Federally Recognized Tribal Info',
         description: 'Information about tribes not recognized by the federal government',
         tableType: 'coming_soon'
+      },
+      {
+        slug: 'cherokee-henderson',
+        name: 'Cherokee Census - Henderson Roll',
+        description: 'Historical records from the Cherokee Henderson Roll census',
+        tableType: 'cherokee_henderson',
+        tableName: 'cherokee_henderson'
       }
     ]
   },
@@ -397,10 +404,10 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
       },
       {
         slug: 'register-free-persons-columbia',
-        name: 'Register of Free Persons of Color, Columbia',
-        description: 'Historical records documenting free persons of color in Columbia County, Georgia',
-        tableType: 'register_free_persons_columbia',
-        tableName: 'register_free_persons_columbia'
+        name: 'Register of Free Persons of Color, Colombia',
+        description: 'Historical records documenting free persons of color in Colombia County, Georgia',
+        tableType: 'register_free_persons_colombia',
+        tableName: 'register_free_persons_colombia'
       },
       {
         slug: 'register-free-persons-hancock',
@@ -490,6 +497,13 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
         description: 'Declarations of enslaved persons imported into Kentucky',
         tableType: 'slave_importation_ky',
         tableName: 'slave-importation-ky'
+      },
+      {
+        slug: 'mississippi',
+        name: 'Mississippi Slave Importation Records',
+        description: 'Declarations of enslaved persons imported into Mississippi',
+        tableType: 'slave_importation_ms',
+        tableName: 'slave_importation_ms'
       }
     ]
   },
@@ -566,6 +580,20 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
         name: 'Richmond',
         description: 'Personal property and tithe records from Richmond, Virginia',
         tableType: 'coming_soon'
+      },
+      {
+        slug: 'hanover',
+        name: 'Hanover County',
+        description: 'Personal property and tithe records from Hanover County, Virginia',
+        tableType: 'va_personal_hanover',
+        tableName: 'va_personal_hanover'
+      },
+      {
+        slug: 'henrico',
+        name: 'Henrico County',
+        description: 'Personal property and tithe records from Henrico County, Virginia',
+        tableType: 'va_personal_henrico',
+        tableName: 'va_personal_henrico'
       }
     ]
   }
