@@ -25,7 +25,11 @@
       "Bash(git revert:*)",
       "Bash(npm install:*)",
       "Bash(npm audit fix:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(for county in baldwin camden columbia hancock lincoln lumpkin richmond thomas warren)",
+      "Bash(do)",
+      "Bash(python3:*)",
+      "Bash(ls:*)"
     ],
     "deny": [],
     "ask": []

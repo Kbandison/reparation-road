@@ -40,7 +40,7 @@ interface ArchivePage {
   created_at: string;
 }
 
-type TableType = 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'free_black_heads_of_household' | 'enslaved_persons_alabama' | 'enslaved_catholic_kentuky' | 'slave_voyages' | 'ex_slave_pension' | 'colored_deaths' | 'colored_marriages' | 'creek_census' | 'slave_importation_ga' | 'slave_importation_ky' | 'slave_importation_ms' | 'va_personal_chesterfield' | 'va_personal_hanover' | 'va_personal_henrico' | 'register_free_persons_jefferson' | 'register_free_persons_baldwin' | 'register_free_persons_camden' | 'register_free_persons_colombia' | 'register_free_persons_hancock' | 'register_free_persons_lincoln' | 'register_free_persons_lumpkin' | 'register_free_persons_richmond' | 'register_free_persons_thomas' | 'register_free_persons_warren' | 'cherokee_henderson' | 'coming_soon';
+type TableType = 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'free_black_heads_of_household' | 'enslaved_persons_alabama' | 'enslaved_catholic_kentuky' | 'slave_voyages' | 'ex_slave_pension' | 'colored_deaths' | 'colored_marriages' | 'creek_census' | 'slave_importation_ga' | 'slave_importation_ky' | 'slave_importation_ms' | 'va_personal_chesterfield' | 'va_personal_hanover' | 'va_personal_henrico' | 'register_free_persons_jefferson' | 'register_free_persons_baldwin' | 'register_free_persons_camden' | 'register_free_persons_colombia' | 'register_free_persons_hancock' | 'register_free_persons_lincoln' | 'register_free_persons_lumpkin' | 'register_free_persons_richmond' | 'register_free_persons_thomas' | 'register_free_persons_warren' | 'cherokee_henderson' | 'va_books_chesterfield' | 'va_books_goochland' | 'va_books_henrico' | 'va_books_spotsylvania' | 'coming_soon';
 
 interface SubCollection {
   slug: string;
@@ -353,7 +353,16 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
         slug: 'early-cherokee-census',
         name: 'Early Cherokee Census',
         description: 'Early census records of the Cherokee Nation',
-        tableType: 'coming_soon'
+        tableType: 'coming_soon',
+        subcollections: [
+          {
+            slug: 'cherokee-henderson',
+            name: 'Cherokee Census - Henderson Roll',
+            description: 'Historical records from the Cherokee Henderson Roll census',
+            tableType: 'cherokee_henderson',
+            tableName: 'cherokee_henderson'
+          }
+        ]
       },
       {
         slug: 'letters-indian-affairs',
@@ -366,13 +375,6 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
         name: 'Non-Federally Recognized Tribal Info',
         description: 'Information about tribes not recognized by the federal government',
         tableType: 'coming_soon'
-      },
-      {
-        slug: 'cherokee-henderson',
-        name: 'Cherokee Census - Henderson Roll',
-        description: 'Historical records from the Cherokee Henderson Roll census',
-        tableType: 'cherokee_henderson',
-        tableName: 'cherokee_henderson'
       }
     ]
   },
@@ -542,7 +544,37 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
     slug: 'virginia-order-books',
     name: 'Virginia Order Books. Negro Adjudgments',
     description: 'Court order books and judgments',
-    tableType: 'coming_soon'
+    tableType: 'coming_soon',
+    subcollections: [
+      {
+        slug: 'chesterfield',
+        name: 'Chesterfield County',
+        description: 'Virginia Order Books from Chesterfield County',
+        tableType: 'va_books_chesterfield',
+        tableName: 'va_books_chesterfield'
+      },
+      {
+        slug: 'goochland',
+        name: 'Goochland County',
+        description: 'Virginia Order Books from Goochland County',
+        tableType: 'va_books_goochland',
+        tableName: 'va_books_goochland'
+      },
+      {
+        slug: 'henrico',
+        name: 'Henrico County',
+        description: 'Virginia Order Books from Henrico County',
+        tableType: 'va_books_henrico',
+        tableName: 'va_books_henrico'
+      },
+      {
+        slug: 'spotsylvania',
+        name: 'Spotsylvania County',
+        description: 'Virginia Order Books from Spotsylvania County',
+        tableType: 'va_books_spotsylvania',
+        tableName: 'va_books_spotsylvania'
+      }
+    ]
   },
   {
     slug: 'virginia-property-tithes',

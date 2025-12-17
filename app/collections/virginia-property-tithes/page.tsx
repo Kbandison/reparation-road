@@ -20,10 +20,16 @@ const subcollections = [
     available: false
   },
   {
-    slug: 'hanover-county-1782-1786',
-    title: 'Hanover County 1782-1786',
-    description: 'Personal property and tithe records from Hanover County spanning 1782-1786',
-    available: false
+    slug: 'hanover',
+    title: 'Hanover County',
+    description: 'Personal property and tithe records from Hanover County, Virginia',
+    available: true
+  },
+  {
+    slug: 'henrico',
+    title: 'Henrico County',
+    description: 'Personal property and tithe records from Henrico County, Virginia',
+    available: true
   },
   {
     slug: 'lancaster-county',

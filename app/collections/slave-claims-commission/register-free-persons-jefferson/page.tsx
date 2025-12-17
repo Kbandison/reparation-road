@@ -5,6 +5,7 @@ import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { BookmarkButton } from "@/components/ui/BookmarkButton";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, X, ZoomIn, ScrollText, Loader2 } from "lucide-react";
@@ -106,6 +107,7 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
               Next
               <ChevronRight className="w-4 h-4" />
             </Button>
+            <BookmarkButton pageId={page.id} size={24} showLabel={true} />
             <Button onClick={onClose} variant="outline" size="sm">
               Close
             </Button>
@@ -405,6 +407,12 @@ const RegisterFreePersonsJeffersonPage = () => {
                         <ScrollText className="w-8 h-8 text-gray-400" />
                       </div>
                     )}
+                    <div
+                      className="absolute top-3 right-3 z-10 bg-white rounded-full p-2 shadow-md"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <BookmarkButton pageId={page.id} size={18} />
+                    </div>
                   </div>
                   <div className="p-3">
                     <p className="font-semibold text-sm text-brand-brown">

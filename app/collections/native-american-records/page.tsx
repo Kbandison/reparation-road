@@ -41,7 +41,7 @@ const subcollections = [
     slug: 'early-cherokee-census',
     title: 'Early Cherokee Census',
     description: 'Early census records of Cherokee Nation members',
-    available: false
+    available: true
   },
   {
     slug: 'letters-indian-affairs',

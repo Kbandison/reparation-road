@@ -5,6 +5,7 @@ import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { BookmarkButton } from "@/components/ui/BookmarkButton";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, X, ZoomIn, ScrollText, Loader2 } from "lucide-react";
@@ -215,6 +216,12 @@ const RegisterFreePersonsHancockPage = () => {
                 <div key={page.id} onClick={() => setSelectedPage(page)} className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-xl transition-shadow group">
                   <div className="relative h-40 bg-gray-100">
                     {page.image_path ? <Image src={page.image_path} alt={`Book ${page.book_no}, Page ${page.page_no}`} fill className="object-cover group-hover:scale-105 transition-transform" sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw" /> : <div className="flex items-center justify-center h-full"><ScrollText className="w-8 h-8 text-gray-400" /></div>}
+                    <div
+                      className="absolute top-3 right-3 z-10 bg-white rounded-full p-2 shadow-md"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <BookmarkButton pageId={page.id} size={18} />
+                    </div>
                   </div>
                   <div className="p-3">
                     <p className="font-semibold text-sm text-brand-brown">Book {page.book_no}, Page {page.page_no}</p>

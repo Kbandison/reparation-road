@@ -5,6 +5,7 @@ import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { BookmarkButton } from "@/components/ui/BookmarkButton";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, X, ZoomIn, ScrollText, Loader2 } from "lucide-react";
@@ -106,6 +107,7 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
               Next
               <ChevronRight className="w-4 h-4" />
             </Button>
+            <BookmarkButton pageId={page.id} size={24} showLabel={true} />
             <Button onClick={onClose} variant="outline" size="sm">
               Close
             </Button>
@@ -230,7 +232,7 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
   );
 });
 
-const RegisterFreePersonsJeffersonPage = () => {
+const VirginiaOrderBooksGoochlandPage = () => {
   const searchParams = useSearchParams();
   const [pages, setPages] = useState<RegisterPage[]>([]);
   const [filteredPages, setFilteredPages] = useState<RegisterPage[]>([]);
@@ -264,13 +266,14 @@ const RegisterFreePersonsJeffersonPage = () => {
     const fetchPages = async () => {
       try {
         const { data, error } = await supabase
-          .from("cherokee_henderson")
+          .from("va_books_goochland")
           .select("*")
           .order("book_no", { ascending: true })
           .order("page_no", { ascending: true });
 
         if (error) {
-          console.error("Error fetching register pages:", error);
+          console.error("Error fetching Virginia Order Books (Goochland):", error);
+          console.error("Error details:", JSON.stringify(error, null, 2));
         } else if (data) {
           setPages(data);
           setFilteredPages(data);
@@ -333,11 +336,11 @@ const RegisterFreePersonsJeffersonPage = () => {
           <div className="max-w-4xl mx-auto text-center">
             <ScrollText className="w-16 h-16 mx-auto mb-4" />
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Cherokee Census - Henderson Roll
+              Virginia Order Books - Goochland County
             </h1>
             <p className="text-lg text-white/90">
-              Historical records documenting free persons of color in the Cherokee Nation (Henderson Roll).
-              Browse original documents and transcriptions.
+              Court proceedings and legal judgments documenting Negro adjudgments from Goochland County, Virginia.
+              Browse original court order books and transcriptions.
             </p>
           </div>
         </div>
@@ -399,12 +402,20 @@ const RegisterFreePersonsJeffersonPage = () => {
                         fill
                         className="object-cover group-hover:scale-105 transition-transform"
                         sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+                        unoptimized
+                        loading="lazy"
                       />
                     ) : (
                       <div className="flex items-center justify-center h-full">
                         <ScrollText className="w-8 h-8 text-gray-400" />
                       </div>
                     )}
+                    <div
+                      className="absolute top-3 right-3 z-10 bg-white rounded-full p-2 shadow-md"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <BookmarkButton pageId={page.id} size={18} />
+                    </div>
                   </div>
                   <div className="p-3">
                     <p className="font-semibold text-sm text-brand-brown">
@@ -482,7 +493,7 @@ const RegisterFreePersonsJeffersonPage = () => {
   );
 };
 
-const WrappedRegisterFreePersonsJeffersonPage = () => {
+const WrappedVirginiaOrderBooksGoochlandPage = () => {
   return (
     <ProtectedRoute requiresPaid={true}>
       <Suspense fallback={
@@ -490,10 +501,10 @@ const WrappedRegisterFreePersonsJeffersonPage = () => {
           <Loader2 className="w-8 h-8 animate-spin text-brand-green" />
         </div>
       }>
-        <RegisterFreePersonsJeffersonPage />
+        <VirginiaOrderBooksGoochlandPage />
       </Suspense>
     </ProtectedRoute>
   );
 };
 
-export default WrappedRegisterFreePersonsJeffersonPage;
+export default WrappedVirginiaOrderBooksGoochlandPage;

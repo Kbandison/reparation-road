@@ -158,7 +158,7 @@ const SEARCHABLE_TABLES = [
   {
     table: 'cherokee_henderson',
     collection: 'Cherokee Census - Henderson Roll',
-    collectionSlug: 'native-american-records/cherokee-henderson',
+    collectionSlug: 'native-american-records/early-cherokee-census/cherokee-henderson',
     searchFields: ['ocr_text'],
     displayFields: ['book_no', 'page_no'],
     identifierFields: ['book_no', 'page_no']
@@ -183,6 +183,38 @@ const SEARCHABLE_TABLES = [
     table: 'va_personal_henrico',
     collection: 'Virginia Personal Property - Henrico County',
     collectionSlug: 'virginia-property-tithes/henrico',
+    searchFields: ['ocr_text'],
+    displayFields: ['book_no', 'page_no'],
+    identifierFields: ['book_no', 'page_no']
+  },
+  {
+    table: 'va_books_chesterfield',
+    collection: 'Virginia Order Books - Chesterfield County',
+    collectionSlug: 'virginia-order-books/chesterfield',
+    searchFields: ['ocr_text'],
+    displayFields: ['book_no', 'page_no'],
+    identifierFields: ['book_no', 'page_no']
+  },
+  {
+    table: 'va_books_goochland',
+    collection: 'Virginia Order Books - Goochland County',
+    collectionSlug: 'virginia-order-books/goochland',
+    searchFields: ['ocr_text'],
+    displayFields: ['book_no', 'page_no'],
+    identifierFields: ['book_no', 'page_no']
+  },
+  {
+    table: 'va_books_henrico',
+    collection: 'Virginia Order Books - Henrico County',
+    collectionSlug: 'virginia-order-books/henrico',
+    searchFields: ['ocr_text'],
+    displayFields: ['book_no', 'page_no'],
+    identifierFields: ['book_no', 'page_no']
+  },
+  {
+    table: 'va_books_spotsylvania',
+    collection: 'Virginia Order Books - Spotsylvania County',
+    collectionSlug: 'virginia-order-books/spotsylvania',
     searchFields: ['ocr_text'],
     displayFields: ['book_no', 'page_no'],
     identifierFields: ['book_no', 'page_no']

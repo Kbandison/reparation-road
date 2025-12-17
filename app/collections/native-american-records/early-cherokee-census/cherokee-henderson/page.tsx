@@ -232,7 +232,7 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
   );
 });
 
-const VirginiaPersonalPropertyHenricoPage = () => {
+const CherokeeHendersonPage = () => {
   const searchParams = useSearchParams();
   const [pages, setPages] = useState<RegisterPage[]>([]);
   const [filteredPages, setFilteredPages] = useState<RegisterPage[]>([]);
@@ -266,13 +266,13 @@ const VirginiaPersonalPropertyHenricoPage = () => {
     const fetchPages = async () => {
       try {
         const { data, error } = await supabase
-          .from("va_personal_henrico")
+          .from("cherokee_henderson")
           .select("*")
           .order("book_no", { ascending: true })
           .order("page_no", { ascending: true });
 
         if (error) {
-          console.error("Error fetching VA personal property records (Henrico):", error);
+          console.error("Error fetching Cherokee Henderson census records:", error);
           console.error("Error details:", JSON.stringify(error, null, 2));
         } else if (data) {
           setPages(data);
@@ -336,10 +336,10 @@ const VirginiaPersonalPropertyHenricoPage = () => {
           <div className="max-w-4xl mx-auto text-center">
             <ScrollText className="w-16 h-16 mx-auto mb-4" />
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Virginia Personal Property - Henrico County
+              Cherokee Census - Henderson Roll
             </h1>
             <p className="text-lg text-white/90">
-              Historical records documenting free persons of color in Henrico County, Virginia.
+              Historical records documenting free persons of color in the Cherokee Nation (Henderson Roll).
               Browse original documents and transcriptions.
             </p>
           </div>
@@ -491,7 +491,7 @@ const VirginiaPersonalPropertyHenricoPage = () => {
   );
 };
 
-const WrappedVirginiaPersonalPropertyHenricoPage = () => {
+const WrappedCherokeeHendersonPage = () => {
   return (
     <ProtectedRoute requiresPaid={true}>
       <Suspense fallback={
@@ -499,10 +499,10 @@ const WrappedVirginiaPersonalPropertyHenricoPage = () => {
           <Loader2 className="w-8 h-8 animate-spin text-brand-green" />
         </div>
       }>
-        <VirginiaPersonalPropertyHenricoPage />
+        <CherokeeHendersonPage />
       </Suspense>
     </ProtectedRoute>
   );
 };
 
-export default WrappedVirginiaPersonalPropertyHenricoPage;
+export default WrappedCherokeeHendersonPage;

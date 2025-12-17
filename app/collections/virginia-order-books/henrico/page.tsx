@@ -232,7 +232,7 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
   );
 });
 
-const VirginiaPersonalPropertyHenricoPage = () => {
+const VirginiaOrderBooksHenricoPage = () => {
   const searchParams = useSearchParams();
   const [pages, setPages] = useState<RegisterPage[]>([]);
   const [filteredPages, setFilteredPages] = useState<RegisterPage[]>([]);
@@ -266,13 +266,13 @@ const VirginiaPersonalPropertyHenricoPage = () => {
     const fetchPages = async () => {
       try {
         const { data, error } = await supabase
-          .from("va_personal_henrico")
+          .from("va_books_henrico")
           .select("*")
           .order("book_no", { ascending: true })
           .order("page_no", { ascending: true });
 
         if (error) {
-          console.error("Error fetching VA personal property records (Henrico):", error);
+          console.error("Error fetching Virginia Order Books (Henrico):", error);
           console.error("Error details:", JSON.stringify(error, null, 2));
         } else if (data) {
           setPages(data);
@@ -336,11 +336,11 @@ const VirginiaPersonalPropertyHenricoPage = () => {
           <div className="max-w-4xl mx-auto text-center">
             <ScrollText className="w-16 h-16 mx-auto mb-4" />
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Virginia Personal Property - Henrico County
+              Virginia Order Books - Henrico County
             </h1>
             <p className="text-lg text-white/90">
-              Historical records documenting free persons of color in Henrico County, Virginia.
-              Browse original documents and transcriptions.
+              Court proceedings and legal judgments documenting Negro adjudgments from Henrico County, Virginia.
+              Browse original court order books and transcriptions.
             </p>
           </div>
         </div>
@@ -402,6 +402,8 @@ const VirginiaPersonalPropertyHenricoPage = () => {
                         fill
                         className="object-cover group-hover:scale-105 transition-transform"
                         sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+                        unoptimized
+                        loading="lazy"
                       />
                     ) : (
                       <div className="flex items-center justify-center h-full">
@@ -491,7 +493,7 @@ const VirginiaPersonalPropertyHenricoPage = () => {
   );
 };
 
-const WrappedVirginiaPersonalPropertyHenricoPage = () => {
+const WrappedVirginiaOrderBooksHenricoPage = () => {
   return (
     <ProtectedRoute requiresPaid={true}>
       <Suspense fallback={
@@ -499,10 +501,10 @@ const WrappedVirginiaPersonalPropertyHenricoPage = () => {
           <Loader2 className="w-8 h-8 animate-spin text-brand-green" />
         </div>
       }>
-        <VirginiaPersonalPropertyHenricoPage />
+        <VirginiaOrderBooksHenricoPage />
       </Suspense>
     </ProtectedRoute>
   );
 };
 
-export default WrappedVirginiaPersonalPropertyHenricoPage;
+export default WrappedVirginiaOrderBooksHenricoPage;
