@@ -8,16 +8,22 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const subcollections = [
   {
-    slug: 'samuel-william-vernon',
-    title: 'Samuel and William Vernon Co.',
-    description: 'Slave merchant trade records and vessel documentation',
+    slug: 'brig-othello',
+    title: 'Brig Othello',
+    description: 'Slave trade records from the Brig Othello vessel',
+    available: true
+  },
+  {
+    slug: 'royal-charlotte',
+    title: 'Royal Charlotte',
+    description: 'Slave trade records from the Royal Charlotte vessel',
     available: true
   }
 ];
 
 export const dynamic = 'force-dynamic';
 
-export default function SlaveMerchantTradeRecordsPage() {
+export default function SamuelWilliamVernonPage() {
   const { profile } = useAuth();
   const isPremiumOrAdmin = profile?.subscription_status === 'paid' || profile?.role === 'admin';
 
@@ -29,10 +35,10 @@ export default function SlaveMerchantTradeRecordsPage() {
           <div className="max-w-4xl mx-auto text-center">
             <Ship className="w-16 h-16 mx-auto mb-4" />
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Slave Merchant Trade Records
+              Samuel and William Vernon Co.
             </h1>
             <p className="text-lg text-white/90">
-              Historical documentation of slave trading companies and their operations
+              Slave merchant trade records and vessel documentation
             </p>
           </div>
         </div>
@@ -46,14 +52,14 @@ export default function SlaveMerchantTradeRecordsPage() {
               About This Collection
             </h2>
             <p className="text-gray-700 mb-4">
-              This collection contains records from various slave trading companies and merchants who participated in the transatlantic slave trade. These documents provide crucial historical evidence of the commercial operations, transactions, and practices involved in the forced migration and enslavement of African peoples. The collection includes:
+              Samuel and William Vernon Co. was a prominent slave trading company. This collection contains records of their vessels, transactions, and operations in the transatlantic slave trade. The documents include:
             </p>
             <ul className="list-disc list-inside text-gray-700 space-y-2 mb-6">
-              <li>Ship manifests and cargo documentation</li>
-              <li>Trade ledgers and financial records</li>
-              <li>Voyage logs and maritime documents</li>
-              <li>Business correspondence and contracts</li>
-              <li>Transaction records and sales documentation</li>
+              <li>Ship manifests and cargo records</li>
+              <li>Trade ledgers and transaction documents</li>
+              <li>Voyage logs and documentation</li>
+              <li>Business correspondence</li>
+              <li>Financial records and accounts</li>
             </ul>
             <div className="flex flex-col sm:flex-row gap-4">
               {!isPremiumOrAdmin && (
@@ -73,10 +79,10 @@ export default function SlaveMerchantTradeRecordsPage() {
 
           <div className="mb-8 text-center">
             <h2 className="text-2xl font-bold text-brand-brown mb-3">
-              Browse by Merchant Company
+              Browse by Vessel
             </h2>
             <p className="text-gray-700">
-              Explore records from individual slave trading companies
+              Explore records from individual ships operated by Samuel and William Vernon Co.
             </p>
           </div>
 
@@ -85,7 +91,7 @@ export default function SlaveMerchantTradeRecordsPage() {
             {subcollections.map((subcollection) => (
               <Link
                 key={subcollection.slug}
-                href={`/collections/rac-vlc/${subcollection.slug}`}
+                href={`/collections/rac-vlc/samuel-william-vernon/${subcollection.slug}`}
               >
                 <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer h-full border-2 border-transparent hover:border-brand-green">
                   <div className="flex items-start justify-between mb-3">

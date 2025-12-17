@@ -218,6 +218,22 @@ const SEARCHABLE_TABLES = [
     searchFields: ['ocr_text'],
     displayFields: ['book_no', 'page_no'],
     identifierFields: ['book_no', 'page_no']
+  },
+  {
+    table: 'slave_merchants_othello',
+    collection: 'Slave Merchants - Samuel and William Vernon Co. - Brig Othello',
+    collectionSlug: 'rac-vlc/samuel-william-vernon/brig-othello',
+    searchFields: ['ocr_text'],
+    displayFields: ['book_no', 'page_no'],
+    identifierFields: ['book_no', 'page_no']
+  },
+  {
+    table: 'slave_merchants_charlotte',
+    collection: 'Slave Merchants - Samuel and William Vernon Co. - Royal Charlotte',
+    collectionSlug: 'rac-vlc/samuel-william-vernon/royal-charlotte',
+    searchFields: ['ocr_text'],
+    displayFields: ['book_no', 'page_no'],
+    identifierFields: ['book_no', 'page_no']
   }
 ];
 

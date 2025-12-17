@@ -40,7 +40,7 @@ interface ArchivePage {
   created_at: string;
 }
 
-type TableType = 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'free_black_heads_of_household' | 'enslaved_persons_alabama' | 'enslaved_catholic_kentuky' | 'slave_voyages' | 'ex_slave_pension' | 'colored_deaths' | 'colored_marriages' | 'creek_census' | 'slave_importation_ga' | 'slave_importation_ky' | 'slave_importation_ms' | 'va_personal_chesterfield' | 'va_personal_hanover' | 'va_personal_henrico' | 'register_free_persons_jefferson' | 'register_free_persons_baldwin' | 'register_free_persons_camden' | 'register_free_persons_colombia' | 'register_free_persons_hancock' | 'register_free_persons_lincoln' | 'register_free_persons_lumpkin' | 'register_free_persons_richmond' | 'register_free_persons_thomas' | 'register_free_persons_warren' | 'cherokee_henderson' | 'va_books_chesterfield' | 'va_books_goochland' | 'va_books_henrico' | 'va_books_spotsylvania' | 'coming_soon';
+type TableType = 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'free_black_heads_of_household' | 'enslaved_persons_alabama' | 'enslaved_catholic_kentuky' | 'slave_voyages' | 'ex_slave_pension' | 'colored_deaths' | 'colored_marriages' | 'creek_census' | 'slave_importation_ga' | 'slave_importation_ky' | 'slave_importation_ms' | 'va_personal_chesterfield' | 'va_personal_hanover' | 'va_personal_henrico' | 'register_free_persons_jefferson' | 'register_free_persons_baldwin' | 'register_free_persons_camden' | 'register_free_persons_colombia' | 'register_free_persons_hancock' | 'register_free_persons_lincoln' | 'register_free_persons_lumpkin' | 'register_free_persons_richmond' | 'register_free_persons_thomas' | 'register_free_persons_warren' | 'cherokee_henderson' | 'va_books_chesterfield' | 'va_books_goochland' | 'va_books_henrico' | 'va_books_spotsylvania' | 'slave_merchants_othello' | 'slave_merchants_charlotte' | 'coming_soon';
 
 interface SubCollection {
   slug: string;
@@ -49,6 +49,7 @@ interface SubCollection {
   description?: string;
   tableType: TableType;
   tableName?: string;
+  subcollections?: SubCollection[];
 }
 
 interface Collection {
@@ -466,7 +467,31 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
     slug: 'rac-vlc',
     name: 'Slave Merchant Trade Records',
     description: 'Records documenting slave merchant trade activities',
-    tableType: 'coming_soon'
+    tableType: 'coming_soon',
+    subcollections: [
+      {
+        slug: 'samuel-william-vernon',
+        name: 'Samuel and William Vernon Co.',
+        description: 'Slave merchant trade records from Samuel and William Vernon Co.',
+        tableType: 'coming_soon',
+        subcollections: [
+          {
+            slug: 'brig-othello',
+            name: 'Brig Othello',
+            description: 'Slave trade records from the Brig Othello vessel',
+            tableType: 'slave_merchants_othello',
+            tableName: 'slave_merchants_othello'
+          },
+          {
+            slug: 'royal-charlotte',
+            name: 'Royal Charlotte',
+            description: 'Slave trade records from the Royal Charlotte vessel',
+            tableType: 'slave_merchants_charlotte',
+            tableName: 'slave_merchants_charlotte'
+          }
+        ]
+      }
+    ]
   },
   {
     slug: 'tennessee-registers',
