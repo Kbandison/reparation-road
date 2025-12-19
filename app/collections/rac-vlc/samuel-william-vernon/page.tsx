@@ -18,6 +18,12 @@ const subcollections = [
     title: 'Royal Charlotte',
     description: 'Slave trade records from the Royal Charlotte vessel',
     available: true
+  },
+  {
+    slug: 'schooner-sally',
+    title: 'Schooner Sally',
+    description: 'Slave trade records from the Schooner Sally vessel',
+    available: true
   }
 ];
 

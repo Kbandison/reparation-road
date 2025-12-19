@@ -40,7 +40,7 @@ interface ArchivePage {
   created_at: string;
 }
 
-type TableType = 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'free_black_heads_of_household' | 'enslaved_persons_alabama' | 'enslaved_catholic_kentuky' | 'slave_voyages' | 'ex_slave_pension' | 'colored_deaths' | 'colored_marriages' | 'creek_census' | 'slave_importation_ga' | 'slave_importation_ky' | 'slave_importation_ms' | 'va_personal_chesterfield' | 'va_personal_hanover' | 'va_personal_henrico' | 'register_free_persons_jefferson' | 'register_free_persons_baldwin' | 'register_free_persons_camden' | 'register_free_persons_colombia' | 'register_free_persons_hancock' | 'register_free_persons_lincoln' | 'register_free_persons_lumpkin' | 'register_free_persons_richmond' | 'register_free_persons_thomas' | 'register_free_persons_warren' | 'cherokee_henderson' | 'va_books_chesterfield' | 'va_books_goochland' | 'va_books_henrico' | 'va_books_spotsylvania' | 'slave_merchants_othello' | 'slave_merchants_charlotte' | 'coming_soon';
+type TableType = 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'free_black_heads_of_household' | 'enslaved_persons_alabama' | 'enslaved_catholic_kentuky' | 'slave_voyages' | 'ex_slave_pension' | 'colored_deaths' | 'colored_marriages' | 'creek_census' | 'slave_importation_ga' | 'slave_importation_ky' | 'slave_importation_ms' | 'va_personal_chesterfield' | 'va_personal_hanover' | 'va_personal_henrico' | 'register_free_persons_jefferson' | 'register_free_persons_baldwin' | 'register_free_persons_camden' | 'register_free_persons_colombia' | 'register_free_persons_hancock' | 'register_free_persons_lincoln' | 'register_free_persons_lumpkin' | 'register_free_persons_richmond' | 'register_free_persons_thomas' | 'register_free_persons_warren' | 'cherokee_henderson' | 'va_books_chesterfield' | 'va_books_goochland' | 'va_books_henrico' | 'va_books_spotsylvania' | 'slave_merchants_othello' | 'slave_merchants_charlotte' | 'slave_merchants_schooner' | 'coming_soon';
 
 interface SubCollection {
   slug: string;
@@ -488,6 +488,13 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
             description: 'Slave trade records from the Royal Charlotte vessel',
             tableType: 'slave_merchants_charlotte',
             tableName: 'slave_merchants_charlotte'
+          },
+          {
+            slug: 'schooner-sally',
+            name: 'Schooner Sally',
+            description: 'Slave trade records from the Schooner Sally vessel',
+            tableType: 'slave_merchants_schooner',
+            tableName: 'slave_merchants_schooner'
           }
         ]
       }

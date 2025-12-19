@@ -29,7 +29,8 @@
       "Bash(for county in baldwin camden columbia hancock lincoln lumpkin richmond thomas warren)",
       "Bash(do)",
       "Bash(python3:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(rm:*)"
     ],
     "deny": [],
     "ask": []

@@ -234,6 +234,14 @@ const SEARCHABLE_TABLES = [
     searchFields: ['ocr_text'],
     displayFields: ['book_no', 'page_no'],
     identifierFields: ['book_no', 'page_no']
+  },
+  {
+    table: 'slave_merchants_schooner',
+    collection: 'Slave Merchants - Samuel and William Vernon Co. - Schooner Sally',
+    collectionSlug: 'rac-vlc/samuel-william-vernon/schooner-sally',
+    searchFields: ['ocr_text'],
+    displayFields: ['book_no', 'page_no'],
+    identifierFields: ['book_no', 'page_no']
   }
 ];
 
