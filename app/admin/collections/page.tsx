@@ -2084,11 +2084,18 @@ const AdminCollectionsPage = () => {
 
             <div className="p-6">
               {/* Image Upload Section (for any table with image fields) */}
-              {(editingRecord.image !== undefined ||
+              {((editingRecord && (
+                editingRecord.image !== undefined ||
                 editingRecord.image_url !== undefined ||
                 editingRecord.image_path !== undefined ||
                 editingRecord.photo !== undefined ||
-                editingRecord.ex_slave_pension_images !== undefined) && (
+                editingRecord.ex_slave_pension_images !== undefined
+              )) || (formData && (
+                'image' in formData ||
+                'image_url' in formData ||
+                'image_path' in formData ||
+                'photo' in formData
+              ))) && (
                 <div className="mb-6 pb-6 border-b border-gray-200">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Image
