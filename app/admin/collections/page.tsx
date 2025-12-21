@@ -1678,7 +1678,7 @@ const AdminCollectionsPage = () => {
                               handleAddNewRecord(collection.tableName, sampleRecord);
                             }
                           }}
-                          disabled={!collection.tableName || collection.tableType === 'coming_soon'}
+                          disabled={!collection.tableName}
                           className="bg-brand-green hover:bg-brand-darkgreen flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                           aria-label={`Add new record to ${collection.name}`}
                         >
