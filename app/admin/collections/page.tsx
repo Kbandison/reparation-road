@@ -189,14 +189,15 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
     slug: 'ex-slave-pension',
     name: 'Ex-slave Pension and Fraud Files',
     description: 'Pension applications and related documents',
-    tableType: 'coming_soon',
+    tableType: 'ex_slave_pension',
+    tableName: 'ex-slave-pension',
     subcollections: [
       {
         slug: 'case-files-formerly-enslaved',
         name: 'Case Files Concerning the Formerly Enslaved',
         description: 'Individual case files related to pension claims by formerly enslaved persons',
         tableType: 'ex_slave_pension',
-        tableName: 'ex-slave-pension'
+        tableName: 'formerly-enslaved'
       },
       {
         slug: 'national-ex-slave-relief',
@@ -444,8 +445,7 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
         slug: 'register-free-persons-richmond',
         name: 'Register of Free Persons of Color, Richmond',
         description: 'Historical records documenting free persons of color in Richmond County, Georgia',
-        tableType: 'register_free_persons_richmond',
-        tableName: 'register_free_persons_richmond'
+        tableType: 'coming_soon'
       },
       {
         slug: 'register-free-persons-thomas',
@@ -579,28 +579,28 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
     tableType: 'coming_soon',
     subcollections: [
       {
-        slug: 'chesterfield',
+        slug: 'order-books-chesterfield',
         name: 'Chesterfield County',
         description: 'Virginia Order Books from Chesterfield County',
         tableType: 'va_books_chesterfield',
         tableName: 'va_books_chesterfield'
       },
       {
-        slug: 'goochland',
+        slug: 'order-books-goochland',
         name: 'Goochland County',
         description: 'Virginia Order Books from Goochland County',
         tableType: 'va_books_goochland',
         tableName: 'va_books_goochland'
       },
       {
-        slug: 'henrico',
+        slug: 'order-books-henrico',
         name: 'Henrico County',
         description: 'Virginia Order Books from Henrico County',
         tableType: 'va_books_henrico',
         tableName: 'va_books_henrico'
       },
       {
-        slug: 'spotsylvania',
+        slug: 'order-books-spotsylvania',
         name: 'Spotsylvania County',
         description: 'Virginia Order Books from Spotsylvania County',
         tableType: 'va_books_spotsylvania',
@@ -622,38 +622,14 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
         tableName: 'va-personal-chesterfield'
       },
       {
-        slug: 'franklin-county',
-        name: 'Franklin County',
-        description: 'Personal property and tithe records from Franklin County, Virginia',
-        tableType: 'coming_soon'
-      },
-      {
-        slug: 'hanover-county-1782-1786',
-        name: 'Hanover County 1782-1786',
-        description: 'Personal property and tithe records from Hanover County spanning 1782-1786',
-        tableType: 'coming_soon'
-      },
-      {
-        slug: 'lancaster-county',
-        name: 'Lancaster County',
-        description: 'Personal property and tithe records from Lancaster County, Virginia',
-        tableType: 'coming_soon'
-      },
-      {
-        slug: 'richmond',
-        name: 'Richmond',
-        description: 'Personal property and tithe records from Richmond, Virginia',
-        tableType: 'coming_soon'
-      },
-      {
-        slug: 'hanover',
+        slug: 'personal-property-hanover',
         name: 'Hanover County',
         description: 'Personal property and tithe records from Hanover County, Virginia',
         tableType: 'va_personal_hanover',
         tableName: 'va_personal_hanover'
       },
       {
-        slug: 'henrico',
+        slug: 'personal-property-henrico',
         name: 'Henrico County',
         description: 'Personal property and tithe records from Henrico County, Virginia',
         tableType: 'va_personal_henrico',
@@ -703,6 +679,10 @@ const AdminCollectionsPage = () => {
   const [archivePageTagInput, setArchivePageTagInput] = useState('');
   const [archivePageSaving, setArchivePageSaving] = useState(false);
 
+  // Existing images for reuse
+  const [availableImages, setAvailableImages] = useState<Array<{path: string, preview: string, recordInfo: string}>>([]);
+  const [showImageSelector, setShowImageSelector] = useState(false);
+
   // Toggle collection expansion
   const toggleCollection = (slug: string) => {
     setExpandedCollections(prev => {
@@ -718,27 +698,39 @@ const AdminCollectionsPage = () => {
 
   // Helper function to find collection including subcollections
   const findCollection = (slug: string): Collection | undefined => {
-    // First search in main collections
-    const mainCollection = collections.find((c) => c.slug === slug);
-    if (mainCollection) return mainCollection;
+    // Recursive helper function to search through nested subcollections
+    const searchInCollection = (collection: Collection | SubCollection): Collection | undefined => {
+      if (collection.slug === slug) {
+        // Ensure we return a proper Collection type
+        return {
+          slug: collection.slug,
+          name: collection.name,
+          pageCount: collection.pageCount || 0,
+          description: collection.description,
+          tableType: collection.tableType,
+          tableName: collection.tableName,
+          subcollections: collection.subcollections
+        };
+      }
 
-    // If not found, search in subcollections
-    for (const collection of collections) {
       if (collection.subcollections) {
-        const subcollection = collection.subcollections.find((sub) => sub.slug === slug);
-        if (subcollection) {
-          // Ensure subcollection has all required Collection properties
-          return {
-            slug: subcollection.slug,
-            name: subcollection.name,
-            pageCount: subcollection.pageCount || 0,
-            description: subcollection.description,
-            tableType: subcollection.tableType,
-            tableName: subcollection.tableName
-          };
+        for (const subcollection of collection.subcollections) {
+          const found = searchInCollection(subcollection);
+          if (found) {
+            return found;
+          }
         }
       }
+
+      return undefined;
+    };
+
+    // Search through all top-level collections recursively
+    for (const collection of collections) {
+      const found = searchInCollection(collection);
+      if (found) return found;
     }
+
     return undefined;
   };
 
@@ -748,17 +740,26 @@ const AdminCollectionsPage = () => {
     }
   }, [user, profile, loading, router]);
 
-  // Reset page when search term changes
+  // Reset page when search term or collection changes
   useEffect(() => {
     setCurrentDbPage(1);
-  }, [searchTerm]);
+  }, [searchTerm, selectedCollection]);
 
   const fetchCollections = React.useCallback(async () => {
     try {
       setLoadingData(true);
 
       // Fetch counts for each table type
-      const [archivePagesData, compensationData, emigrantsData, censusData, revolutionaryData, freeBlackData, alabamaData, kentuckyData, slaveVoyagesData, exSlavePensionData, coloredDeathsData, coloredMarriagesData, creekCensusData, slaveImportationGaData, slaveImportationKyData, vaPersonalChesterfieldData] = await Promise.all([
+      const [
+        archivePagesData, compensationData, emigrantsData, censusData, revolutionaryData, freeBlackData,
+        alabamaData, kentuckyData, slaveVoyagesData, exSlavePensionData, coloredDeathsData, coloredMarriagesData,
+        creekCensusData, slaveImportationGaData, slaveImportationKyData, slaveImportationMsData,
+        vaPersonalChesterfieldData, vaPersonalHanoverData, vaPersonalHenricoData,
+        formerlyEnslavedData, cherokeeHendersonData,
+        baldwinData, camdenData, colombiaData, hancockData, jeffersonData, lincolnData, lumpkinData, thomasData, warrenData,
+        slaveOthelloData, slaveCharlotteData, slaveSchoonerData,
+        vaBooksChesterfieldData, vaBooksGoochlandData, vaBooksHenricoData, vaBooksSpotData
+      ] = await Promise.all([
         supabase.from('archive_pages').select('collection_slug'),
         supabase.from('slave_compensation_claims').select('id', { count: 'exact', head: true }),
         supabase.from('emmigrants_to_liberia').select('id', { count: 'exact', head: true }),
@@ -774,7 +775,28 @@ const AdminCollectionsPage = () => {
         supabase.from('creek-census').select('id', { count: 'exact', head: true }),
         supabase.from('slave-importation-ga').select('id', { count: 'exact', head: true }),
         supabase.from('slave-importation-ky').select('id', { count: 'exact', head: true }),
-        supabase.from('va-personal-chesterfield').select('id', { count: 'exact', head: true })
+        supabase.from('slave_importation_ms').select('id', { count: 'exact', head: true }),
+        supabase.from('va-personal-chesterfield').select('id', { count: 'exact', head: true }),
+        supabase.from('va_personal_hanover').select('id', { count: 'exact', head: true }),
+        supabase.from('va_personal_henrico').select('id', { count: 'exact', head: true }),
+        supabase.from('formerly-enslaved').select('id', { count: 'exact', head: true }),
+        supabase.from('cherokee_henderson').select('id', { count: 'exact', head: true }),
+        supabase.from('register_free_persons_baldwin').select('id', { count: 'exact', head: true }),
+        supabase.from('register_free_persons_camden').select('id', { count: 'exact', head: true }),
+        supabase.from('register_free_persons_colombia').select('id', { count: 'exact', head: true }),
+        supabase.from('register_free_persons_hancock').select('id', { count: 'exact', head: true }),
+        supabase.from('register_free_persons_jefferson').select('id', { count: 'exact', head: true }),
+        supabase.from('register_free_persons_lincoln').select('id', { count: 'exact', head: true }),
+        supabase.from('register_free_persons_lumpkin').select('id', { count: 'exact', head: true }),
+        supabase.from('register_free_persons_thomas').select('id', { count: 'exact', head: true }),
+        supabase.from('register_free_persons_warren').select('id', { count: 'exact', head: true }),
+        supabase.from('slave_merchants_othello').select('id', { count: 'exact', head: true }),
+        supabase.from('slave_merchants_charlotte').select('id', { count: 'exact', head: true }),
+        supabase.from('slave_merchants_schooner').select('id', { count: 'exact', head: true }),
+        supabase.from('va_books_chesterfield').select('id', { count: 'exact', head: true }),
+        supabase.from('va_books_goochland').select('id', { count: 'exact', head: true }),
+        supabase.from('va_books_henrico').select('id', { count: 'exact', head: true }),
+        supabase.from('va_books_spotsylvania').select('id', { count: 'exact', head: true })
       ]);
 
       // Group archive_pages by collection slug
@@ -800,7 +822,28 @@ const AdminCollectionsPage = () => {
         'creek-census': creekCensusData.count || 0,
         'slave-importation-ga': slaveImportationGaData.count || 0,
         'slave-importation-ky': slaveImportationKyData.count || 0,
-        'va-personal-chesterfield': vaPersonalChesterfieldData.count || 0
+        'slave_importation_ms': slaveImportationMsData.count || 0,
+        'va-personal-chesterfield': vaPersonalChesterfieldData.count || 0,
+        'va_personal_hanover': vaPersonalHanoverData.count || 0,
+        'va_personal_henrico': vaPersonalHenricoData.count || 0,
+        'formerly-enslaved': formerlyEnslavedData.count || 0,
+        'cherokee_henderson': cherokeeHendersonData.count || 0,
+        'register_free_persons_baldwin': baldwinData.count || 0,
+        'register_free_persons_camden': camdenData.count || 0,
+        'register_free_persons_colombia': colombiaData.count || 0,
+        'register_free_persons_hancock': hancockData.count || 0,
+        'register_free_persons_jefferson': jeffersonData.count || 0,
+        'register_free_persons_lincoln': lincolnData.count || 0,
+        'register_free_persons_lumpkin': lumpkinData.count || 0,
+        'register_free_persons_thomas': thomasData.count || 0,
+        'register_free_persons_warren': warrenData.count || 0,
+        'slave_merchants_othello': slaveOthelloData.count || 0,
+        'slave_merchants_charlotte': slaveCharlotteData.count || 0,
+        'slave_merchants_schooner': slaveSchoonerData.count || 0,
+        'va_books_chesterfield': vaBooksChesterfieldData.count || 0,
+        'va_books_goochland': vaBooksGoochlandData.count || 0,
+        'va_books_henrico': vaBooksHenricoData.count || 0,
+        'va_books_spotsylvania': vaBooksSpotData.count || 0
       };
 
       // Build collections list with appropriate counts
@@ -1034,6 +1077,66 @@ const AdminCollectionsPage = () => {
     }
   };
 
+  // Fetch available images from the current table for reuse
+  const fetchAvailableImages = async (tableName: string) => {
+    try {
+      console.log('[FETCH IMAGES] Fetching available images from:', tableName);
+
+      // Determine the image field name based on table
+      const imageFields = ['image_path', 'image_url', 'image', 'photo'];
+
+      const { data, error } = await supabase
+        .from(tableName)
+        .select('*')
+        .limit(1000);
+
+      if (error) {
+        console.error('[FETCH IMAGES] Error:', error);
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        console.log('[FETCH IMAGES] No records found');
+        return;
+      }
+
+      // Find which image field exists in this table
+      const imageField = imageFields.find(field => data[0][field] !== undefined);
+
+      if (!imageField) {
+        console.log('[FETCH IMAGES] No image field found in table');
+        return;
+      }
+
+      // Extract unique images with record info
+      const imageMap = new Map<string, {path: string, preview: string, recordInfo: string}>();
+
+      data.forEach(record => {
+        const imagePath = record[imageField];
+        if (imagePath && !imageMap.has(imagePath)) {
+          // Build record info string (name, identifier, etc.)
+          const infoFields = ['name', 'first_name', 'last_name', 'title', 'book_no', 'page_no'];
+          const recordInfo = infoFields
+            .map(field => record[field])
+            .filter(Boolean)
+            .join(' - ') || 'Record #' + record.id;
+
+          imageMap.set(imagePath, {
+            path: imagePath,
+            preview: imagePath.startsWith('http') ? imagePath : `/images/${imagePath}`,
+            recordInfo: recordInfo
+          });
+        }
+      });
+
+      const images = Array.from(imageMap.values());
+      console.log('[FETCH IMAGES] Found', images.length, 'unique images');
+      setAvailableImages(images);
+    } catch (err) {
+      console.error('[FETCH IMAGES] Error fetching images:', err);
+    }
+  };
+
   const handleAddNewRecord = (tableName: string, sampleRecord?: Record<string, unknown>) => {
     setAddingNewRecord(true);
     setEditTableName(tableName);
@@ -1067,6 +1170,10 @@ const AdminCollectionsPage = () => {
     setFormData(initialData);
     setImagePreview('');
     setImageFile(null);
+    setShowImageSelector(false);
+
+    // Fetch available images for reuse
+    fetchAvailableImages(tableName);
   };
 
   const handleEditRecord = (record: Record<string, unknown>, tableName: string) => {
@@ -1108,6 +1215,31 @@ const AdminCollectionsPage = () => {
 
     setImagePreview(imageUrl || '');
     setImageFile(null);
+    setShowImageSelector(false);
+
+    // Fetch available images for reuse
+    fetchAvailableImages(tableName);
+  };
+
+  // Handle selecting an existing image from the collection
+  const handleSelectExistingImage = (imagePath: string, imagePreviewUrl: string) => {
+    console.log('[SELECT IMAGE] Selected image:', imagePath);
+
+    // Determine which field to update based on formData structure
+    const imageFields = ['image_path', 'image_url', 'image', 'photo'];
+    const imageField = imageFields.find(field => field in formData);
+
+    if (imageField) {
+      setFormData({
+        ...formData,
+        [imageField]: imagePath
+      });
+      setImagePreview(imagePreviewUrl);
+      setImageFile(null); // Clear any uploaded file
+      setShowImageSelector(false);
+    } else {
+      console.warn('[SELECT IMAGE] No image field found in formData');
+    }
   };
 
   const handleSaveRecord = async () => {
@@ -1229,13 +1361,22 @@ const AdminCollectionsPage = () => {
     setSelectedCollection(slug);
     const collection = findCollection(slug);
 
-    if (!collection) return;
+    console.log('[SELECT COLLECTION]', { slug, collection, tableName: collection?.tableName, tableType: collection?.tableType });
+
+    if (!collection) {
+      console.warn('[SELECT COLLECTION] Collection not found for slug:', slug);
+      return;
+    }
 
     // Fetch data based on collection type
     if (collection.tableType === 'archive_pages') {
+      console.log('[SELECT COLLECTION] Fetching archive pages for:', slug);
       fetchPages(slug);
     } else if (collection.tableName && collection.tableType !== 'coming_soon') {
+      console.log('[SELECT COLLECTION] Fetching database records from table:', collection.tableName);
       fetchDatabaseRecords(collection.tableName);
+    } else {
+      console.log('[SELECT COLLECTION] No action taken - tableName:', collection.tableName, 'tableType:', collection.tableType);
     }
   };
 
@@ -1643,21 +1784,8 @@ const AdminCollectionsPage = () => {
                 // Show database records table for database-backed collections
                 if (
                   collection &&
-                  (collection.tableType === 'slave_compensation_claims' ||
-                    collection.tableType === 'emmigrants_to_liberia' ||
-                    collection.tableType === 'liberation_census_rolls' ||
-                    collection.tableType === 'revolutionary_soldiers' ||
-                    collection.tableType === 'free_black_heads_of_household' ||
-                    collection.tableType === 'enslaved_persons_alabama' ||
-                    collection.tableType === 'enslaved_catholic_kentuky' ||
-                    collection.tableType === 'slave_voyages' ||
-                    collection.tableType === 'ex_slave_pension' ||
-                    collection.tableType === 'colored_deaths' ||
-                    collection.tableType === 'colored_marriages' ||
-                    collection.tableType === 'creek_census' ||
-                    collection.tableType === 'slave_importation_ga' ||
-                    collection.tableType === 'slave_importation_ky' ||
-                    collection.tableType === 'va_personal_chesterfield')
+                  collection.tableName &&
+                  collection.tableType !== 'archive_pages'
                 ) {
                   return (
                     <div className="bg-white rounded-lg shadow-lg p-6">
@@ -2145,8 +2273,55 @@ const AdminCollectionsPage = () => {
                           ✓ New image selected: {imageFile.name}
                         </p>
                       )}
+
+                      {/* Select from existing images */}
+                      {availableImages.length > 0 && (
+                        <div className="mt-4">
+                          <Button
+                            type="button"
+                            onClick={() => setShowImageSelector(!showImageSelector)}
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                          >
+                            {showImageSelector ? 'Hide' : 'Select from'} Existing Images ({availableImages.length})
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
+
+                  {/* Image Selector Dropdown */}
+                  {showImageSelector && availableImages.length > 0 && (
+                    <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200 max-h-96 overflow-y-auto">
+                      <h4 className="text-sm font-semibold text-gray-700 mb-3">
+                        Select an image from existing records:
+                      </h4>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {availableImages.map((img, index) => (
+                          <button
+                            key={index}
+                            type="button"
+                            onClick={() => handleSelectExistingImage(img.path, img.preview)}
+                            className="group relative aspect-square bg-white rounded-lg border-2 border-gray-200 hover:border-brand-green overflow-hidden transition-all"
+                          >
+                            <Image
+                              src={img.preview}
+                              alt={img.recordInfo}
+                              fill
+                              className="object-cover"
+                              sizes="150px"
+                            />
+                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-60 transition-all flex items-end p-2">
+                              <p className="text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity truncate">
+                                {img.recordInfo}
+                              </p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 

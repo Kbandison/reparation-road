@@ -132,14 +132,6 @@ const SEARCHABLE_TABLES = [
     identifierFields: ['book_no', 'page_no']
   },
   {
-    table: 'register_free_persons_richmond',
-    collection: 'Register of Free Persons of Color, Richmond',
-    collectionSlug: 'slave-claims-commission/register-free-persons-richmond',
-    searchFields: ['ocr_text'],
-    displayFields: ['book_no', 'page_no'],
-    identifierFields: ['book_no', 'page_no']
-  },
-  {
     table: 'register_free_persons_thomas',
     collection: 'Register of Free Persons of Color, Thomas',
     collectionSlug: 'slave-claims-commission/register-free-persons-thomas',
