@@ -675,6 +675,7 @@ const AdminCollectionsPage = () => {
   const [dbRecords, setDbRecords] = useState<Record<string, unknown>[]>([]);
   const [dbLoading, setDbLoading] = useState(false);
   const [editingRecord, setEditingRecord] = useState<Record<string, unknown> | null>(null);
+  const [addingNewRecord, setAddingNewRecord] = useState(false);
   const [editTableName, setEditTableName] = useState<string | null>(null);
   const [formData, setFormData] = useState<Record<string, unknown>>({});
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -1033,8 +1034,44 @@ const AdminCollectionsPage = () => {
     }
   };
 
+  const handleAddNewRecord = (tableName: string, sampleRecord?: Record<string, unknown>) => {
+    setAddingNewRecord(true);
+    setEditTableName(tableName);
+
+    // Initialize form data with empty values based on sample record structure
+    const initialData: Record<string, unknown> = {};
+    if (sampleRecord) {
+      Object.keys(sampleRecord).forEach(key => {
+        if (key !== 'id' && key !== 'created_at' && key !== 'updated_at') {
+          const value = sampleRecord[key];
+          if (typeof value === 'number') {
+            initialData[key] = 1;
+          } else if (typeof value === 'boolean') {
+            initialData[key] = false;
+          } else if (Array.isArray(value)) {
+            initialData[key] = [];
+          } else {
+            initialData[key] = '';
+          }
+        }
+      });
+    } else {
+      // Default fields for most tables
+      initialData.book_no = 1;
+      initialData.page_no = 1;
+      initialData.slug = '';
+      initialData.image_path = '';
+      initialData.ocr_text = '';
+    }
+
+    setFormData(initialData);
+    setImagePreview('');
+    setImageFile(null);
+  };
+
   const handleEditRecord = (record: Record<string, unknown>, tableName: string) => {
     setEditingRecord(record);
+    setAddingNewRecord(false);
     setEditTableName(tableName);
     setFormData({ ...record });
 
@@ -1074,65 +1111,82 @@ const AdminCollectionsPage = () => {
   };
 
   const handleSaveRecord = async () => {
-    if (!editingRecord || !editTableName) return;
+    if ((!editingRecord && !addingNewRecord) || !editTableName) return;
 
     try {
       setUploading(true);
       let updatedFormData = { ...formData };
 
+      const isAdding = addingNewRecord;
       console.log('Saving record to table:', editTableName);
-      console.log('Record ID:', editingRecord.id);
+      console.log('Mode:', isAdding ? 'INSERT' : 'UPDATE');
+      if (!isAdding && editingRecord) {
+        console.log('Record ID:', editingRecord.id);
+      }
       console.log('Form data before processing:', updatedFormData);
 
       // Handle image upload for any table with image fields
       if (imageFile) {
-        const recordName = (formData.name as string) || (formData.title as string) || `record-${editingRecord.id}`;
+        const recordName = (formData.name as string) || (formData.title as string) || `record-${Date.now()}`;
         const imageUrl = await uploadImageToStorage(imageFile, recordName);
 
-        // Determine which image field to update based on what exists in the record
-        if ('image' in editingRecord) {
+        // Determine which image field to use
+        const referenceRecord = isAdding ? formData : (editingRecord || {});
+        if ('image' in referenceRecord || isAdding) {
           updatedFormData = { ...updatedFormData, image: imageUrl };
-        } else if ('image_url' in editingRecord) {
+        } else if ('image_url' in referenceRecord) {
           updatedFormData = { ...updatedFormData, image_url: imageUrl };
-        } else if ('image_path' in editingRecord) {
+        } else if ('image_path' in referenceRecord) {
           updatedFormData = { ...updatedFormData, image_path: imageUrl };
-        } else if ('photo' in editingRecord) {
+        } else if ('photo' in referenceRecord) {
           updatedFormData = { ...updatedFormData, photo: imageUrl };
         } else {
-          // Default to 'image' field if no image field exists
-          updatedFormData = { ...updatedFormData, image: imageUrl };
+          // Default to 'image_path' field
+          updatedFormData = { ...updatedFormData, image_path: imageUrl };
         }
       }
 
-      // Remove id and other system fields from update data
+      // Remove id and other system fields from data
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { id: _id, created_at: _created_at, updated_at: _updated_at, ...dataToUpdate } = updatedFormData;
+      const { id: _id, created_at: _created_at, updated_at: _updated_at, ...dataToSave } = updatedFormData;
 
-      console.log('Data to update:', dataToUpdate);
+      console.log('Data to save:', dataToSave);
 
-      const { data, error } = await supabase
-        .from(editTableName)
-        .update(dataToUpdate)
-        .eq('id', editingRecord.id)
-        .select();
+      let data, error;
 
-      console.log('Update response:', { data, error });
+      if (isAdding) {
+        // Insert new record
+        ({ data, error } = await supabase
+          .from(editTableName)
+          .insert(dataToSave)
+          .select());
+      } else {
+        // Update existing record
+        ({ data, error } = await supabase
+          .from(editTableName)
+          .update(dataToSave)
+          .eq('id', editingRecord!.id)
+          .select());
+      }
+
+      console.log('Save response:', { data, error });
 
       if (error) throw error;
 
       if (!data || data.length === 0) {
-        throw new Error('No rows were updated. The record may not exist or you may not have permission to update it.');
+        throw new Error(isAdding ? 'Failed to create record.' : 'No rows were updated. The record may not exist or you may not have permission to update it.');
       }
 
       // Close modal and reset state immediately
       setEditingRecord(null);
+      setAddingNewRecord(false);
       setEditTableName(null);
       setFormData({});
       setImageFile(null);
       setImagePreview('');
       setUploading(false);
 
-      alert('Record updated successfully');
+      alert(isAdding ? 'Record created successfully' : 'Record updated successfully');
 
       // Refresh the database records in the background
       if (selectedCollection) {
@@ -1157,6 +1211,7 @@ const AdminCollectionsPage = () => {
 
   const handleCancelEdit = () => {
     setEditingRecord(null);
+    setAddingNewRecord(false);
     setEditTableName(null);
     setFormData({});
     setImageFile(null);
@@ -1617,18 +1672,15 @@ const AdminCollectionsPage = () => {
                         </div>
                         <Button
                           onClick={() => {
-                            // Navigate to dedicated admin page for full CRUD
-                            if (collection.slug === 'slave-compensation') {
-                              router.push('/admin/collections/slave-compensation');
-                            } else if (collection.slug === 'acs-emigrants-to-liberia') {
-                              router.push('/admin/collections/emigrants-to-liberia');
-                            } else if (collection.slug === 'acs-liberation-census-rolls') {
-                              router.push('/admin/collections/liberation-census-rolls');
-                            } else if (collection.slug === 'revolutionary-soldiers') {
-                              router.push('/admin/collections/revolutionary-soldiers');
+                            if (collection.tableName) {
+                              // Use the first record as a template, or undefined if no records exist
+                              const sampleRecord = dbRecords.length > 0 ? dbRecords[0] : undefined;
+                              handleAddNewRecord(collection.tableName, sampleRecord);
                             }
                           }}
-                          className="bg-brand-green hover:bg-brand-darkgreen flex items-center gap-2"
+                          disabled={!collection.tableName || collection.tableType === 'coming_soon'}
+                          className="bg-brand-green hover:bg-brand-darkgreen flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                          aria-label={`Add new record to ${collection.name}`}
                         >
                           <Plus className="w-4 h-4" />
                           Add New Record
@@ -2010,15 +2062,21 @@ const AdminCollectionsPage = () => {
         </div>
       </div>
 
-      {/* Edit Record Modal */}
-      {editingRecord && editTableName && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      {/* Add/Edit Record Modal */}
+      {(editingRecord || addingNewRecord) && editTableName && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-title"
+        >
           <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-brand-brown">Edit Record</h2>
+              <h2 id="modal-title" className="text-2xl font-bold text-brand-brown">{addingNewRecord ? 'Add New Record' : 'Edit Record'}</h2>
               <button
                 onClick={handleCancelEdit}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+                aria-label="Close modal"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -2127,12 +2185,12 @@ const AdminCollectionsPage = () => {
                   {uploading ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      Uploading...
+                      {addingNewRecord ? 'Creating...' : 'Saving...'}
                     </>
                   ) : (
                     <>
                       <Save className="w-4 h-4" />
-                      Save Changes
+                      {addingNewRecord ? 'Create Record' : 'Save Changes'}
                     </>
                   )}
                 </Button>

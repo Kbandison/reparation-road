@@ -30,7 +30,8 @@
       "Bash(do)",
       "Bash(python3:*)",
       "Bash(ls:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(TURBOPACK=0 npx next build:*)"
     ],
     "deny": [],
     "ask": []
