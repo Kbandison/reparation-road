@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
+import { getStorageBucketConfig } from '@/lib/storage-config';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -1077,10 +1078,74 @@ const AdminCollectionsPage = () => {
     }
   };
 
-  // Fetch available images from the current table for reuse
-  const fetchAvailableImages = async (tableName: string) => {
+  // Fetch available images from storage bucket or database for reuse
+  const fetchAvailableImages = async (tableName: string, collectionSlug: string | null) => {
     try {
-      console.log('[FETCH IMAGES] Fetching available images from:', tableName);
+      console.log('[FETCH IMAGES] Fetching images for:', collectionSlug, '(table:', tableName + ')');
+
+      // Try to get storage bucket config first (only if collectionSlug is provided)
+      const bucketConfig = collectionSlug ? getStorageBucketConfig(collectionSlug) : null;
+
+      if (bucketConfig) {
+        console.log('[FETCH IMAGES] Using storage bucket:', bucketConfig.bucketName, bucketConfig.folderPath);
+
+        // Fetch from storage bucket
+        const { data: files, error } = await supabase.storage
+          .from(bucketConfig.bucketName)
+          .list(bucketConfig.folderPath, {
+            limit: 1000,
+            sortBy: { column: 'name', order: 'asc' }
+          });
+
+        console.log('[FETCH IMAGES] Storage response:', { files, error, filesLength: files?.length });
+
+        if (error) {
+          console.error('[FETCH IMAGES] Storage error:', error);
+          // Fallback to database method
+          await fetchImagesFromDatabase(tableName);
+          return;
+        }
+
+        if (!files || files.length === 0) {
+          console.log('[FETCH IMAGES] No files found in storage. Files:', files);
+          setAvailableImages([]);
+          return;
+        }
+
+        // Filter and transform files to image list
+        const images = files
+          .filter(file => {
+            // Filter out folders (folders have id === null) and non-image files
+            return file.id !== null && /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(file.name);
+          })
+          .map(file => {
+            const fullPath = bucketConfig.folderPath ? `${bucketConfig.folderPath}/${file.name}` : file.name;
+            const { data: { publicUrl } } = supabase.storage
+              .from(bucketConfig.bucketName)
+              .getPublicUrl(fullPath);
+
+            return {
+              path: fullPath,
+              preview: publicUrl,
+              recordInfo: file.name.replace(/\.[^/.]+$/, '') // Filename without extension
+            };
+          });
+
+        console.log('[FETCH IMAGES] Found', images.length, 'images in storage');
+        setAvailableImages(images);
+      } else {
+        console.log('[FETCH IMAGES] No storage config found, using database method');
+        await fetchImagesFromDatabase(tableName);
+      }
+    } catch (err) {
+      console.error('[FETCH IMAGES] Error fetching images:', err);
+    }
+  };
+
+  // Fallback method: Fetch images from database records
+  const fetchImagesFromDatabase = async (tableName: string) => {
+    try {
+      console.log('[FETCH IMAGES DB] Fetching from database:', tableName);
 
       // Determine the image field name based on table
       const imageFields = ['image_path', 'image_url', 'image', 'photo'];
@@ -1091,12 +1156,12 @@ const AdminCollectionsPage = () => {
         .limit(1000);
 
       if (error) {
-        console.error('[FETCH IMAGES] Error:', error);
+        console.error('[FETCH IMAGES DB] Error:', error);
         return;
       }
 
       if (!data || data.length === 0) {
-        console.log('[FETCH IMAGES] No records found');
+        console.log('[FETCH IMAGES DB] No records found');
         return;
       }
 
@@ -1104,7 +1169,7 @@ const AdminCollectionsPage = () => {
       const imageField = imageFields.find(field => data[0][field] !== undefined);
 
       if (!imageField) {
-        console.log('[FETCH IMAGES] No image field found in table');
+        console.log('[FETCH IMAGES DB] No image field found in table');
         return;
       }
 
@@ -1130,10 +1195,10 @@ const AdminCollectionsPage = () => {
       });
 
       const images = Array.from(imageMap.values());
-      console.log('[FETCH IMAGES] Found', images.length, 'unique images');
+      console.log('[FETCH IMAGES DB] Found', images.length, 'unique images');
       setAvailableImages(images);
     } catch (err) {
-      console.error('[FETCH IMAGES] Error fetching images:', err);
+      console.error('[FETCH IMAGES DB] Error:', err);
     }
   };
 
@@ -1173,7 +1238,7 @@ const AdminCollectionsPage = () => {
     setShowImageSelector(false);
 
     // Fetch available images for reuse
-    fetchAvailableImages(tableName);
+    fetchAvailableImages(tableName, selectedCollection);
   };
 
   const handleEditRecord = (record: Record<string, unknown>, tableName: string) => {
@@ -1218,7 +1283,7 @@ const AdminCollectionsPage = () => {
     setShowImageSelector(false);
 
     // Fetch available images for reuse
-    fetchAvailableImages(tableName);
+    fetchAvailableImages(tableName, selectedCollection);
   };
 
   // Handle selecting an existing image from the collection
@@ -2275,7 +2340,7 @@ const AdminCollectionsPage = () => {
                       )}
 
                       {/* Select from existing images */}
-                      {availableImages.length > 0 && (
+                      {availableImages.length > 0 ? (
                         <div className="mt-4">
                           <Button
                             type="button"
@@ -2287,6 +2352,10 @@ const AdminCollectionsPage = () => {
                             {showImageSelector ? 'Hide' : 'Select from'} Existing Images ({availableImages.length})
                           </Button>
                         </div>
+                      ) : (
+                        <p className="text-xs text-gray-500 mt-2">
+                          Loading available images...
+                        </p>
                       )}
                     </div>
                   </div>
