@@ -9,6 +9,7 @@ import { BookmarkButton } from "@/components/ui/BookmarkButton";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, X, ZoomIn, ScrollText, Loader2 } from "lucide-react";
+import { CollectionTableView, ImageThumbnail } from "@/components/CollectionTableView";
 
 interface ArchivePage {
   id: string;
@@ -437,58 +438,49 @@ const InspectionRollPage = () => {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {currentPageData.map((page) => (
-                <div
-                  key={page.id}
-                  onClick={() => handlePageClick(page)}
-                  className={`bg-white rounded-lg shadow-md hover:shadow-lg transition-all cursor-pointer border relative ${
-                    clickedPageId === page.id ? 'ring-2 ring-brand-green scale-95' : ''
-                  }`}
-                >
-                  {/* Bookmark Button */}
-                  <div
-                    className="absolute top-3 right-3 z-10 bg-white rounded-full p-2 shadow-md"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <BookmarkButton pageId={page.id} size={18} />
-                  </div>
-
-                  {/* Loading Overlay when clicked */}
-                  {clickedPageId === page.id && (
-                    <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-20 rounded-lg">
-                      <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-brand-green"></div>
-                    </div>
-                  )}
-
-                  {page.image_path && (
-                    <div className="h-48 overflow-hidden rounded-t-lg relative bg-gray-100">
-                      <Image
-                        src={page.image_path}
-                        alt={`Book ${page.book_no}, Page ${page.page_no}`}
-                        fill
-                        className="object-cover"
-                        loading="lazy"
-                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                        placeholder="blur"
-                        blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2VlZSIvPjwvc3ZnPg=="
-                      />
-                    </div>
-                  )}
-                  <div className="p-4">
-                    <h3 className="font-semibold text-brand-brown mb-2">
-                      Book {page.book_no}, Page {page.page_no}
-                    </h3>
-                    <div className="text-sm text-gray-600 space-y-1">
-                      {page.year && <p className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-brand-green"></span>
-                        Year: {page.year}
-                      </p>}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <CollectionTableView
+              data={currentPageData}
+              columns={[
+                {
+                  key: 'image_path',
+                  label: 'Preview',
+                  render: (value, record) => (
+                    <ImageThumbnail
+                      src={value}
+                      alt={`Book ${record.book_no}, Page ${record.page_no}`}
+                    />
+                  )
+                },
+                {
+                  key: 'book_no',
+                  label: 'Book',
+                  sortable: true
+                },
+                {
+                  key: 'page_no',
+                  label: 'Page',
+                  sortable: true
+                },
+                {
+                  key: 'title',
+                  label: 'Title',
+                  sortable: true
+                },
+                {
+                  key: 'year',
+                  label: 'Year',
+                  sortable: true
+                },
+                {
+                  key: 'location',
+                  label: 'Location',
+                  sortable: true
+                }
+              ]}
+              onRecordClick={(page) => handlePageClick(page)}
+              loading={clickedPageId !== null}
+              emptyMessage="No pages found matching your criteria."
+            />
 
             {totalPages > 1 && (
               <div className="flex justify-center items-center gap-4 mt-8">
