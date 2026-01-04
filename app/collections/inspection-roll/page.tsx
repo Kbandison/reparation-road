@@ -13,6 +13,7 @@ import { ChevronLeft, ChevronRight, X, ZoomIn, ScrollText, Loader2 } from "lucid
 import { CollectionTableView, ImageThumbnail } from "@/components/CollectionTableView";
 import { StructuredData } from "@/components/StructuredData";
 import { generateStructuredData } from "@/lib/metadata";
+import { CitationCard } from "@/components/CitationCard";
 
 interface ArchivePage {
   id: string;
@@ -191,6 +192,18 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
                   </div>
                 </div>
               )}
+
+              {/* Citation */}
+              <CitationCard
+                data={{
+                  collectionName: 'Inspection Roll of Negroes',
+                  recordIdentifier: `Book ${page.book_no}, Page ${page.page_no}`,
+                  year: page.year || undefined,
+                  location: page.location || undefined,
+                  url: typeof window !== 'undefined' ? window.location.href : undefined,
+                }}
+                className="mt-4"
+              />
             </div>
           </div>
         </div>
