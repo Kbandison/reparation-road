@@ -110,10 +110,14 @@ const UpgradePrompt = () => {
 
 interface Soldier {
   id: number;
-  name: string;
-  image: string;
+  soldier_name: string;
+  image_path: string | null;
   state: string | null;
   regiment: string | null;
+  period_of_service: string | null;
+  remarks: string | null;
+  page_no: string | null;
+  ocr_text: string | null;
 }
 
 // Image component with error handling
@@ -132,7 +136,7 @@ const SoldierImage = ({
 }) => {
   const [imageError, setImageError] = useState(false);
 
-  if (!soldier.image || imageError) {
+  if (!soldier.image_path || imageError) {
     const isModal = variant === "modal";
     return (
       <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg">
@@ -149,8 +153,8 @@ const SoldierImage = ({
 
   return (
     <Image
-      src={soldier.image}
-      alt={soldier.name}
+      src={soldier.image_path!}
+      alt={soldier.soldier_name}
       fill
       className={className}
       sizes={sizes}
@@ -179,9 +183,9 @@ const RevolutionarySoldiersPage = () => {
 
         while (hasMore) {
           const { data, error } = await supabase
-            .from("revolutionary_soldiers")
+            .from("aa_revolutionary_soldiers")
             .select("*")
-            .order("name", { ascending: true })
+            .order("soldier_name", { ascending: true })
             .range(from, from + batchSize - 1);
 
           if (error) {
@@ -212,9 +216,10 @@ const RevolutionarySoldiersPage = () => {
 
   useEffect(() => {
     const filtered = soldiers.filter(soldier =>
-      soldier.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      soldier.soldier_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       soldier.state?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      soldier.regiment?.toLowerCase().includes(searchTerm.toLowerCase())
+      soldier.regiment?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      soldier.period_of_service?.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredSoldiers(filtered);
     setCurrentPage(1);
@@ -296,7 +301,7 @@ const RevolutionarySoldiersPage = () => {
                   </div>
                   <div className="p-4">
                     <h3 className="font-bold text-lg text-brand-brown mb-2 group-hover:text-brand-green transition-colors">
-                      {soldier.name}
+                      {soldier.soldier_name}
                     </h3>
                     {soldier.state && (
                       <p className="text-sm text-gray-600 flex items-center gap-1 mb-1">
@@ -394,7 +399,7 @@ const RevolutionarySoldiersPage = () => {
 
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-3xl font-bold text-brand-brown mb-2">{selectedSoldier.name}</h3>
+                  <h3 className="text-3xl font-bold text-brand-brown mb-2">{selectedSoldier.soldier_name}</h3>
                 </div>
 
                 {selectedSoldier.state && (
@@ -413,6 +418,30 @@ const RevolutionarySoldiersPage = () => {
                     <div>
                       <p className="font-semibold text-gray-700">Regiment</p>
                       <p className="text-gray-600">{selectedSoldier.regiment}</p>
+                    </div>
+                  </div>
+                )}
+
+                {selectedSoldier.period_of_service && (
+                  <div className="flex items-start gap-3">
+                    <Shield className="w-5 h-5 text-brand-green mt-1" />
+                    <div>
+                      <p className="font-semibold text-gray-700">Period of Service</p>
+                      <p className="text-gray-600">{selectedSoldier.period_of_service}</p>
+                    </div>
+                  </div>
+                )}
+
+                {selectedSoldier.remarks && (
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 text-brand-green mt-1 flex-shrink-0">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-700">Remarks</p>
+                      <p className="text-gray-600">{selectedSoldier.remarks}</p>
                     </div>
                   </div>
                 )}

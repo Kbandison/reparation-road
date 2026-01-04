@@ -36,12 +36,12 @@ const SEARCHABLE_TABLES = [
     identifierFields: ['name']
   },
   {
-    table: 'revolutionary_soldiers',
+    table: 'aa_revolutionary_soldiers',
     collection: 'African-American Revolutionary Soldiers',
     collectionSlug: 'revolutionary-soldiers',
-    searchFields: ['name', 'state', 'regiment'],
-    displayFields: ['name', 'state', 'regiment'],
-    identifierFields: ['name']
+    searchFields: ['soldier_name', 'state', 'regiment', 'period_of_service', 'remarks'],
+    displayFields: ['soldier_name', 'state', 'regiment', 'period_of_service'],
+    identifierFields: ['soldier_name']
   },
   {
     table: 'free_black_heads_of_household',

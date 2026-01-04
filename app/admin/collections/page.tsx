@@ -41,7 +41,7 @@ interface ArchivePage {
   created_at: string;
 }
 
-type TableType = 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'free_black_heads_of_household' | 'enslaved_persons_alabama' | 'enslaved_catholic_kentuky' | 'slave_voyages' | 'ex_slave_pension' | 'colored_deaths' | 'colored_marriages' | 'creek_census' | 'slave_importation_ga' | 'slave_importation_ky' | 'slave_importation_ms' | 'va_personal_chesterfield' | 'va_personal_hanover' | 'va_personal_henrico' | 'register_free_persons_jefferson' | 'register_free_persons_baldwin' | 'register_free_persons_camden' | 'register_free_persons_colombia' | 'register_free_persons_hancock' | 'register_free_persons_lincoln' | 'register_free_persons_lumpkin' | 'register_free_persons_richmond' | 'register_free_persons_thomas' | 'register_free_persons_warren' | 'cherokee_henderson' | 'va_books_chesterfield' | 'va_books_goochland' | 'va_books_henrico' | 'va_books_spotsylvania' | 'slave_merchants_othello' | 'slave_merchants_charlotte' | 'slave_merchants_schooner' | 'coming_soon';
+type TableType = 'archive_pages' | 'slave_compensation_claims' | 'emmigrants_to_liberia' | 'liberation_census_rolls' | 'revolutionary_soldiers' | 'aa_revolutionary_soldiers' | 'free_black_heads_of_household' | 'enslaved_persons_alabama' | 'enslaved_catholic_kentuky' | 'slave_voyages' | 'ex_slave_pension' | 'colored_deaths' | 'colored_marriages' | 'creek_census' | 'slave_importation_ga' | 'slave_importation_ky' | 'slave_importation_ms' | 'va_personal_chesterfield' | 'va_personal_hanover' | 'va_personal_henrico' | 'register_free_persons_jefferson' | 'register_free_persons_baldwin' | 'register_free_persons_camden' | 'register_free_persons_colombia' | 'register_free_persons_hancock' | 'register_free_persons_lincoln' | 'register_free_persons_lumpkin' | 'register_free_persons_richmond' | 'register_free_persons_thomas' | 'register_free_persons_warren' | 'cherokee_henderson' | 'va_books_chesterfield' | 'va_books_goochland' | 'va_books_henrico' | 'va_books_spotsylvania' | 'slave_merchants_othello' | 'slave_merchants_charlotte' | 'slave_merchants_schooner' | 'coming_soon';
 
 interface SubCollection {
   slug: string;
@@ -97,8 +97,8 @@ const PREDEFINED_COLLECTIONS: Omit<Collection, 'pageCount'>[] = [
     slug: 'revolutionary-soldiers',
     name: 'African-American Revolutionary Soldiers',
     description: 'Revolutionary War service records',
-    tableType: 'revolutionary_soldiers',
-    tableName: 'revolutionary_soldiers'
+    tableType: 'aa_revolutionary_soldiers',
+    tableName: 'aa_revolutionary_soldiers'
   },
   {
     slug: 'bibles-churches',
@@ -765,7 +765,7 @@ const AdminCollectionsPage = () => {
         supabase.from('slave_compensation_claims').select('id', { count: 'exact', head: true }),
         supabase.from('emmigrants_to_liberia').select('id', { count: 'exact', head: true }),
         supabase.from('liberation_census_rolls').select('id', { count: 'exact', head: true }),
-        supabase.from('revolutionary_soldiers').select('id', { count: 'exact', head: true }),
+        supabase.from('aa_revolutionary_soldiers').select('id', { count: 'exact', head: true }),
         supabase.from('free_black_heads_of_household').select('id', { count: 'exact', head: true }),
         supabase.from('enslaved_persons_alabama').select('id', { count: 'exact', head: true }),
         supabase.from('enslaved_catholic_kentuky').select('page', { count: 'exact', head: true }),
@@ -812,7 +812,7 @@ const AdminCollectionsPage = () => {
         'slave_compensation_claims': compensationData.count || 0,
         'emmigrants_to_liberia': emigrantsData.count || 0,
         'liberation_census_rolls': censusData.count || 0,
-        'revolutionary_soldiers': revolutionaryData.count || 0,
+        'aa_revolutionary_soldiers': revolutionaryData.count || 0,
         'free_black_heads_of_household': freeBlackData.count || 0,
         'enslaved_persons_alabama': alabamaData.count || 0,
         'enslaved_catholic_kentuky': kentuckyData.count || 0,
