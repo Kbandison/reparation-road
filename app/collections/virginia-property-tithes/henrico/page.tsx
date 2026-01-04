@@ -9,6 +9,8 @@ import { BookmarkButton } from "@/components/ui/BookmarkButton";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, X, ZoomIn, ScrollText, Loader2 } from "lucide-react";
+import { GridSkeleton } from "@/components/ui/GridSkeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 interface RegisterPage {
   id: string;
@@ -320,9 +322,28 @@ const VirginiaPersonalPropertyHenricoPage = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-center items-center h-64">
-          <Loader2 className="w-8 h-8 animate-spin text-brand-green" />
+      <div className="min-h-screen bg-brand-beige">
+        <div className="bg-gradient-to-r from-brand-green to-brand-darkgreen text-white py-16">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto text-center">
+              <ScrollText className="w-16 h-16 mx-auto mb-4" />
+              <h1 className="text-4xl md:text-5xl font-bold mb-4">Henrico County Property Tithes</h1>
+              <p className="text-lg text-white/90">Property and tithe records from Henrico County, Virginia.</p>
+            </div>
+          </div>
+        </div>
+        <div className="container mx-auto px-4 py-8">
+          <div className="mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+            <div className="h-4 bg-gray-200 rounded animate-pulse w-48"></div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <GridSkeleton count={20} />
+          </div>
         </div>
       </div>
     );
@@ -381,9 +402,16 @@ const VirginiaPersonalPropertyHenricoPage = () => {
         </div>
 
         {filteredPages.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-xl text-gray-600">No pages found matching your search.</p>
-          </div>
+          <EmptyState
+            type="no-results"
+            title="No Pages Found"
+            description="No pages match your current search or filter criteria. Try adjusting your search terms or book filter."
+            actionLabel="Clear Filters"
+            onAction={() => {
+              setSearchTerm("");
+              setBookFilter(null);
+            }}
+          />
         ) : (
           <>
             {/* Grid of Pages */}

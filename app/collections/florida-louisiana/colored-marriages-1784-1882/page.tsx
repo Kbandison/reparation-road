@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { BookmarkButton } from "@/components/ui/BookmarkButton";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { ChevronLeft, ChevronRight, X, ZoomIn, Heart } from "lucide-react";
+import { GridSkeleton } from "@/components/ui/GridSkeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 interface ColoredMarriageRecord {
   id: string;
@@ -340,9 +342,34 @@ const ColoredMarriagesPage = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-center items-center h-64">
-          <p className="text-xl">Loading Colored Marriages records...</p>
+      <div className="min-h-screen bg-brand-beige">
+        {/* Hero Section */}
+        <div className="bg-gradient-to-r from-brand-green to-brand-darkgreen text-white py-16">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto text-center">
+              <Heart className="w-16 h-16 mx-auto mb-4" />
+              <h1 className="text-4xl md:text-5xl font-bold mb-4">
+                Colored Marriages (1784-1882)
+              </h1>
+              <p className="text-lg text-white/90">
+                Marriage records of people of color from Florida and Louisiana spanning 1784 to 1882.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="container mx-auto px-4 py-8">
+          <div className="mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+            <div className="h-4 bg-gray-200 rounded animate-pulse w-48"></div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <GridSkeleton count={20} />
+          </div>
         </div>
       </div>
     );
@@ -417,28 +444,27 @@ const ColoredMarriagesPage = () => {
         </div>
 
         {filteredRecords.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-xl text-gray-600">No records found matching your criteria.</p>
-          </div>
+          <EmptyState
+            type="no-results"
+            title="No Records Found"
+            description="No marriage records match your current search or filter criteria. Try adjusting your search terms or filters."
+            actionLabel="Clear All Filters"
+            onAction={() => {
+              setSearchTerm("");
+              setTranscriptionFilter(null);
+            }}
+          />
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {currentPageData.map((record) => (
                 <div
                   key={record.id}
                   onClick={() => handleRecordClick(record)}
-                  className={`bg-white rounded-lg shadow-md hover:shadow-lg transition-all cursor-pointer border relative ${
+                  className={`bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-xl transition-shadow group ${
                     clickedRecordId === record.id ? 'ring-2 ring-brand-green scale-95' : ''
                   }`}
                 >
-                  {/* Bookmark Button */}
-                  <div
-                    className="absolute top-3 right-3 z-10 bg-white rounded-full p-2 shadow-md"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <BookmarkButton pageId={record.id} size={18} />
-                  </div>
-
                   {/* Loading Overlay when clicked */}
                   {clickedRecordId === record.id && (
                     <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-20 rounded-lg">
@@ -447,29 +473,28 @@ const ColoredMarriagesPage = () => {
                   )}
 
                   {record.image_url && (
-                    <div className="h-48 overflow-hidden rounded-t-lg relative bg-gray-100">
+                    <div className="relative h-40 bg-gray-100">
                       <Image
                         src={record.image_url}
                         alt={`Page ${record.page_number}`}
                         fill
-                        className="object-cover"
+                        className="object-cover group-hover:scale-105 transition-transform"
+                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+                        unoptimized
                         loading="lazy"
-                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                        placeholder="blur"
-                        blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2VlZSIvPjwvc3ZnPg=="
                       />
+                      <div
+                        className="absolute top-3 right-3 z-10 bg-white rounded-full p-2 shadow-md"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <BookmarkButton pageId={record.id} size={18} />
+                      </div>
                     </div>
                   )}
-                  <div className="p-4">
-                    <h3 className="font-semibold text-brand-brown mb-2">
+                  <div className="p-3">
+                    <p className="font-semibold text-sm text-brand-brown">
                       Page {record.page_number}
-                    </h3>
-                    <div className="text-sm text-gray-600 space-y-1">
-                      <p className="flex items-center gap-2">
-                        <span className={`w-2 h-2 rounded-full ${record.has_transcription ? 'bg-green-500' : 'bg-gray-400'}`}></span>
-                        {record.has_transcription ? 'Has Transcription' : 'No Transcription'}
-                      </p>
-                    </div>
+                    </p>
                   </div>
                 </div>
               ))}

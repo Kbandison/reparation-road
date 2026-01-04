@@ -9,6 +9,8 @@ import { useRouter } from "next/navigation";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { SignupForm } from "@/components/auth/SignupForm";
 import { Search, Ship, X, Settings, ChevronDown, ChevronUp } from "lucide-react";
+import { TableSkeleton } from "@/components/ui/GridSkeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 const UpgradePrompt = () => {
   const router = useRouter();
@@ -246,10 +248,28 @@ const SlaveVoyagesPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-brand-beige flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-brand-green border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-xl text-brand-brown">Loading slave voyages database...</p>
+      <div className="min-h-screen bg-brand-beige">
+        {/* Hero Section */}
+        <div className="bg-gradient-to-r from-brand-green to-brand-darkgreen text-white py-16">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto text-center">
+              <Ship className="w-16 h-16 mx-auto mb-4" />
+              <h1 className="text-4xl md:text-5xl font-bold mb-4">
+                Slave Voyages Database
+              </h1>
+              <p className="text-lg text-white/90">
+                Comprehensive database of transatlantic slave trade voyages, including ship names, routes, and passenger information from historical records
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="container mx-auto px-4 py-8">
+          <div className="mb-8">
+            <div className="h-10 bg-gray-200 rounded animate-pulse w-full max-w-md mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded animate-pulse w-48"></div>
+          </div>
+          <TableSkeleton rows={15} columns={5} />
         </div>
       </div>
     );
@@ -349,16 +369,20 @@ const SlaveVoyagesPage = () => {
         </div>
 
         {filteredVoyages.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-xl text-gray-600">No voyages found matching your search.</p>
-          </div>
+          <EmptyState
+            type="no-results"
+            title="No Voyages Found"
+            description="No voyages match your current search criteria. Try adjusting your search terms or column filters."
+            actionLabel="Clear Search"
+            onAction={() => setSearchTerm("")}
+          />
         ) : (
           <>
             {/* Voyages Table */}
             <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
                 <table className="w-full">
-                  <thead className="bg-brand-green text-white">
+                  <thead className="bg-brand-green text-white sticky top-0 z-10 shadow-sm">
                     <tr>
                       {ALL_COLUMNS.filter(col => visibleColumns.includes(col.key)).map(column => (
                         <th key={column.key} className="px-4 py-3 text-left text-sm font-semibold whitespace-nowrap">
@@ -368,14 +392,16 @@ const SlaveVoyagesPage = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {currentVoyages.map((voyage) => (
+                    {currentVoyages.map((voyage, idx) => (
                       <tr
                         key={voyage.id}
                         onClick={() => setSelectedVoyage(voyage)}
-                        className="hover:bg-gray-50 cursor-pointer transition-colors"
+                        className={`hover:bg-brand-tan/20 cursor-pointer transition-colors ${
+                          idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                        }`}
                       >
                         {ALL_COLUMNS.filter(col => visibleColumns.includes(col.key)).map(column => (
-                          <td key={column.key} className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+                          <td key={column.key} className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
                             {voyage[column.key] || '-'}
                           </td>
                         ))}

@@ -31,7 +31,16 @@
       "Bash(python3:*)",
       "Bash(ls:*)",
       "Bash(rm:*)",
-      "Bash(TURBOPACK=0 npx next build:*)"
+      "Bash(TURBOPACK=0 npx next build:*)",
+      "Bash(timeout 30 tail:*)",
+      "Bash(node scripts/list-storage-buckets.js:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(while read file)",
+      "Bash(do if grep -q 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5' $file)",
+      "Bash(then echo 'CHESTERFIELD: $file')",
+      "Bash(fi)",
+      "Bash(then echo $file)"
     ],
     "deny": [],
     "ask": []

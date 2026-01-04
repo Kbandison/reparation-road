@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { BookmarkButton } from "@/components/ui/BookmarkButton";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { ChevronLeft, ChevronRight, X, ZoomIn, FileText } from "lucide-react";
+import { GridSkeleton } from "@/components/ui/GridSkeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 interface ExSlavePensionLetter {
   id: string;
@@ -449,12 +451,35 @@ const ExSlavePensionPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-brand-beige flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-brand-green border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-xl text-brand-brown">
-            Loading Ex-Slave Pension letters...
-          </p>
+      <div className="min-h-screen bg-brand-beige">
+        {/* Hero Section */}
+        <div className="bg-gradient-to-r from-brand-green to-brand-darkgreen text-white py-16">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto text-center">
+              <FileText className="w-16 h-16 mx-auto mb-4" />
+              <h1 className="text-4xl md:text-5xl font-bold mb-4">
+                Case Files Concerning the Formerly Enslaved
+              </h1>
+              <p className="text-lg text-white/90">
+                Individual case files related to pension claims by formerly enslaved persons.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="container mx-auto px-4 py-8">
+          <div className="mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+            <div className="h-4 bg-gray-200 rounded animate-pulse w-48"></div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <GridSkeleton count={20} />
+          </div>
         </div>
       </div>
     );
@@ -555,15 +580,21 @@ const ExSlavePensionPage = () => {
 
       {filteredLetters.length === 0 ? (
         <div className="container mx-auto px-4">
-          <div className="text-center py-12">
-            <p className="text-xl text-gray-600">
-              No letters found matching your criteria.
-            </p>
-          </div>
+          <EmptyState
+            type="no-results"
+            title="No Letters Found"
+            description="No letters match your current search or filter criteria. Try adjusting your search terms, book number, or state filter."
+            actionLabel="Clear All Filters"
+            onAction={() => {
+              setSearchTerm("");
+              setBookFilter(null);
+              setStateFilter(null);
+            }}
+          />
         </div>
       ) : (
         <div className="container mx-auto px-4 pb-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {currentPageData.map((letter) => {
               const imagePath =
                 letter.ex_slave_pension_images?.[0]?.public_url ||
@@ -575,20 +606,12 @@ const ExSlavePensionPage = () => {
                 <div
                   key={letter.id}
                   onClick={() => handleLetterClick(letter)}
-                  className={`bg-white rounded-lg shadow-md hover:shadow-lg transition-all cursor-pointer border relative ${
+                  className={`bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-xl transition-shadow group ${
                     clickedLetterId === letter.id
                       ? "ring-2 ring-brand-green scale-95"
                       : ""
                   }`}
                 >
-                  {/* Bookmark Button */}
-                  <div
-                    className="absolute top-3 right-3 z-10 bg-white rounded-full p-2 shadow-md"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <BookmarkButton pageId={letter.id} size={18} />
-                  </div>
-
                   {/* Loading Overlay when clicked */}
                   {clickedLetterId === letter.id && (
                     <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-20 rounded-lg">
@@ -597,37 +620,34 @@ const ExSlavePensionPage = () => {
                   )}
 
                   {imagePath && (
-                    <div className="h-48 overflow-hidden rounded-t-lg relative bg-gray-100">
+                    <div className="relative h-40 bg-gray-100">
                       <Image
                         src={imagePath}
                         alt={letter.book_title}
                         fill
-                        className="object-cover"
+                        className="object-cover group-hover:scale-105 transition-transform"
+                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+                        unoptimized
                         loading="lazy"
-                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                        placeholder="blur"
-                        blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2VlZSIvPjwvc3ZnPg=="
                       />
+                      <div
+                        className="absolute top-3 right-3 z-10 bg-white rounded-full p-2 shadow-md"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <BookmarkButton pageId={letter.id} size={18} />
+                      </div>
                     </div>
                   )}
-                  <div className="p-4">
-                    <h3 className="font-semibold text-brand-brown mb-2">
+                  <div className="p-3">
+                    <p className="font-semibold text-sm text-brand-brown">
                       {letter.book_title}
-                    </h3>
-                    <div className="text-sm text-gray-600 space-y-1">
-                      {letter.book_number && (
-                        <p className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-brand-green"></span>
-                          Book {letter.book_number}
-                          {letter.page_no && `, Page ${letter.page_no}`}
-                        </p>
-                      )}
-                      {letter.letter_date && (
-                        <p className="text-xs text-gray-500">
-                          {new Date(letter.letter_date).toLocaleDateString()}
-                        </p>
-                      )}
-                    </div>
+                    </p>
+                    {letter.book_number && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Book {letter.book_number}
+                        {letter.page_no && `, Page ${letter.page_no}`}
+                      </p>
+                    )}
                   </div>
                 </div>
               );
