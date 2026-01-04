@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { BookmarkButton } from "@/components/ui/BookmarkButton";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useSearchParams } from "next/navigation";
-import { ChevronLeft, ChevronRight, X, ZoomIn, ScrollText, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, ScrollText, Loader2 } from "lucide-react";
 
 interface RegisterPage {
   id: string;
@@ -29,7 +29,7 @@ interface PageModalProps {
 
 const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose, allPages, onNavigate }) {
   const [imageLoaded, setImageLoaded] = React.useState(false);
-  const [isImageZoomed, setIsImageZoomed] = React.useState(false);
+  const [imageZoom, setImageZoom] = React.useState(1);
   const [ocrText, setOcrText] = React.useState<string | null>(null);
   const [loadingOcr, setLoadingOcr] = React.useState(false);
 
@@ -79,6 +79,10 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
     }
   }, [hasNext, currentIndex, allPages, onNavigate]);
 
+  const handleZoomIn = () => setImageZoom((prev) => Math.min(prev + 0.25, 3));
+  const handleZoomOut = () => setImageZoom((prev) => Math.max(prev - 0.25, 0.5));
+  const handleResetZoom = () => setImageZoom(1);
+
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft') {
@@ -88,71 +92,74 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
         e.preventDefault();
         handleNextPage();
       } else if (e.key === 'Escape') {
-        if (isImageZoomed) {
-          setIsImageZoomed(false);
-        } else {
-          onClose();
-        }
+        onClose();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handlePrevPage, handleNextPage, isImageZoomed, onClose]);
+  }, [handlePrevPage, handleNextPage, onClose]);
 
   if (!page) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <Button
-              onClick={handlePrevPage}
-              disabled={!hasPrev}
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-1"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              Prev
-            </Button>
-            <div>
-              <h3 className="text-xl font-bold text-brand-brown">
-                Book {page.book_no}, Page {page.page_no}
-              </h3>
-              <p className="text-sm text-gray-500">Page {currentIndex + 1} of {allPages.length}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button
-              onClick={handleNextPage}
-              disabled={!hasNext}
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-1"
-            >
-              Next
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-            <BookmarkButton pageId={page.id} size={24} showLabel={true} />
-            <Button onClick={onClose} variant="outline" size="sm">
-              Close
-            </Button>
-          </div>
+      <div className="bg-white rounded-lg shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-brand-brown">
+            Record Details - Book {page.book_no}, Page {page.page_no}
+          </h2>
+          <button
+            onClick={() => {
+              onClose();
+              handleResetZoom();
+            }}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X className="w-6 h-6" />
+          </button>
         </div>
 
         <div className="p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {page.image_path && (
-              <div className="space-y-2">
-                <h4 className="font-semibold text-brand-brown flex items-center gap-2">
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Document Image */}
+            <div>
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-brand-brown">
                   Document Image
-                  <span className="text-xs text-gray-500 font-normal">(Click to expand)</span>
-                </h4>
+                </h3>
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={handleZoomOut}
+                    size="sm"
+                    variant="outline"
+                    disabled={imageZoom <= 0.5}
+                  >
+                    <ZoomOut className="w-4 h-4" />
+                  </Button>
+                  <span className="text-sm text-gray-600 min-w-[60px] text-center">
+                    {Math.round(imageZoom * 100)}%
+                  </span>
+                  <Button
+                    onClick={handleZoomIn}
+                    size="sm"
+                    variant="outline"
+                    disabled={imageZoom >= 3}
+                  >
+                    <ZoomIn className="w-4 h-4" />
+                  </Button>
+                  <Button onClick={handleResetZoom} size="sm" variant="outline">
+                    Reset
+                  </Button>
+                </div>
+              </div>
+              <div className="border border-gray-200 rounded-lg overflow-auto max-h-[600px] bg-gray-50">
                 <div
-                  className="border rounded-lg overflow-hidden relative h-96 bg-gray-100 cursor-zoom-in group"
-                  onClick={() => setIsImageZoomed(true)}
+                  style={{
+                    transform: `scale(${imageZoom})`,
+                    transformOrigin: "top left",
+                    transition: "transform 0.2s",
+                  }}
                 >
                   {!imageLoaded && (
                     <div className="absolute inset-0 flex items-center justify-center">
@@ -162,109 +169,54 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
                   <Image
                     src={page.image_path}
                     alt={`Book ${page.book_no}, Page ${page.page_no}`}
-                    fill
-                    className={`object-contain transition-opacity ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
-                    priority
-                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    width={800}
+                    height={1000}
+                    className="w-full"
                     onLoad={() => setImageLoaded(true)}
                   />
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all flex items-center justify-center">
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white rounded-full p-3 shadow-lg">
-                      <ZoomIn className="w-6 h-6 text-gray-700" />
+                </div>
+              </div>
+            </div>
+
+            {/* Record Information */}
+            <div>
+              <h3 className="text-lg font-semibold text-brand-brown mb-4">
+                Record Information
+              </h3>
+              <div className="space-y-4">
+                <div className="border-b border-gray-200 pb-3">
+                  <p className="text-sm text-gray-600 mb-1">Book Number</p>
+                  <p className="text-lg font-medium text-brand-brown">
+                    {page.book_no}
+                  </p>
+                </div>
+
+                <div className="border-b border-gray-200 pb-3">
+                  <p className="text-sm text-gray-600 mb-1">Page Number</p>
+                  <p className="text-base text-gray-900">{page.page_no}</p>
+                </div>
+
+                {loadingOcr ? (
+                  <div className="border-b border-gray-200 pb-3">
+                    <p className="text-sm text-gray-600 mb-1">Transcription</p>
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin text-brand-green" />
+                      <p className="text-sm text-gray-500">Loading...</p>
                     </div>
                   </div>
-                </div>
-              </div>
-            )}
-
-            <div className="space-y-4">
-              <div>
-                <h4 className="font-semibold text-brand-brown mb-2">Document Details</h4>
-                <div className="space-y-2 text-sm">
-                  <p><span className="font-medium">Book:</span> {page.book_no}</p>
-                  <p><span className="font-medium">Page:</span> {page.page_no}</p>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-semibold text-brand-brown mb-2">Transcription</h4>
-                {loadingOcr ? (
-                  <div className="bg-gray-50 p-4 rounded-lg h-32 flex items-center justify-center">
-                    <Loader2 className="w-5 h-5 animate-spin text-brand-green mr-2" />
-                    <p className="text-sm text-gray-500">Loading transcription...</p>
-                  </div>
                 ) : ocrText ? (
-                  <div className="bg-gray-50 p-4 rounded-lg max-h-64 overflow-y-auto">
-                    <p className="text-sm whitespace-pre-wrap">{ocrText}</p>
+                  <div className="border-b border-gray-200 pb-3">
+                    <p className="text-sm text-gray-600 mb-1">Transcription</p>
+                    <div className="bg-gray-50 p-3 rounded-md max-h-64 overflow-y-auto">
+                      <p className="text-sm whitespace-pre-wrap">{ocrText}</p>
+                    </div>
                   </div>
-                ) : (
-                  <div className="bg-gray-50 p-4 rounded-lg h-32 flex items-center justify-center">
-                    <p className="text-sm text-gray-500">No transcription available</p>
-                  </div>
-                )}
+                ) : null}
               </div>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Zoomed Image Overlay */}
-      {isImageZoomed && page.image_path && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-90 z-[60] flex items-center justify-center"
-          onClick={() => setIsImageZoomed(false)}
-        >
-          <button
-            onClick={() => setIsImageZoomed(false)}
-            className="absolute top-4 right-4 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors z-10"
-          >
-            <X className="w-6 h-6 text-gray-700" />
-          </button>
-
-          {hasPrev && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePrevPage();
-              }}
-              className="absolute left-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-3 shadow-lg hover:bg-gray-100 transition-colors z-10"
-            >
-              <ChevronLeft className="w-8 h-8 text-gray-700" />
-            </button>
-          )}
-          {hasNext && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleNextPage();
-              }}
-              className="absolute right-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-3 shadow-lg hover:bg-gray-100 transition-colors z-10"
-            >
-              <ChevronRight className="w-8 h-8 text-gray-700" />
-            </button>
-          )}
-
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white px-4 py-2 rounded-full shadow-lg z-10">
-            <p className="text-sm font-medium text-gray-700">
-              Page {currentIndex + 1} of {allPages.length}
-            </p>
-          </div>
-
-          <div
-            className="relative w-full h-full flex items-center justify-center"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Image
-              src={page.image_path}
-              alt={`Book ${page.book_no}, Page ${page.page_no}`}
-              fill
-              className="object-contain"
-              priority
-              sizes="100vw"
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 });
@@ -318,7 +270,7 @@ const VirginiaOrderBooksGoochlandPage = () => {
             .range(from, from + batchSize - 1);
 
           if (error) {
-            console.error("Error fetching Virginia Order Books (Goochland):", error);
+            console.error("Error fetching Virginia Order Books (Chesterfield):", error);
             break;
           }
 
@@ -443,99 +395,64 @@ const VirginiaOrderBooksGoochlandPage = () => {
           </div>
         ) : (
           <>
-            {/* Grid of Pages */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {currentPageData.map((page) => (
-                <div
-                  key={page.id}
-                  onClick={() => handlePageClick(page)}
-                  className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-xl transition-shadow group"
-                >
-                  <div className="relative h-40 bg-gray-100">
-                    {page.image_path ? (
-                      <Image
-                        src={page.image_path}
-                        alt={`Book ${page.book_no}, Page ${page.page_no}`}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform"
-                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-                        unoptimized
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center h-full">
-                        <ScrollText className="w-8 h-8 text-gray-400" />
-                      </div>
-                    )}
-                    <div
-                      className="absolute top-3 right-3 z-10 bg-white rounded-full p-2 shadow-md"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <BookmarkButton pageId={page.id} size={18} />
-                    </div>
-                  </div>
-                  <div className="p-3">
-                    <p className="font-semibold text-sm text-brand-brown">
-                      Book {page.book_no}, Page {page.page_no}
-                    </p>
-                    {page.ocr_text && (
-                      <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                        {page.ocr_text.substring(0, 100)}...
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ))}
+            {/* Table of Pages */}
+            <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-brand-green text-white">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-sm font-semibold">Book</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold">Page</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {currentPageData.map((page) => (
+                      <tr
+                        key={page.id}
+                        onClick={() => handlePageClick(page)}
+                        className="hover:bg-brand-tan/30 cursor-pointer transition-colors"
+                      >
+                        <td className="px-4 py-3 text-sm text-gray-900">
+                          {page.book_no}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-900">
+                          {page.page_no}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex justify-center items-center gap-4 mt-8">
+              <div className="flex justify-center items-center gap-4 mb-8">
                 <Button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
                   variant="outline"
                 >
+                  <ChevronLeft className="w-4 h-4" />
                   Previous
                 </Button>
 
-                <div className="flex gap-2">
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    const pageNum = currentPage <= 3
-                      ? i + 1
-                      : currentPage >= totalPages - 2
-                      ? totalPages - 4 + i
-                      : currentPage - 2 + i;
-
-                    if (pageNum < 1 || pageNum > totalPages) return null;
-
-                    return (
-                      <Button
-                        key={pageNum}
-                        onClick={() => setCurrentPage(pageNum)}
-                        variant={currentPage === pageNum ? "default" : "outline"}
-                        className="w-10 h-10"
-                      >
-                        {pageNum}
-                      </Button>
-                    );
-                  })}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">
+                    Page {currentPage} of {totalPages}
+                  </span>
                 </div>
 
                 <Button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
                   variant="outline"
                 >
                   Next
+                  <ChevronRight className="w-4 h-4" />
                 </Button>
               </div>
             )}
-
-            <div className="text-center text-sm text-gray-600 mt-4">
-              Page {currentPage} of {totalPages}
-              ({startIndex + 1}-{Math.min(endIndex, filteredPages.length)} of {filteredPages.length} pages)
-            </div>
           </>
         )}
 

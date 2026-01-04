@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { BookmarkButton } from "@/components/ui/BookmarkButton";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useSearchParams } from "next/navigation";
-import { ChevronLeft, ChevronRight, X, ZoomIn, ScrollText, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, ScrollText, Loader2 } from "lucide-react";
 
 interface RegisterPage {
   id: string;
@@ -29,7 +29,7 @@ interface PageModalProps {
 
 const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose, allPages, onNavigate }) {
   const [imageLoaded, setImageLoaded] = React.useState(false);
-  const [isImageZoomed, setIsImageZoomed] = React.useState(false);
+  const [imageZoom, setImageZoom] = React.useState(1);
   const [ocrText, setOcrText] = React.useState<string | null>(null);
   const [loadingOcr, setLoadingOcr] = React.useState(false);
 
@@ -68,99 +68,155 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
   const hasNext = currentIndex < allPages.length - 1;
 
   const handlePrevPage = React.useCallback(() => {
-    if (hasPrev) onNavigate(allPages[currentIndex - 1]);
+    if (hasPrev) {
+      onNavigate(allPages[currentIndex - 1]);
+    }
   }, [hasPrev, currentIndex, allPages, onNavigate]);
 
   const handleNextPage = React.useCallback(() => {
-    if (hasNext) onNavigate(allPages[currentIndex + 1]);
+    if (hasNext) {
+      onNavigate(allPages[currentIndex + 1]);
+    }
   }, [hasNext, currentIndex, allPages, onNavigate]);
+
+  const handleZoomIn = () => setImageZoom((prev) => Math.min(prev + 0.25, 3));
+  const handleZoomOut = () => setImageZoom((prev) => Math.max(prev - 0.25, 0.5));
+  const handleResetZoom = () => setImageZoom(1);
 
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') { e.preventDefault(); handlePrevPage(); }
-      else if (e.key === 'ArrowRight') { e.preventDefault(); handleNextPage(); }
-      else if (e.key === 'Escape') { isImageZoomed ? setIsImageZoomed(false) : onClose(); }
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        handlePrevPage();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        handleNextPage();
+      } else if (e.key === 'Escape') {
+        onClose();
+      }
     };
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handlePrevPage, handleNextPage, isImageZoomed, onClose]);
+  }, [handlePrevPage, handleNextPage, onClose]);
 
   if (!page) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <Button onClick={handlePrevPage} disabled={!hasPrev} variant="outline" size="sm" className="flex items-center gap-1">
-              <ChevronLeft className="w-4 h-4" /> Prev
-            </Button>
-            <div>
-              <h3 className="text-xl font-bold text-brand-brown">Book {page.book_no}, Page {page.page_no}</h3>
-              <p className="text-sm text-gray-500">Page {currentIndex + 1} of {allPages.length}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button onClick={handleNextPage} disabled={!hasNext} variant="outline" size="sm" className="flex items-center gap-1">
-              Next <ChevronRight className="w-4 h-4" />
-            </Button>
-            <Button onClick={onClose} variant="outline" size="sm">Close</Button>
-          </div>
+      <div className="bg-white rounded-lg shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-brand-brown">
+            Record Details - Book {page.book_no}, Page {page.page_no}
+          </h2>
+          <button
+            onClick={() => {
+              onClose();
+              handleResetZoom();
+            }}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X className="w-6 h-6" />
+          </button>
         </div>
+
         <div className="p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {page.image_path && (
-              <div className="space-y-2">
-                <h4 className="font-semibold text-brand-brown flex items-center gap-2">
-                  Document Image <span className="text-xs text-gray-500 font-normal">(Click to expand)</span>
-                </h4>
-                <div className="border rounded-lg overflow-hidden relative h-96 bg-gray-100 cursor-zoom-in group" onClick={() => setIsImageZoomed(true)}>
-                  {!imageLoaded && <div className="absolute inset-0 flex items-center justify-center"><div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-brand-green"></div></div>}
-                  <Image src={page.image_path} alt={`Book ${page.book_no}, Page ${page.page_no}`} fill className={`object-contain transition-opacity ${imageLoaded ? 'opacity-100' : 'opacity-0'}`} priority sizes="(max-width: 1024px) 100vw, 50vw" onLoad={() => setImageLoaded(true)} />
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all flex items-center justify-center">
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white rounded-full p-3 shadow-lg"><ZoomIn className="w-6 h-6 text-gray-700" /></div>
-                  </div>
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Document Image */}
+            <div>
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-brand-brown">
+                  Document Image
+                </h3>
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={handleZoomOut}
+                    size="sm"
+                    variant="outline"
+                    disabled={imageZoom <= 0.5}
+                  >
+                    <ZoomOut className="w-4 h-4" />
+                  </Button>
+                  <span className="text-sm text-gray-600 min-w-[60px] text-center">
+                    {Math.round(imageZoom * 100)}%
+                  </span>
+                  <Button
+                    onClick={handleZoomIn}
+                    size="sm"
+                    variant="outline"
+                    disabled={imageZoom >= 3}
+                  >
+                    <ZoomIn className="w-4 h-4" />
+                  </Button>
+                  <Button onClick={handleResetZoom} size="sm" variant="outline">
+                    Reset
+                  </Button>
                 </div>
               </div>
-            )}
-            <div className="space-y-4">
-              <div>
-                <h4 className="font-semibold text-brand-brown mb-2">Document Details</h4>
-                <div className="space-y-2 text-sm">
-                  <p><span className="font-medium">Book:</span> {page.book_no}</p>
-                  <p><span className="font-medium">Page:</span> {page.page_no}</p>
+              <div className="border border-gray-200 rounded-lg overflow-auto max-h-[600px] bg-gray-50">
+                <div
+                  style={{
+                    transform: `scale(${imageZoom})`,
+                    transformOrigin: "top left",
+                    transition: "transform 0.2s",
+                  }}
+                >
+                  {!imageLoaded && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-brand-green"></div>
+                    </div>
+                  )}
+                  <Image
+                    src={page.image_path}
+                    alt={`Book ${page.book_no}, Page ${page.page_no}`}
+                    width={800}
+                    height={1000}
+                    className="w-full"
+                    onLoad={() => setImageLoaded(true)}
+                  />
                 </div>
               </div>
-              <div>
-                <h4 className="font-semibold text-brand-brown mb-2">Transcription</h4>
+            </div>
+
+            {/* Record Information */}
+            <div>
+              <h3 className="text-lg font-semibold text-brand-brown mb-4">
+                Record Information
+              </h3>
+              <div className="space-y-4">
+                <div className="border-b border-gray-200 pb-3">
+                  <p className="text-sm text-gray-600 mb-1">Book Number</p>
+                  <p className="text-lg font-medium text-brand-brown">
+                    {page.book_no}
+                  </p>
+                </div>
+
+                <div className="border-b border-gray-200 pb-3">
+                  <p className="text-sm text-gray-600 mb-1">Page Number</p>
+                  <p className="text-base text-gray-900">{page.page_no}</p>
+                </div>
+
                 {loadingOcr ? (
-                  <div className="bg-gray-50 p-4 rounded-lg h-32 flex items-center justify-center">
-                    <Loader2 className="w-5 h-5 animate-spin text-brand-green mr-2" />
-                    <p className="text-sm text-gray-500">Loading transcription...</p>
+                  <div className="border-b border-gray-200 pb-3">
+                    <p className="text-sm text-gray-600 mb-1">Transcription</p>
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin text-brand-green" />
+                      <p className="text-sm text-gray-500">Loading...</p>
+                    </div>
                   </div>
                 ) : ocrText ? (
-                  <div className="bg-gray-50 p-4 rounded-lg max-h-64 overflow-y-auto">
-                    <p className="text-sm whitespace-pre-wrap">{ocrText}</p>
+                  <div className="border-b border-gray-200 pb-3">
+                    <p className="text-sm text-gray-600 mb-1">Transcription</p>
+                    <div className="bg-gray-50 p-3 rounded-md max-h-64 overflow-y-auto">
+                      <p className="text-sm whitespace-pre-wrap">{ocrText}</p>
+                    </div>
                   </div>
-                ) : (
-                  <div className="bg-gray-50 p-4 rounded-lg h-32 flex items-center justify-center">
-                    <p className="text-sm text-gray-500">No transcription available</p>
-                  </div>
-                )}
+                ) : null}
               </div>
             </div>
           </div>
         </div>
       </div>
-      {isImageZoomed && page.image_path && (
-        <div className="fixed inset-0 bg-black bg-opacity-90 z-[60] flex items-center justify-center" onClick={() => setIsImageZoomed(false)}>
-          <button onClick={() => setIsImageZoomed(false)} className="absolute top-4 right-4 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors z-10"><X className="w-6 h-6 text-gray-700" /></button>
-          {hasPrev && <button onClick={(e) => { e.stopPropagation(); handlePrevPage(); }} className="absolute left-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-3 shadow-lg hover:bg-gray-100 transition-colors z-10"><ChevronLeft className="w-8 h-8 text-gray-700" /></button>}
-          {hasNext && <button onClick={(e) => { e.stopPropagation(); handleNextPage(); }} className="absolute right-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-3 shadow-lg hover:bg-gray-100 transition-colors z-10"><ChevronRight className="w-8 h-8 text-gray-700" /></button>}
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white px-4 py-2 rounded-full shadow-lg z-10"><p className="text-sm font-medium text-gray-700">Page {currentIndex + 1} of {allPages.length}</p></div>
-          <div className="relative w-full h-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}><Image src={page.image_path} alt={`Book ${page.book_no}, Page ${page.page_no}`} fill className="object-contain" priority sizes="100vw" /></div>
-        </div>
-      )}
     </div>
   );
 });
@@ -176,16 +232,22 @@ const RegisterFreePersonsCamdenPage = () => {
   const [bookFilter, setBookFilter] = useState<number | null>(null);
   const itemsPerPage = 20;
 
+  // Initialize search from URL params
   useEffect(() => {
     const urlSearch = searchParams.get('search');
-    if (urlSearch) setSearchTerm(urlSearch);
+    if (urlSearch) {
+      setSearchTerm(urlSearch);
+    }
   }, [searchParams]);
 
+  // Open modal for specific record from URL params
   useEffect(() => {
     const recordId = searchParams.get('record');
     if (recordId && pages.length > 0) {
       const record = pages.find(p => p.id === recordId);
-      if (record) setSelectedPage(record);
+      if (record) {
+        setSelectedPage(record);
+      }
     }
   }, [searchParams, pages]);
 
@@ -208,7 +270,7 @@ const RegisterFreePersonsCamdenPage = () => {
             .range(from, from + batchSize - 1);
 
           if (error) {
-            console.error("Error fetching register pages:", error);
+            console.error("Error fetching Virginia Order Books (Chesterfield):", error);
             break;
           }
 
@@ -232,13 +294,24 @@ const RegisterFreePersonsCamdenPage = () => {
         setLoading(false);
       }
     };
+
     fetchPages();
   }, []);
 
   useEffect(() => {
     let filtered = pages;
-    if (searchTerm) filtered = filtered.filter(page => page.book_no.toString().includes(searchTerm) || page.page_no.toString().includes(searchTerm));
-    if (bookFilter !== null) filtered = filtered.filter(page => page.book_no === bookFilter);
+
+    if (searchTerm) {
+      filtered = filtered.filter(page =>
+        page.book_no.toString().includes(searchTerm) ||
+        page.page_no.toString().includes(searchTerm)
+      );
+    }
+
+    if (bookFilter !== null) {
+      filtered = filtered.filter(page => page.book_no === bookFilter);
+    }
+
     setFilteredPages(filtered);
     setCurrentPage(1);
   }, [searchTerm, bookFilter, pages]);
@@ -247,87 +320,165 @@ const RegisterFreePersonsCamdenPage = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentPageData = filteredPages.slice(startIndex, endIndex);
+
   const uniqueBooks = [...new Set(pages.map(p => p.book_no))].sort((a, b) => a - b);
 
-  if (loading) return <div className="container mx-auto px-4 py-8"><div className="flex justify-center items-center h-64"><Loader2 className="w-8 h-8 animate-spin text-brand-green" /></div></div>;
+  const handlePageClick = React.useCallback((page: RegisterPage) => {
+    setSelectedPage(page);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin text-brand-green" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-brand-beige">
+      {/* Hero Section */}
       <div className="bg-gradient-to-r from-brand-green to-brand-darkgreen text-white py-16">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
             <ScrollText className="w-16 h-16 mx-auto mb-4" />
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">Register of Free Persons of Color, Camden</h1>
-            <p className="text-lg text-white/90">Historical records documenting free persons of color in Camden County, Georgia.</p>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+              Register of Free Persons - Camden County
+            </h1>
+            <p className="text-lg text-white/90">
+              Records of free persons of color from Camden County, Virginia.
+              Browse historical register pages documenting free persons of color.
+            </p>
           </div>
         </div>
       </div>
+
       <div className="container mx-auto px-4 py-8">
+        {/* Search and Filters */}
         <div className="mb-8 space-y-4">
           <div className="flex flex-col sm:flex-row gap-4 items-center">
-            <Input type="search" placeholder="Search by book or page number..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full max-w-md" />
+            <Input
+              type="search"
+              placeholder="Search by book or page number..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full max-w-md"
+            />
+
             {uniqueBooks.length > 1 && (
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-600">Filter by Book:</span>
-                <select value={bookFilter ?? ''} onChange={(e) => setBookFilter(e.target.value ? Number(e.target.value) : null)} className="border rounded-lg px-3 py-2 text-sm">
+                <select
+                  value={bookFilter ?? ''}
+                  onChange={(e) => setBookFilter(e.target.value ? Number(e.target.value) : null)}
+                  className="border rounded-lg px-3 py-2 text-sm"
+                >
                   <option value="">All Books</option>
-                  {uniqueBooks.map(book => <option key={book} value={book}>Book {book}</option>)}
+                  {uniqueBooks.map(book => (
+                    <option key={book} value={book}>Book {book}</option>
+                  ))}
                 </select>
               </div>
             )}
-            <p className="text-sm text-gray-600">Showing {filteredPages.length} of {pages.length} pages</p>
+
+            <p className="text-sm text-gray-600">
+              Showing {filteredPages.length} of {pages.length} pages
+            </p>
           </div>
         </div>
+
         {filteredPages.length === 0 ? (
-          <div className="text-center py-12"><p className="text-xl text-gray-600">No pages found matching your search.</p></div>
+          <div className="text-center py-12">
+            <p className="text-xl text-gray-600">No pages found matching your search.</p>
+          </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {currentPageData.map((page) => (
-                <div key={page.id} onClick={() => setSelectedPage(page)} className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-xl transition-shadow group">
-                  <div className="relative h-40 bg-gray-100">
-                    {page.image_path ? <Image src={page.image_path} alt={`Book ${page.book_no}, Page ${page.page_no}`} fill className="object-cover group-hover:scale-105 transition-transform" sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw" /> : <div className="flex items-center justify-center h-full"><ScrollText className="w-8 h-8 text-gray-400" /></div>}
-                    <div
-                      className="absolute top-3 right-3 z-10 bg-white rounded-full p-2 shadow-md"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <BookmarkButton pageId={page.id} size={18} />
-                    </div>
-                  </div>
-                  <div className="p-3">
-                    <p className="font-semibold text-sm text-brand-brown">Book {page.book_no}, Page {page.page_no}</p>
-                  </div>
-                </div>
-              ))}
+            {/* Table of Pages */}
+            <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-brand-green text-white">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-sm font-semibold">Book</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold">Page</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {currentPageData.map((page) => (
+                      <tr
+                        key={page.id}
+                        onClick={() => handlePageClick(page)}
+                        className="hover:bg-brand-tan/30 cursor-pointer transition-colors"
+                      >
+                        <td className="px-4 py-3 text-sm text-gray-900">
+                          {page.book_no}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-900">
+                          {page.page_no}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
+
+            {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex justify-center items-center gap-4 mt-8">
-                <Button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1} variant="outline">Previous</Button>
-                <div className="flex gap-2">
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    const pageNum = currentPage <= 3 ? i + 1 : currentPage >= totalPages - 2 ? totalPages - 4 + i : currentPage - 2 + i;
-                    if (pageNum < 1 || pageNum > totalPages) return null;
-                    return <Button key={pageNum} onClick={() => setCurrentPage(pageNum)} variant={currentPage === pageNum ? "default" : "outline"} className="w-10 h-10">{pageNum}</Button>;
-                  })}
+              <div className="flex justify-center items-center gap-4 mb-8">
+                <Button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  variant="outline"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  Previous
+                </Button>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">
+                    Page {currentPage} of {totalPages}
+                  </span>
                 </div>
-                <Button onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages} variant="outline">Next</Button>
+
+                <Button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  variant="outline"
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
               </div>
             )}
-            <div className="text-center text-sm text-gray-600 mt-4">Page {currentPage} of {totalPages} ({startIndex + 1}-{Math.min(endIndex, filteredPages.length)} of {filteredPages.length} pages)</div>
           </>
         )}
-        <PageModal page={selectedPage} onClose={() => setSelectedPage(null)} allPages={filteredPages} onNavigate={(page) => setSelectedPage(page)} />
+
+        <PageModal
+          page={selectedPage}
+          onClose={() => setSelectedPage(null)}
+          allPages={filteredPages}
+          onNavigate={(page) => setSelectedPage(page)}
+        />
       </div>
     </div>
   );
 };
 
-const WrappedPage = () => (
-  <ProtectedRoute requiresPaid={true}>
-    <Suspense fallback={<div className="min-h-screen bg-brand-beige flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-brand-green" /></div>}>
-      <RegisterFreePersonsCamdenPage />
-    </Suspense>
-  </ProtectedRoute>
-);
+const WrappedRegisterFreePersonsCamdenPage = () => {
+  return (
+    <ProtectedRoute requiresPaid={true}>
+      <Suspense fallback={
+        <div className="min-h-screen bg-brand-beige flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-brand-green" />
+        </div>
+      }>
+        <RegisterFreePersonsCamdenPage />
+      </Suspense>
+    </ProtectedRoute>
+  );
+};
 
-export default WrappedPage;
+export default WrappedRegisterFreePersonsCamdenPage;
