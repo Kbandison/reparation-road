@@ -42,9 +42,37 @@ interface PageModalProps {
 const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose, allPages, onNavigate }) {
   const [imageLoaded, setImageLoaded] = React.useState(false);
   const [isImageZoomed, setIsImageZoomed] = React.useState(false);
+  const [ocrText, setOcrText] = React.useState<string | null>(null);
+  const [loadingOcr, setLoadingOcr] = React.useState(false);
 
   React.useEffect(() => {
     setImageLoaded(false);
+  }, [page]);
+
+  // Fetch OCR text when page changes
+  React.useEffect(() => {
+    const fetchOcrText = async () => {
+      if (!page) return;
+
+      setLoadingOcr(true);
+      try {
+        const { data, error } = await supabase
+          .from("archive_pages")
+          .select("ocr_text")
+          .eq("id", page.id)
+          .single();
+
+        if (data && !error) {
+          setOcrText(data.ocr_text || null);
+        }
+      } catch (error) {
+        console.error("Error fetching OCR text:", error);
+      } finally {
+        setLoadingOcr(false);
+      }
+    };
+
+    fetchOcrText();
   }, [page]);
 
   // Get current page index and navigation helpers
@@ -177,23 +205,25 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
                 </div>
               </div>
 
-              {page.ocr_text ? (
-                <div>
-                  <h4 className="font-semibold text-brand-brown mb-2">Transcription</h4>
+              <div>
+                <h4 className="font-semibold text-brand-brown mb-2">Transcription</h4>
+                {loadingOcr ? (
+                  <div className="bg-gray-50 p-3 rounded-md text-sm h-32 flex items-center justify-center">
+                    <Loader2 className="w-5 h-5 animate-spin text-brand-green mr-2" />
+                    <p className="text-gray-500">Loading transcription...</p>
+                  </div>
+                ) : ocrText ? (
                   <div className="bg-gray-50 p-3 rounded-md text-sm max-h-64 overflow-y-auto">
                     <pre className="whitespace-pre-wrap font-mono text-xs">
-                      {page.ocr_text}
+                      {ocrText}
                     </pre>
                   </div>
-                </div>
-              ) : (
-                <div>
-                  <h4 className="font-semibold text-brand-brown mb-2">Transcription</h4>
+                ) : (
                   <div className="bg-gray-50 p-3 rounded-md text-sm h-32 flex items-center justify-center">
                     <p className="text-gray-500">No transcription available for this page.</p>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
 
               {/* Citation */}
               <CitationCard
@@ -320,22 +350,45 @@ const InspectionRollPage = () => {
     }
   }, [searchParams, pages]);
 
+  // Fetch all pages at once (without ocr_text to save bandwidth)
   useEffect(() => {
     const fetchPages = async () => {
+      setLoading(true);
       try {
-        const { data, error } = await supabase
-          .from("archive_pages")
-          .select("*")
-          .eq("collection_slug", "inspection-roll-of-negroes")
-          .order("book_no", { ascending: true })
-          .order("page_no", { ascending: true });
+        // Fetch all pages in batches to avoid timeout
+        let allPages: ArchivePage[] = [];
+        let from = 0;
+        const batchSize = 1000;
+        let hasMore = true;
 
-        if (error) {
-          console.error("Error fetching inspection roll pages:", error);
-        } else if (data) {
-          setPages(data);
-          setFilteredPages(data);
+        while (hasMore) {
+          const { data, error } = await supabase
+            .from("archive_pages")
+            .select("id, collection_slug, book_no, page_no, slug, image_path, title, year, location, tags")
+            .eq("collection_slug", "inspection-roll-of-negroes")
+            .order("book_no", { ascending: true })
+            .order("page_no", { ascending: true })
+            .range(from, from + batchSize - 1);
+
+          if (error) {
+            console.error("Error fetching inspection roll pages:", error);
+            break;
+          }
+
+          if (data && data.length > 0) {
+            allPages = [...allPages, ...data as ArchivePage[]];
+            from += batchSize;
+
+            // If we got less than batchSize, we're done
+            if (data.length < batchSize) {
+              hasMore = false;
+            }
+          } else {
+            hasMore = false;
+          }
         }
+
+        setPages(allPages);
       } catch (error) {
         console.error("Error:", error);
       } finally {
@@ -346,33 +399,40 @@ const InspectionRollPage = () => {
     fetchPages();
   }, []);
 
+  // Apply filters and pagination client-side
   useEffect(() => {
     let filtered = pages;
 
+    // Apply search filter
     if (searchTerm) {
+      const term = searchTerm.toLowerCase();
       filtered = filtered.filter(page =>
-        page.book_no.toString().includes(searchTerm) ||
-        page.page_no.toString().includes(searchTerm) ||
-        page.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        page.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        page.year?.toString().includes(searchTerm)
+        page.book_no.toString().includes(term) ||
+        page.page_no.toString().includes(term) ||
+        (page.title && page.title.toLowerCase().includes(term)) ||
+        (page.location && page.location.toLowerCase().includes(term)) ||
+        (page.year && page.year.toString().includes(term))
       );
     }
 
+    // Apply book filter
     if (bookFilter !== null) {
       filtered = filtered.filter(page => page.book_no === bookFilter);
     }
 
     setFilteredPages(filtered);
-    setCurrentPage(1);
+    setCurrentPage(1); // Reset to first page when filters change
   }, [searchTerm, bookFilter, pages]);
 
-  const totalPages = Math.ceil(filteredPages.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentPageData = filteredPages.slice(startIndex, endIndex);
+  // Get unique books for filter dropdown
+  const uniqueBooks = React.useMemo(() => {
+    return [...new Set(pages.map(p => p.book_no))].sort((a, b) => a - b);
+  }, [pages]);
 
-  const uniqueBooks = [...new Set(pages.map(p => p.book_no))].sort((a, b) => a - b);
+  const totalPages = Math.ceil(pages.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, pages.length);
+  const currentPageData = filteredPages;
 
   const handlePageClick = React.useCallback((page: ArchivePage) => {
     setClickedPageId(page.id);
@@ -484,7 +544,14 @@ const InspectionRollPage = () => {
           </div>
 
           <p className="text-sm text-gray-600">
-            Showing {filteredPages.length} of {pages.length} pages
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Loading...
+              </span>
+            ) : (
+              `Showing ${startIndex + 1}-${Math.min(endIndex, pages.length)} of ${pages.length} pages`
+            )}
           </p>
         </div>
 
@@ -591,7 +658,7 @@ const InspectionRollPage = () => {
         <PageModal
           page={selectedPage}
           onClose={() => setSelectedPage(null)}
-          allPages={filteredPages}
+          allPages={pages}
           onNavigate={(page) => setSelectedPage(page)}
         />
       </div>
