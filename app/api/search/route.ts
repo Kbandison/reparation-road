@@ -1,6 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
+// Define all collections and subcollections for searching
+const COLLECTIONS_DIRECTORY = [
+  { name: 'African Colonization Society', slug: 'acs', keywords: ['acs', 'liberia', 'colonization', 'emigrant', 'american colonization society'] },
+  { name: 'ACS: Emigrants to Liberia', slug: 'acs-emigrants-to-liberia', parent: 'acs', keywords: ['emigrant', 'liberia', 'acs', 'migration'] },
+  { name: 'ACS: Liberian Census Rolls', slug: 'acs-liberation-census-rolls', parent: 'acs', keywords: ['census', 'liberia', 'acs', 'population'] },
+  { name: 'African-American Revolutionary Soldiers', slug: 'revolutionary-soldiers', keywords: ['revolutionary war', 'soldier', 'military', 'independence', 'patriots'] },
+  { name: 'Bibles and Churches Records', slug: 'bibles-churches', keywords: ['church', 'bible', 'baptism', 'marriage', 'religious'] },
+  { name: 'British/Spanish/French Florida and Louisiana', slug: 'florida-louisiana', keywords: ['florida', 'louisiana', 'spanish', 'french', 'british', 'colonial'] },
+  { name: 'Colored Deaths 1785-1821 (Diocese of St Augustine)', slug: 'florida-louisiana/colored-deaths-1785-1821', parent: 'florida-louisiana', keywords: ['death', 'burial', 'florida', 'st augustine', 'diocese'] },
+  { name: 'Colored Marriages 1784-1882 (Diocese of St Augustine)', slug: 'florida-louisiana/colored-marriages-1784-1882', parent: 'florida-louisiana', keywords: ['marriage', 'wedding', 'florida', 'st augustine', 'diocese'] },
+  { name: 'Ex-slave Pension and Fraud Files', slug: 'ex-slave-pension', keywords: ['pension', 'fraud', 'benefit', 'formerly enslaved'] },
+  { name: 'Free Black Heads of Household, First US Census 1790', slug: 'free-black-census-1790', keywords: ['census', 'free black', '1790', 'household', 'population'] },
+  { name: 'Freedmen, Refugee and Contraband Records', slug: 'freedmen-refugee-contraband', keywords: ['freedmen', 'refugee', 'contraband', 'civil war', 'emancipation'] },
+  { name: 'Fugitive and Slave Case Files', slug: 'fugitive-slave-cases', keywords: ['fugitive', 'runaway', 'court', 'legal', 'case'] },
+  { name: 'Inspection Roll of Negroes', slug: 'inspection-roll', keywords: ['inspection', 'roll', 'colonial', 'british'] },
+  { name: 'Lost Friends in Last Seen Ads', slug: 'lost-friends', keywords: ['lost friends', 'advertisement', 'newspaper', 'reunion', 'last seen'] },
+  { name: 'Native American Records', slug: 'native-american-records', keywords: ['native american', 'indian', 'tribal', 'cherokee', 'creek', 'chickasaw', 'choctaw'] },
+  { name: 'Records of Slave Claims Commission', slug: 'slave-claims-commission', keywords: ['claims', 'compensation', 'commission', 'free persons', 'georgia'] },
+  { name: 'Records of the RAC and VOC', slug: 'rac-vlc', keywords: ['rac', 'voc', 'dutch', 'merchant', 'trade', 'slave trade'] },
+  { name: 'Slave Compensation Claims', slug: 'slave-compensation', keywords: ['compensation', 'claims', 'post civil war', 'southern claims'] },
+  { name: 'Slave Importation Declaration', slug: 'slave-importation', keywords: ['importation', 'declaration', 'manifest', 'trade'] },
+  { name: 'Georgia Slave Importation Records', slug: 'slave-importation/slave-importation-georgia', parent: 'slave-importation', keywords: ['georgia', 'importation', 'declaration'] },
+  { name: 'Kentucky Slave Importation Records', slug: 'slave-importation/slave-importation-kentucky', parent: 'slave-importation', keywords: ['kentucky', 'importation', 'declaration'] },
+  { name: 'Mississippi Slave Importation Records', slug: 'slave-importation/mississippi', parent: 'slave-importation', keywords: ['mississippi', 'importation', 'declaration'] },
+  { name: 'Slave Narratives', slug: 'slave-narratives', keywords: ['narrative', 'testimony', 'interview', 'wpa', 'story'] },
+  { name: 'Slave Voyages', slug: 'slave-voyages', keywords: ['voyage', 'ship', 'transatlantic', 'middle passage', 'vessel'] },
+  { name: 'Virginia Order Books', slug: 'virginia-order-books', keywords: ['virginia', 'order book', 'court', 'adjudgment', 'legal'] },
+  { name: 'Virginia Personal Property and Tithes Tables', slug: 'virginia-property-tithes', keywords: ['virginia', 'property', 'tithe', 'tax', 'assessment'] }
+];
+
 // Define searchable tables and their key fields - based on actual database schema
 const SEARCHABLE_TABLES = [
   {
@@ -234,6 +264,38 @@ const SEARCHABLE_TABLES = [
     searchFields: ['ocr_text'],
     displayFields: ['book_no', 'page_no'],
     identifierFields: ['book_no', 'page_no']
+  },
+  {
+    table: 'colored-deaths',
+    collection: 'Colored Deaths 1785-1821 (Diocese of St Augustine)',
+    collectionSlug: 'florida-louisiana/colored-deaths-1785-1821',
+    searchFields: ['latin_transcription', 'english_transcription', 'notes', 'page_number'],
+    displayFields: ['page_number', 'has_transcription'],
+    identifierFields: ['page_number']
+  },
+  {
+    table: 'colored-marriages',
+    collection: 'Colored Marriages 1784-1882 (Diocese of St Augustine)',
+    collectionSlug: 'florida-louisiana/colored-marriages-1784-1882',
+    searchFields: ['latin_transcription', 'english_transcription', 'notes', 'page_number'],
+    displayFields: ['page_number', 'has_transcription'],
+    identifierFields: ['page_number']
+  },
+  {
+    table: 'slave-importation-ga',
+    collection: 'Georgia Slave Importation Records',
+    collectionSlug: 'slave-importation/slave-importation-georgia',
+    searchFields: ['ocr_text'],
+    displayFields: ['book_no', 'page_no'],
+    identifierFields: ['book_no', 'page_no']
+  },
+  {
+    table: 'slave-importation-ky',
+    collection: 'Kentucky Slave Importation Records',
+    collectionSlug: 'slave-importation/slave-importation-kentucky',
+    searchFields: ['ocr_text'],
+    displayFields: ['book_no', 'page_no'],
+    identifierFields: ['book_no', 'page_no']
   }
 ];
 
@@ -258,6 +320,24 @@ export async function GET(request: NextRequest) {
     const allResults: any[] = [];
     const suggestions = new Set<string>();
     const errors: any[] = [];
+
+    // Search collections and subcollections
+    const matchingCollections = COLLECTIONS_DIRECTORY.filter(collection => {
+      const nameMatch = collection.name.toLowerCase().includes(searchTerm);
+      const keywordMatch = collection.keywords.some(keyword => keyword.toLowerCase().includes(searchTerm));
+      return nameMatch || keywordMatch;
+    }).map(collection => ({
+      id: `collection-${collection.slug}`,
+      _collection: collection.name,
+      _collectionSlug: collection.slug,
+      _table: 'collection',
+      _identifier: collection.name,
+      _snippet: `Browse the ${collection.name} collection`,
+      _isCollection: true,
+      _type: collection.parent ? 'subcollection' : 'collection'
+    }));
+
+    allResults.push(...matchingCollections);
 
     // Search across all tables
     for (const config of SEARCHABLE_TABLES) {
@@ -329,13 +409,21 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Sort results by relevance (exact matches first)
+    // Sort results by relevance (collections first, then exact matches, then partial matches)
     allResults.sort((a, b) => {
+      // Prioritize collections
+      const aIsCollection = a._isCollection || false;
+      const bIsCollection = b._isCollection || false;
+      if (aIsCollection && !bIsCollection) return -1;
+      if (!aIsCollection && bIsCollection) return 1;
+
+      // Then exact matches
       const aExact = a._identifier?.toLowerCase() === searchTerm;
       const bExact = b._identifier?.toLowerCase() === searchTerm;
       if (aExact && !bExact) return -1;
       if (!aExact && bExact) return 1;
 
+      // Then starts with
       const aStarts = a._identifier?.toLowerCase().startsWith(searchTerm);
       const bStarts = b._identifier?.toLowerCase().startsWith(searchTerm);
       if (aStarts && !bStarts) return -1;
