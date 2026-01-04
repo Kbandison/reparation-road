@@ -6,7 +6,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { SearchAutocomplete } from "@/components/SearchAutocomplete";
-import { ExternalLink, Loader2, FileText } from "lucide-react";
+import { ExternalLink, Loader2, FileText, FolderOpen, Folder } from "lucide-react";
 import ClaimModal from "@/components/ClaimModal";
 
 const collections = [
@@ -160,8 +160,12 @@ const SearchPage = () => {
     window.location.href = `/collections/${result._collectionSlug}`;
   };
 
-  // Group results by collection
-  const groupedResults = searchResults.reduce((acc: any, result: any) => {
+  // Separate collections/subcollections from records
+  const collections = searchResults.filter((r: any) => r._isCollection);
+  const records = searchResults.filter((r: any) => !r._isCollection);
+
+  // Group record results by collection
+  const groupedResults = records.reduce((acc: any, result: any) => {
     const collection = result._collection;
     if (!acc[collection]) {
       acc[collection] = [];
@@ -212,7 +216,9 @@ const SearchPage = () => {
             </h2>
             {!isSearching && (
               <p className="text-gray-600 mt-2">
-                Found {searchResults.length} record{searchResults.length !== 1 ? 's' : ''} across {Object.keys(groupedResults).length} collection{Object.keys(groupedResults).length !== 1 ? 's' : ''}
+                Found {collections.length > 0 && `${collections.length} collection${collections.length !== 1 ? 's' : ''}${records.length > 0 ? ' and ' : ''}`}
+                {records.length > 0 && `${records.length} record${records.length !== 1 ? 's' : ''}`}
+                {records.length > 0 && ` across ${Object.keys(groupedResults).length} collection${Object.keys(groupedResults).length !== 1 ? 's' : ''}`}
               </p>
             )}
           </div>
@@ -229,6 +235,55 @@ const SearchPage = () => {
             </div>
           ) : (
             <div className="space-y-8">
+              {/* Collections and Subcollections */}
+              {collections.length > 0 && (
+                <div className="border rounded-lg p-6 bg-gradient-to-br from-brand-tan to-white shadow-md">
+                  <h3 className="text-2xl font-bold text-brand-brown mb-4 flex items-center gap-2">
+                    <FolderOpen className="w-6 h-6" />
+                    Collections & Subcollections
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {collections.map((collection: any) => (
+                      <div
+                        key={collection.id}
+                        onClick={() => handleResultSelect(collection)}
+                        className="group bg-white border-2 border-brand-green/20 rounded-lg p-4 hover:border-brand-green hover:shadow-lg transition-all cursor-pointer"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0 mt-1">
+                            {collection._type === 'subcollection' ? (
+                              <Folder className="w-8 h-8 text-brand-green" />
+                            ) : (
+                              <FolderOpen className="w-8 h-8 text-brand-darkgreen" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="font-bold text-lg text-brand-brown group-hover:text-brand-green transition-colors">
+                                {collection._identifier}
+                              </h4>
+                              {collection._type === 'subcollection' && (
+                                <span className="text-xs bg-brand-green/10 text-brand-green px-2 py-0.5 rounded-full font-medium">
+                                  Subcollection
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-gray-600 mb-2">
+                              {collection._snippet}
+                            </p>
+                            <div className="flex items-center gap-2 text-xs text-brand-green font-medium">
+                              <span>Browse Collection</span>
+                              <ExternalLink className="w-3 h-3" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Record Results */}
               {Object.entries(groupedResults).map(([collection, results]: [string, any]) => (
                 <div key={collection} className="border rounded-lg p-6 bg-white shadow-sm">
                   <div className="flex items-center justify-between mb-4">
