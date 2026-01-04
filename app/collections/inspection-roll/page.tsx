@@ -10,7 +10,6 @@ import { BookmarkButton } from "@/components/ui/BookmarkButton";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, X, ZoomIn, ScrollText, Loader2 } from "lucide-react";
-import { CollectionTableView, ImageThumbnail } from "@/components/CollectionTableView";
 import { StructuredData } from "@/components/StructuredData";
 import { generateStructuredData } from "@/lib/metadata";
 import { CitationCard } from "@/components/CitationCard";
@@ -561,49 +560,42 @@ const InspectionRollPage = () => {
           </div>
         ) : (
           <>
-            <CollectionTableView
-              data={currentPageData}
-              columns={[
-                {
-                  key: 'image_path',
-                  label: 'Preview',
-                  render: (value, record) => (
-                    <ImageThumbnail
-                      src={value}
-                      alt={`Book ${record.book_no}, Page ${record.page_no}`}
-                    />
-                  )
-                },
-                {
-                  key: 'book_no',
-                  label: 'Book',
-                  sortable: true
-                },
-                {
-                  key: 'page_no',
-                  label: 'Page',
-                  sortable: true
-                },
-                {
-                  key: 'title',
-                  label: 'Title',
-                  sortable: true
-                },
-                {
-                  key: 'year',
-                  label: 'Year',
-                  sortable: true
-                },
-                {
-                  key: 'location',
-                  label: 'Location',
-                  sortable: true
-                }
-              ]}
-              onRecordClick={(page) => handlePageClick(page)}
-              loading={clickedPageId !== null}
-              emptyMessage="No pages found matching your criteria."
-            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {currentPageData.map((page) => (
+                <div
+                  key={page.id}
+                  onClick={() => handlePageClick(page)}
+                  className={`bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group hover:-translate-y-1 ${
+                    clickedPageId === page.id ? 'opacity-50 pointer-events-none' : ''
+                  }`}
+                >
+                  <div className="relative h-64 bg-gray-100">
+                    {page.image_path && (
+                      <Image
+                        src={page.image_path}
+                        alt={`Book ${page.book_no}, Page ${page.page_no}`}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      />
+                    )}
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-bold text-lg text-brand-brown mb-2 group-hover:text-brand-green transition-colors">
+                      Book {page.book_no}, Page {page.page_no}
+                    </h3>
+                    {page.title && (
+                      <p className="text-sm text-gray-600 mb-2">{page.title}</p>
+                    )}
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      {page.year && <span>{page.year}</span>}
+                      {page.year && page.location && <span>•</span>}
+                      {page.location && <span>{page.location}</span>}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
 
             {totalPages > 1 && (
               <div className="flex justify-center items-center gap-4 mt-8">
