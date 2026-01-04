@@ -30,9 +30,37 @@ interface PageModalProps {
 const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose, allPages, onNavigate }) {
   const [imageLoaded, setImageLoaded] = React.useState(false);
   const [isImageZoomed, setIsImageZoomed] = React.useState(false);
+  const [ocrText, setOcrText] = React.useState<string | null>(null);
+  const [loadingOcr, setLoadingOcr] = React.useState(false);
 
   React.useEffect(() => {
     setImageLoaded(false);
+  }, [page]);
+
+  // Fetch OCR text when page changes
+  React.useEffect(() => {
+    const fetchOcrText = async () => {
+      if (!page) return;
+
+      setLoadingOcr(true);
+      try {
+        const { data, error } = await supabase
+          .from("register_free_persons_thomas")
+          .select("ocr_text")
+          .eq("id", page.id)
+          .single();
+
+        if (data && !error) {
+          setOcrText(data.ocr_text || null);
+        }
+      } catch (error) {
+        console.error("Error fetching OCR text:", error);
+      } finally {
+        setLoadingOcr(false);
+      }
+    };
+
+    fetchOcrText();
   }, [page]);
 
   const currentIndex = allPages.findIndex(p => p.id === page?.id);
@@ -103,14 +131,23 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
                   <p><span className="font-medium">Page:</span> {page.page_no}</p>
                 </div>
               </div>
-              {page.ocr_text && (
-                <div>
-                  <h4 className="font-semibold text-brand-brown mb-2">Transcription</h4>
-                  <div className="bg-gray-50 p-4 rounded-lg max-h-64 overflow-y-auto">
-                    <p className="text-sm whitespace-pre-wrap">{page.ocr_text}</p>
+              <div>
+                <h4 className="font-semibold text-brand-brown mb-2">Transcription</h4>
+                {loadingOcr ? (
+                  <div className="bg-gray-50 p-4 rounded-lg h-32 flex items-center justify-center">
+                    <Loader2 className="w-5 h-5 animate-spin text-brand-green mr-2" />
+                    <p className="text-sm text-gray-500">Loading transcription...</p>
                   </div>
-                </div>
-              )}
+                ) : ocrText ? (
+                  <div className="bg-gray-50 p-4 rounded-lg max-h-64 overflow-y-auto">
+                    <p className="text-sm whitespace-pre-wrap">{ocrText}</p>
+                  </div>
+                ) : (
+                  <div className="bg-gray-50 p-4 rounded-lg h-32 flex items-center justify-center">
+                    <p className="text-sm text-gray-500">No transcription available</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -155,7 +192,39 @@ const RegisterFreePersonsThomasPage = () => {
   useEffect(() => {
     const fetchPages = async () => {
       try {
-        const { data, error } = await supabase.from("register_free_persons_thomas").select("*").order("book_no", { ascending: true }).order("page_no", { ascending: true });
+        // Fetch all pages in batches (without ocr_text for performance)
+        let allPages: RegisterPage[] = [];
+        let from = 0;
+        const batchSize = 1000;
+        let hasMore = true;
+
+        while (hasMore) {
+          const { data, error } = await supabase
+            .from("register_free_persons_thomas")
+            .select("id, book_no, page_no, slug, image_path, created_at")
+            .order("book_no", { ascending: true })
+            .order("page_no", { ascending: true })
+            .range(from, from + batchSize - 1);
+
+          if (error) {
+            console.error("Error fetching register pages:", error);
+            break;
+          }
+
+          if (data && data.length > 0) {
+            allPages = [...allPages, ...data as RegisterPage[]];
+            from += batchSize;
+
+            if (data.length < batchSize) {
+              hasMore = false;
+            }
+          } else {
+            hasMore = false;
+          }
+        }
+
+        const data = allPages;
+        const error = null;
         if (error) console.error("Error fetching register pages:", error);
         else if (data) { setPages(data); setFilteredPages(data); }
       } catch (error) { console.error("Error:", error); }
@@ -194,7 +263,7 @@ const RegisterFreePersonsThomasPage = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8 space-y-4">
           <div className="flex flex-col sm:flex-row gap-4 items-center">
-            <Input type="search" placeholder="Search by book, page, or text content..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full max-w-md" />
+            <Input type="search" placeholder="Search by book or page number..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full max-w-md" />
             {uniqueBooks.length > 1 && (
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-600">Filter by Book:</span>
@@ -225,7 +294,7 @@ const RegisterFreePersonsThomasPage = () => {
                   </div>
                   <div className="p-3">
                     <p className="font-semibold text-sm text-brand-brown">Book {page.book_no}, Page {page.page_no}</p>
-                    {page.ocr_text && <p className="text-xs text-gray-500 mt-1 line-clamp-2">{page.ocr_text.substring(0, 100)}...</p>}
+                    
                   </div>
                 </div>
               ))}
