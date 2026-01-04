@@ -30,9 +30,37 @@ interface PageModalProps {
 const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose, allPages, onNavigate }) {
   const [imageLoaded, setImageLoaded] = React.useState(false);
   const [isImageZoomed, setIsImageZoomed] = React.useState(false);
+  const [ocrText, setOcrText] = React.useState<string | null>(null);
+  const [loadingOcr, setLoadingOcr] = React.useState(false);
 
   React.useEffect(() => {
     setImageLoaded(false);
+  }, [page]);
+
+  // Lazy-load OCR text when modal opens
+  React.useEffect(() => {
+    const fetchOcrText = async () => {
+      if (!page) return;
+
+      setLoadingOcr(true);
+      try {
+        const { data, error } = await supabase
+          .from("slave_merchants_charlotte")
+          .select("ocr_text")
+          .eq("id", page.id)
+          .single();
+
+        if (data && !error) {
+          setOcrText(data.ocr_text || null);
+        }
+      } catch (error) {
+        console.error("Error fetching OCR text:", error);
+      } finally {
+        setLoadingOcr(false);
+      }
+    };
+
+    fetchOcrText();
   }, [page]);
 
   const currentIndex = allPages.findIndex(p => p.id === page?.id);
@@ -158,14 +186,23 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
                 </div>
               </div>
 
-              {page.ocr_text && (
-                <div>
-                  <h4 className="font-semibold text-brand-brown mb-2">Transcription</h4>
-                  <div className="bg-gray-50 p-4 rounded-lg max-h-64 overflow-y-auto">
-                    <p className="text-sm whitespace-pre-wrap">{page.ocr_text}</p>
+              <div>
+                <h4 className="font-semibold text-brand-brown mb-2">Transcription</h4>
+                {loadingOcr ? (
+                  <div className="bg-gray-50 p-4 rounded-lg h-32 flex items-center justify-center">
+                    <Loader2 className="w-5 h-5 animate-spin text-brand-green mr-2" />
+                    <p className="text-sm text-gray-500">Loading transcription...</p>
                   </div>
-                </div>
-              )}
+                ) : ocrText ? (
+                  <div className="bg-gray-50 p-4 rounded-lg max-h-64 overflow-y-auto">
+                    <p className="text-sm whitespace-pre-wrap">{ocrText}</p>
+                  </div>
+                ) : (
+                  <div className="bg-gray-50 p-4 rounded-lg h-32 flex items-center justify-center">
+                    <p className="text-sm text-gray-500">No transcription available</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -265,19 +302,36 @@ const RoyalCharlottePage = () => {
   useEffect(() => {
     const fetchPages = async () => {
       try {
-        const { data, error } = await supabase
-          .from("slave_merchants_charlotte")
-          .select("*")
-          .order("book_no", { ascending: true })
-          .order("page_no", { ascending: true });
+        // Fetch pages in batches without OCR text for better performance
+        let allPages: RegisterPage[] = [];
+        let from = 0;
+        const batchSize = 1000;
+        let hasMore = true;
 
-        if (error) {
-          console.error("Error fetching Royal Charlotte records:", error);
-          console.error("Error details:", JSON.stringify(error, null, 2));
-        } else if (data) {
-          setPages(data);
-          setFilteredPages(data);
+        while (hasMore) {
+          const { data, error } = await supabase
+            .from("slave_merchants_charlotte")
+            .select("id, book_no, page_no, slug, image_path, created_at")
+            .order("book_no", { ascending: true })
+            .order("page_no", { ascending: true })
+            .range(from, from + batchSize - 1);
+
+          if (error) {
+            console.error("Error fetching Royal Charlotte records:", error);
+            break;
+          }
+
+          if (data && data.length > 0) {
+            allPages = [...allPages, ...data as RegisterPage[]];
+            from += batchSize;
+            hasMore = data.length === batchSize;
+          } else {
+            hasMore = false;
+          }
         }
+
+        setPages(allPages);
+        setFilteredPages(allPages);
       } catch (error) {
         console.error("Error:", error);
       } finally {
@@ -294,8 +348,7 @@ const RoyalCharlottePage = () => {
     if (searchTerm) {
       filtered = filtered.filter(page =>
         page.book_no.toString().includes(searchTerm) ||
-        page.page_no.toString().includes(searchTerm) ||
-        page.ocr_text?.toLowerCase().includes(searchTerm.toLowerCase())
+        page.page_no.toString().includes(searchTerm)
       );
     }
 
@@ -352,7 +405,7 @@ const RoyalCharlottePage = () => {
           <div className="flex flex-col sm:flex-row gap-4 items-center">
             <Input
               type="search"
-              placeholder="Search by book, page, or text content..."
+              placeholder="Search by book or page number..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full max-w-md"
@@ -402,7 +455,6 @@ const RoyalCharlottePage = () => {
                         fill
                         className="object-cover group-hover:scale-105 transition-transform"
                         sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-                        unoptimized
                         loading="lazy"
                       />
                     ) : (
@@ -421,11 +473,6 @@ const RoyalCharlottePage = () => {
                     <p className="font-semibold text-sm text-brand-brown">
                       Book {page.book_no}, Page {page.page_no}
                     </p>
-                    {page.ocr_text && (
-                      <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                        {page.ocr_text.substring(0, 100)}...
-                      </p>
-                    )}
                   </div>
                 </div>
               ))}
