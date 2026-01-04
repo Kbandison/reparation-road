@@ -15,6 +15,7 @@ import { StructuredData } from "@/components/StructuredData";
 import { generateStructuredData } from "@/lib/metadata";
 import { CitationCard } from "@/components/CitationCard";
 import { useRecentActivity } from "@/contexts/RecentActivityContext";
+import { RelatedRecords } from "@/components/RelatedRecords";
 
 interface ArchivePage {
   id: string;
@@ -202,6 +203,18 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
                   year: page.year || undefined,
                   location: page.location || undefined,
                   url: typeof window !== 'undefined' ? window.location.href : undefined,
+                }}
+                className="mt-4"
+              />
+
+              {/* Related Records */}
+              <RelatedRecords
+                config={{
+                  currentRecord: page,
+                  tableName: 'archive_pages',
+                  collectionName: 'Inspection Roll of Negroes',
+                  collectionSlug: 'inspection-roll',
+                  limit: 10
                 }}
                 className="mt-4"
               />
