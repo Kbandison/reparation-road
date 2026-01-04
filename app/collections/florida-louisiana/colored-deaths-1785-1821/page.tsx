@@ -31,6 +31,7 @@ interface RecordModalProps {
 const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, onClose, allRecords, onNavigate }) {
   const [imageLoaded, setImageLoaded] = React.useState(false);
   const [imageZoom, setImageZoom] = React.useState(1);
+  const [isImageZoomed, setIsImageZoomed] = React.useState(false);
 
   React.useEffect(() => {
     setImageLoaded(false);
