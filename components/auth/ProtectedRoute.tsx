@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -19,14 +19,43 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 }) => {
   const router = useRouter();
   const { user, profile, loading } = useAuth();
+  const [showSlowLoadingWarning, setShowSlowLoadingWarning] = useState(false);
+
+  // Show warning if loading takes too long
+  useEffect(() => {
+    if (loading) {
+      const timer = setTimeout(() => {
+        setShowSlowLoadingWarning(true);
+      }, 10000);
+
+      return () => {
+        clearTimeout(timer);
+        setShowSlowLoadingWarning(false);
+      };
+    }
+  }, [loading]);
 
   // Show loading state while checking authentication
   if (loading) {
     return (
       <div className="min-h-screen bg-brand-beige flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center max-w-md mx-auto p-8">
           <div className="w-16 h-16 border-4 border-brand-green border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-brand-brown">Loading...</p>
+          <p className="text-brand-brown mb-2">Loading...</p>
+
+          {showSlowLoadingWarning && (
+            <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-800 mb-3">
+                Loading is taking longer than expected. This might be due to a slow connection.
+              </p>
+              <button
+                onClick={() => window.location.reload()}
+                className="bg-brand-green text-white px-4 py-2 rounded-lg hover:bg-brand-darkgreen transition-colors text-sm"
+              >
+                Refresh Page
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );

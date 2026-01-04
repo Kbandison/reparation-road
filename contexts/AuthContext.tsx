@@ -44,12 +44,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log('[AUTH DEBUG] Fetching profile for user:', userId);
 
-      // Remove timeout - let Supabase handle it naturally
-      const { data, error } = await supabase
+      // Add timeout to prevent hanging indefinitely
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 10000);
+      });
+
+      const fetchPromise = supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
+
+      const { data, error } = await Promise.race([
+        fetchPromise,
+        timeoutPromise
+      ]) as any;
 
       if (error) {
         console.error('[AUTH ERROR] Error fetching profile:', error, {
@@ -137,6 +146,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [user, resetInactivityTimer]);
 
   useEffect(() => {
+    // Fail-safe: Force loading to false after maximum timeout
+    const maxLoadingTimeout = setTimeout(() => {
+      console.warn('[AUTH WARN] Maximum loading timeout reached, forcing loading state to false');
+      setLoading(false);
+    }, 15000);
+
     // Get initial session
     const getSession = async () => {
       try {
@@ -160,6 +175,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('[AUTH ERROR] Error getting session:', error);
       } finally {
         // Always set loading to false after everything is done
+        clearTimeout(maxLoadingTimeout);
         setLoading(false);
       }
     };
@@ -169,6 +185,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        // Timeout for auth state changes too
+        const stateChangeTimeout = setTimeout(() => {
+          console.warn('[AUTH WARN] Auth state change timeout, forcing loading to false');
+          setLoading(false);
+        }, 12000);
+
         try {
           console.log('[AUTH DEBUG] Auth state changed:', {
             event,
@@ -198,12 +220,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.error('[AUTH ERROR] Error in auth state change:', error);
         } finally {
           // Always set loading to false after everything is done
+          clearTimeout(stateChangeTimeout);
           setLoading(false);
         }
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(maxLoadingTimeout);
+    };
   }, [fetchProfile, router]);
 
   const createProfile = async (userId: string, email: string, firstName?: string, lastName?: string) => {
