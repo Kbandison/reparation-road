@@ -5,6 +5,8 @@ import { LayoutWrapper } from "@/components/LayoutWrapper";
 import { Analytics } from "@vercel/analytics/next";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { BookmarkProvider } from "@/contexts/BookmarkContext";
+import { StructuredData } from "@/components/StructuredData";
+import { generateStructuredData } from "@/lib/metadata";
 
 const garamond = EB_Garamond({
   subsets: ["latin"],
@@ -71,8 +73,13 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const organizationData = generateStructuredData('organization', {});
+
   return (
     <html lang="en">
+      <head>
+        {organizationData && <StructuredData data={organizationData} />}
+      </head>
       <body className={`${garamond.variable} ${inter.variable}`}>
         <Analytics />
         <AuthProvider>

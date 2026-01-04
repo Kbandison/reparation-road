@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from "react";
 import Image from "next/image";
+import Head from "next/head";
 import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,8 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, X, ZoomIn, ScrollText, Loader2 } from "lucide-react";
 import { CollectionTableView, ImageThumbnail } from "@/components/CollectionTableView";
+import { StructuredData } from "@/components/StructuredData";
+import { generateStructuredData } from "@/lib/metadata";
 
 interface ArchivePage {
   id: string;
@@ -363,8 +366,17 @@ const InspectionRollPage = () => {
     );
   }
 
+  const collectionData = generateStructuredData('collection', {
+    name: 'Inspection Roll of Negroes',
+    description: 'Historical inspection roll documents from the colonial period',
+    slug: 'inspection-roll',
+    recordCount: pages.length
+  });
+
   return (
     <div className="min-h-screen bg-brand-beige">
+      {collectionData && <StructuredData data={collectionData} />}
+
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-brand-green to-brand-darkgreen text-white py-16">
         <div className="container mx-auto px-4">
