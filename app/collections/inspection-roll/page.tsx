@@ -14,6 +14,7 @@ import { CollectionTableView, ImageThumbnail } from "@/components/CollectionTabl
 import { StructuredData } from "@/components/StructuredData";
 import { generateStructuredData } from "@/lib/metadata";
 import { CitationCard } from "@/components/CitationCard";
+import { useRecentActivity } from "@/contexts/RecentActivityContext";
 
 interface ArchivePage {
   id: string;
@@ -276,6 +277,7 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
 
 const InspectionRollPage = () => {
   const searchParams = useSearchParams();
+  const { addActivity } = useRecentActivity();
   const [pages, setPages] = useState<ArchivePage[]>([]);
   const [filteredPages, setFilteredPages] = useState<ArchivePage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -361,13 +363,29 @@ const InspectionRollPage = () => {
 
   const handlePageClick = React.useCallback((page: ArchivePage) => {
     setClickedPageId(page.id);
+
+    // Track activity
+    addActivity({
+      type: 'record',
+      title: `Book ${page.book_no}, Page ${page.page_no}`,
+      subtitle: page.title || undefined,
+      collectionName: 'Inspection Roll of Negroes',
+      url: `/collections/inspection-roll?record=${page.id}`,
+      metadata: {
+        book_no: page.book_no,
+        page_no: page.page_no,
+        year: page.year,
+        location: page.location
+      }
+    });
+
     React.startTransition(() => {
       setTimeout(() => {
         setSelectedPage(page);
         setClickedPageId(null);
       }, 50);
     });
-  }, []);
+  }, [addActivity]);
 
   if (loading) {
     return (

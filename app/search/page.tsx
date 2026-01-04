@@ -6,8 +6,9 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { SearchAutocomplete } from "@/components/SearchAutocomplete";
-import { ExternalLink, Loader2, FileText, FolderOpen, Folder } from "lucide-react";
+import { ExternalLink, Loader2, FileText, FolderOpen, Folder, Clock, Search as SearchIcon } from "lucide-react";
 import ClaimModal from "@/components/ClaimModal";
+import { useRecentActivity } from "@/contexts/RecentActivityContext";
 
 const collections = [
   { name: "African Colonization Society", href: "/collections/acs", tier: "premium" },
@@ -114,32 +115,26 @@ const collections = [
 ];
 
 const SearchPage = () => {
-  const [claims, setClaims] = useState<any[] | null>(null);
   const [selectedClaim, setSelectedClaim] = useState<any | null>(null);
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showResults, setShowResults] = useState(false);
+  const { getRecentActivities, addActivity } = useRecentActivity();
 
-  useEffect(() => {
-    const fetchClaims = async () => {
-      const { data: allClaims } = await supabase
-        .from("slave_compensation_claims")
-        .select("*")
-        .order("id", { ascending: false })
-        .limit(50);
-
-      const shuffled = allClaims?.sort(() => 0.5 - Math.random());
-      setClaims(shuffled?.slice(0, 4) || []);
-    };
-
-    fetchClaims();
-  }, []);
+  const recentActivities = getRecentActivities(10);
 
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
     setIsSearching(true);
     setShowResults(true);
+
+    // Track search activity
+    addActivity({
+      type: 'search',
+      title: `Search: "${query}"`,
+      url: `/search?q=${encodeURIComponent(query)}`,
+    });
 
     try {
       const response = await fetch(`/api/search?q=${encodeURIComponent(query)}&limit=100`);
@@ -373,33 +368,73 @@ const SearchPage = () => {
         </main>
 
         {/* Sidebar */}
-        {isLoggedIn && (
-          <aside className="w-full md:w-1/4">
-            <div className="sticky top-8 border rounded-lg p-4">
-              <h2 className="text-2xl font-bold mb-4">Recent Activity</h2>
-              <div className="space-y-4">
-                {claims?.map((claim) => (
-                  <div
-                    key={claim.id}
-                    className="cursor-pointer hover:bg-gray-100 p-2 rounded-md"
-                    onClick={() => setSelectedClaim(claim)}
+        <aside className="w-full md:w-1/4">
+          <div className="sticky top-8 border rounded-lg p-4 bg-white shadow-sm">
+            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <Clock className="w-6 h-6 text-brand-green" />
+              Recent Activity
+            </h2>
+
+            {recentActivities.length === 0 ? (
+              <div className="text-center py-8">
+                <Clock className="w-12 h-12 mx-auto text-gray-300 mb-3" />
+                <p className="text-sm text-gray-500">No recent activity</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  Your searches and viewed records will appear here
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {recentActivities.map((activity) => (
+                  <a
+                    key={activity.id}
+                    href={activity.url}
+                    className="block p-3 rounded-md border border-gray-200 hover:border-brand-green hover:bg-gray-50 transition-all group"
                   >
-                    <div>
-                      <h3 className="font-semibold">{`${claim.first_name} ${claim.last_name}`}</h3>
-                      <p className="text-sm text-gray-600">Age: {claim.age}</p>
-                      <p className="text-sm text-gray-600">
-                        Place of Birth: {claim.place_of_birth}
-                      </p>
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 mt-1">
+                        {activity.type === 'search' ? (
+                          <SearchIcon className="w-4 h-4 text-brand-green" />
+                        ) : activity.type === 'collection' ? (
+                          <Folder className="w-4 h-4 text-brand-green" />
+                        ) : (
+                          <FileText className="w-4 h-4 text-brand-green" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium text-sm text-gray-900 truncate group-hover:text-brand-green">
+                          {activity.title}
+                        </h3>
+                        {activity.subtitle && (
+                          <p className="text-xs text-gray-600 truncate">{activity.subtitle}</p>
+                        )}
+                        {activity.collectionName && (
+                          <p className="text-xs text-gray-500 mt-1">{activity.collectionName}</p>
+                        )}
+                        <p className="text-xs text-gray-400 mt-1">
+                          {new Date(activity.timestamp).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: 'numeric',
+                            minute: '2-digit'
+                          })}
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  </a>
                 ))}
               </div>
-              <div className="mt-4">
-                <Button className="w-full">See More</Button>
+            )}
+
+            {recentActivities.length > 0 && (
+              <div className="mt-4 pt-4 border-t">
+                <p className="text-xs text-gray-500 text-center">
+                  Showing {recentActivities.length} recent {recentActivities.length === 1 ? 'item' : 'items'}
+                </p>
               </div>
-            </div>
-          </aside>
-        )}
+            )}
+          </div>
+        </aside>
       </div>
       <ClaimModal
         claim={selectedClaim}

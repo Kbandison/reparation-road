@@ -5,6 +5,7 @@ import { LayoutWrapper } from "@/components/LayoutWrapper";
 import { Analytics } from "@vercel/analytics/next";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { BookmarkProvider } from "@/contexts/BookmarkContext";
+import { RecentActivityProvider } from "@/contexts/RecentActivityContext";
 import { StructuredData } from "@/components/StructuredData";
 import { generateStructuredData } from "@/lib/metadata";
 
@@ -84,7 +85,9 @@ export default function RootLayout({
         <Analytics />
         <AuthProvider>
           <BookmarkProvider>
-            <LayoutWrapper>{children}</LayoutWrapper>
+            <RecentActivityProvider>
+              <LayoutWrapper>{children}</LayoutWrapper>
+            </RecentActivityProvider>
           </BookmarkProvider>
         </AuthProvider>
       </body>
