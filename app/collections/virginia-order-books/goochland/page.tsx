@@ -12,10 +12,16 @@ import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, ScrollText, Loader2 } fr
 
 interface RegisterPage {
   id: string;
-  book_no: number;
-  page_no: number;
   slug: string;
+  page_no: number | null;
+  page_no_2: number | null;
+  page_label: string | null;
   image_path: string;
+  county: string | null;
+  enslaver: string | null;
+  enslaved_person: string | null;
+  age: string | null;
+  judgement_date: string | null;
   ocr_text: string;
   created_at: string;
 }
@@ -107,7 +113,7 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
       <div className="bg-white rounded-lg shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between">
           <h2 className="text-2xl font-bold text-brand-brown">
-            Record Details - Book {page.book_no}, Page {page.page_no}
+            Record Details - {page.page_label || `Page ${page.page_no || page.page_no_2 || 'Unknown'}`}
           </h2>
           <button
             onClick={() => {
@@ -168,7 +174,7 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
                   )}
                   <Image
                     src={page.image_path}
-                    alt={`Book ${page.book_no}, Page ${page.page_no}`}
+                    alt={page.page_label || `Page ${page.page_no || page.page_no_2 || 'Unknown'}`}
                     width={800}
                     height={1000}
                     className="w-full"
@@ -184,17 +190,61 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
                 Record Information
               </h3>
               <div className="space-y-4">
-                <div className="border-b border-gray-200 pb-3">
-                  <p className="text-sm text-gray-600 mb-1">Book Number</p>
-                  <p className="text-lg font-medium text-brand-brown">
-                    {page.book_no}
-                  </p>
-                </div>
+                {page.page_label && (
+                  <div className="border-b border-gray-200 pb-3">
+                    <p className="text-sm text-gray-600 mb-1">Page Label</p>
+                    <p className="text-lg font-medium text-brand-brown">{page.page_label}</p>
+                  </div>
+                )}
 
-                <div className="border-b border-gray-200 pb-3">
-                  <p className="text-sm text-gray-600 mb-1">Page Number</p>
-                  <p className="text-base text-gray-900">{page.page_no}</p>
-                </div>
+                {page.page_no !== null && (
+                  <div className="border-b border-gray-200 pb-3">
+                    <p className="text-sm text-gray-600 mb-1">Page Number</p>
+                    <p className="text-base text-gray-900">{page.page_no}</p>
+                  </div>
+                )}
+
+                {page.page_no_2 !== null && (
+                  <div className="border-b border-gray-200 pb-3">
+                    <p className="text-sm text-gray-600 mb-1">Page Number 2</p>
+                    <p className="text-base text-gray-900">{page.page_no_2}</p>
+                  </div>
+                )}
+
+                {page.county && (
+                  <div className="border-b border-gray-200 pb-3">
+                    <p className="text-sm text-gray-600 mb-1">County</p>
+                    <p className="text-base text-gray-900">{page.county}</p>
+                  </div>
+                )}
+
+                {page.enslaver && (
+                  <div className="border-b border-gray-200 pb-3">
+                    <p className="text-sm text-gray-600 mb-1">Enslaver</p>
+                    <p className="text-base text-gray-900 font-medium">{page.enslaver}</p>
+                  </div>
+                )}
+
+                {page.enslaved_person && (
+                  <div className="border-b border-gray-200 pb-3">
+                    <p className="text-sm text-gray-600 mb-1">Enslaved Person</p>
+                    <p className="text-base text-gray-900 font-medium">{page.enslaved_person}</p>
+                  </div>
+                )}
+
+                {page.age && (
+                  <div className="border-b border-gray-200 pb-3">
+                    <p className="text-sm text-gray-600 mb-1">Age</p>
+                    <p className="text-base text-gray-900">{page.age}</p>
+                  </div>
+                )}
+
+                {page.judgement_date && (
+                  <div className="border-b border-gray-200 pb-3">
+                    <p className="text-sm text-gray-600 mb-1">Judgement Date</p>
+                    <p className="text-base text-gray-900">{page.judgement_date}</p>
+                  </div>
+                )}
 
                 {loadingOcr ? (
                   <div className="border-b border-gray-200 pb-3">
@@ -229,7 +279,6 @@ const VirginiaOrderBooksGoochlandPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPage, setSelectedPage] = useState<RegisterPage | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [bookFilter, setBookFilter] = useState<number | null>(null);
   const itemsPerPage = 20;
 
   // Initialize search from URL params
@@ -264,13 +313,12 @@ const VirginiaOrderBooksGoochlandPage = () => {
         while (hasMore) {
           const { data, error } = await supabase
             .from("va_books_goochland")
-            .select("id, book_no, page_no, slug, image_path, created_at")
-            .order("book_no", { ascending: true })
+            .select("id, slug, page_no, page_no_2, page_label, image_path, county, enslaver, enslaved_person, age, judgement_date, created_at")
             .order("page_no", { ascending: true })
             .range(from, from + batchSize - 1);
 
           if (error) {
-            console.error("Error fetching Virginia Order Books (Chesterfield):", error);
+            console.error("Error fetching Virginia Order Books (Goochland):", error);
             break;
           }
 
@@ -302,26 +350,26 @@ const VirginiaOrderBooksGoochlandPage = () => {
     let filtered = pages;
 
     if (searchTerm) {
+      const term = searchTerm.toLowerCase();
       filtered = filtered.filter(page =>
-        page.book_no.toString().includes(searchTerm) ||
-        page.page_no.toString().includes(searchTerm)
+        (page.page_no && page.page_no.toString().includes(searchTerm)) ||
+        (page.page_no_2 && page.page_no_2.toString().includes(searchTerm)) ||
+        (page.page_label && page.page_label.toLowerCase().includes(term)) ||
+        (page.county && page.county.toLowerCase().includes(term)) ||
+        (page.enslaver && page.enslaver.toLowerCase().includes(term)) ||
+        (page.enslaved_person && page.enslaved_person.toLowerCase().includes(term)) ||
+        (page.judgement_date && page.judgement_date.includes(searchTerm))
       );
-    }
-
-    if (bookFilter !== null) {
-      filtered = filtered.filter(page => page.book_no === bookFilter);
     }
 
     setFilteredPages(filtered);
     setCurrentPage(1);
-  }, [searchTerm, bookFilter, pages]);
+  }, [searchTerm, pages]);
 
   const totalPages = Math.ceil(filteredPages.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentPageData = filteredPages.slice(startIndex, endIndex);
-
-  const uniqueBooks = [...new Set(pages.map(p => p.book_no))].sort((a, b) => a - b);
 
   const handlePageClick = React.useCallback((page: RegisterPage) => {
     setSelectedPage(page);
@@ -361,30 +409,14 @@ const VirginiaOrderBooksGoochlandPage = () => {
           <div className="flex flex-col sm:flex-row gap-4 items-center">
             <Input
               type="search"
-              placeholder="Search by book or page number..."
+              placeholder="Search by page, county, enslaver, or enslaved person..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full max-w-md"
             />
 
-            {uniqueBooks.length > 1 && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">Filter by Book:</span>
-                <select
-                  value={bookFilter ?? ''}
-                  onChange={(e) => setBookFilter(e.target.value ? Number(e.target.value) : null)}
-                  className="border rounded-lg px-3 py-2 text-sm"
-                >
-                  <option value="">All Books</option>
-                  {uniqueBooks.map(book => (
-                    <option key={book} value={book}>Book {book}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-
             <p className="text-sm text-gray-600">
-              Showing {filteredPages.length} of {pages.length} pages
+              Showing {filteredPages.length} of {pages.length} records
             </p>
           </div>
         </div>
@@ -399,24 +431,42 @@ const VirginiaOrderBooksGoochlandPage = () => {
             <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-brand-green text-white">
+                  <thead className="bg-brand-green text-white sticky top-0 z-10">
                     <tr>
-                      <th className="px-4 py-3 text-left text-sm font-semibold">Book</th>
                       <th className="px-4 py-3 text-left text-sm font-semibold">Page</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold">County</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold">Enslaver</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold">Enslaved Person</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold">Age</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold">Judgement Date</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {currentPageData.map((page) => (
+                    {currentPageData.map((page, index) => (
                       <tr
                         key={page.id}
                         onClick={() => handlePageClick(page)}
-                        className="hover:bg-brand-tan/30 cursor-pointer transition-colors"
+                        className={`hover:bg-brand-tan/30 cursor-pointer transition-colors ${
+                          index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                        }`}
                       >
-                        <td className="px-4 py-3 text-sm text-gray-900">
-                          {page.book_no}
+                        <td className="px-4 py-3 text-sm text-gray-900 font-medium">
+                          {page.page_label || page.page_no || page.page_no_2 || "-"}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-900">
-                          {page.page_no}
+                          {page.county || "-"}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-900">
+                          {page.enslaver || "-"}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-900">
+                          {page.enslaved_person || "-"}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-900">
+                          {page.age || "-"}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-900">
+                          {page.judgement_date || "-"}
                         </td>
                       </tr>
                     ))}
