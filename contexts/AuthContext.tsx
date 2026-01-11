@@ -38,27 +38,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
-  const [inactivityTimeout, setInactivityTimeout] = useState<NodeJS.Timeout | null>(null);
+  const inactivityTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
   const fetchProfile = useCallback(async (userId: string) => {
     try {
       console.log('[AUTH DEBUG] Fetching profile for user:', userId);
 
-      // Add timeout to prevent hanging indefinitely
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Profile fetch timeout')), 10000);
-      });
-
-      const fetchPromise = supabase
+      const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
-
-      const { data, error } = await Promise.race([
-        fetchPromise,
-        timeoutPromise
-      ]) as any;
 
       if (error) {
         console.error('[AUTH ERROR] Error fetching profile:', error, {
@@ -95,8 +85,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  // Inactivity timer management - moved after signOut definition to avoid circular dependency
-  const handleInactivityLogout = useCallback(async () => {
+  // Inactivity timer management
+  const handleInactivityLogout = async () => {
     console.log('User inactive for 30 minutes, logging out...');
     try {
       await supabase.auth.signOut();
@@ -109,21 +99,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Error during inactivity logout:', error);
     }
-  }, [router]);
+  };
 
   const resetInactivityTimer = useCallback(() => {
-    if (inactivityTimeout) {
-      clearTimeout(inactivityTimeout);
+    if (inactivityTimeoutRef.current) {
+      clearTimeout(inactivityTimeoutRef.current);
     }
 
     const timeout = setTimeout(handleInactivityLogout, INACTIVITY_TIMEOUT);
-
-    setInactivityTimeout(timeout);
-  }, [handleInactivityLogout]);
+    inactivityTimeoutRef.current = timeout;
+  }, []); // Empty deps - handleInactivityLogout is stable
 
   // Track user activity
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      // Clear timeout if user is logged out
+      if (inactivityTimeoutRef.current) {
+        clearTimeout(inactivityTimeoutRef.current);
+        inactivityTimeoutRef.current = null;
+      }
+      return;
+    }
 
     const activityEvents = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
 
@@ -142,6 +138,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       activityEvents.forEach(event => {
         document.removeEventListener(event, handleActivity);
       });
+      // Clear timeout on cleanup
+      if (inactivityTimeoutRef.current) {
+        clearTimeout(inactivityTimeoutRef.current);
+        inactivityTimeoutRef.current = null;
+      }
     };
   }, [user, resetInactivityTimer]);
 
@@ -311,9 +312,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(true);
 
       // Clear inactivity timeout
-      if (inactivityTimeout) {
-        clearTimeout(inactivityTimeout);
-        setInactivityTimeout(null);
+      if (inactivityTimeoutRef.current) {
+        clearTimeout(inactivityTimeoutRef.current);
+        inactivityTimeoutRef.current = null;
       }
 
       // Sign out from Supabase (this clears auth tokens)
