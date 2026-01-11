@@ -302,7 +302,7 @@ const RegisterFreePersonsColumbiaPage = () => {
 
         while (hasMore) {
           const { data, error } = await supabase
-            .from("register_free_persons_columbia")
+            .from("register_free_persons_colombia")
             .select("id, book_no, page_no, page_label, row_no, image_path, name, age, place_of_nativity, residence, entered_state_year, time_of_coming_into_state, occupation, date_registered, created_at")
             .order("book_no", { ascending: true })
             .order("page_no", { ascending: true })
@@ -310,7 +310,7 @@ const RegisterFreePersonsColumbiaPage = () => {
             .range(from, from + batchSize - 1);
 
           if (error) {
-            console.error("Error fetching Register Free Persons (Columbia):", error);
+            console.error("Error fetching Register Free Persons (Colombia):", error);
             break;
           }
 
