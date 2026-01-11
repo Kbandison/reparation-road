@@ -28,6 +28,7 @@ interface KentuckyImportationRecord {
   complexion: string | null;
   where_to: string | null;
   where_from: string | null;
+  record_date: string | null;
 }
 
 export const dynamic = "force-dynamic";
@@ -119,6 +120,7 @@ export default function KentuckySlaveImportationPage() {
         record.age?.toLowerCase().includes(searchLower) ||
         record.sex?.toLowerCase().includes(searchLower) ||
         record.complexion?.toLowerCase().includes(searchLower) ||
+        record.record_date?.toLowerCase().includes(searchLower) ||
         record.page_number?.toString().includes(searchLower)
       );
     });
@@ -217,7 +219,7 @@ export default function KentuckySlaveImportationPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <Input
                 type="search"
-                placeholder="Search by name, enslaver, location, age, sex, complexion, or page..."
+                placeholder="Search by name, date, enslaver, location, age, sex, complexion, or page..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 w-full"
@@ -261,6 +263,7 @@ export default function KentuckySlaveImportationPage() {
                     <thead className="bg-brand-green text-white">
                       <tr>
                         <th className="px-4 py-3 text-left text-sm font-semibold">Page</th>
+                        <th className="px-4 py-3 text-left text-sm font-semibold">Date</th>
                         <th className="px-4 py-3 text-left text-sm font-semibold">Name</th>
                         <th className="px-4 py-3 text-left text-sm font-semibold">Age</th>
                         <th className="px-4 py-3 text-left text-sm font-semibold">Sex</th>
@@ -278,6 +281,7 @@ export default function KentuckySlaveImportationPage() {
                           className="hover:bg-brand-tan/30 cursor-pointer transition-colors"
                         >
                           <td className="px-4 py-3 text-sm">{record.page_number}</td>
+                          <td className="px-4 py-3 text-sm">{record.record_date || "-"}</td>
                           <td className="px-4 py-3 text-sm font-medium">{record.name || "-"}</td>
                           <td className="px-4 py-3 text-sm">{record.age || "-"}</td>
                           <td className="px-4 py-3 text-sm">{record.sex || "-"}</td>
@@ -408,6 +412,13 @@ export default function KentuckySlaveImportationPage() {
                         {selectedRecord.page_number}
                       </p>
                     </div>
+
+                    {selectedRecord.record_date && (
+                      <div className="border-b border-gray-200 pb-3">
+                        <p className="text-sm text-gray-600 mb-1">Record Date</p>
+                        <p className="text-base text-gray-900">{selectedRecord.record_date}</p>
+                      </div>
+                    )}
 
                     {selectedRecord.name && (
                       <div className="border-b border-gray-200 pb-3">
