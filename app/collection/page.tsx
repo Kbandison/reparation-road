@@ -8,8 +8,8 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { SearchAutocomplete } from "@/components/SearchAutocomplete";
-import ClaimModal from "@/components/ClaimModal";
-import { Sparkles, TrendingUp, Lock, Loader2, FileText, ExternalLink } from "lucide-react";
+import { Sparkles, Lock, Loader2, FileText, ExternalLink } from "lucide-react";
+import { RecentActivitySidebar } from "@/components/ui/RecentActivitySidebar";
 
 const collections = [
   { name: "African Colonization Society", href: "/collections/acs", tier: "premium", description: "Emigrants to Liberia and census rolls" },
@@ -136,8 +136,6 @@ const collections = [
 const CollectionPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [claims, setClaims] = useState<any[] | null>(null);
-  const [selectedClaim, setSelectedClaim] = useState<any | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -190,21 +188,6 @@ const CollectionPage = () => {
       setIsSearching(false);
     }
   };
-
-  useEffect(() => {
-    const fetchClaims = async () => {
-      const { data: allClaims } = await supabase
-        .from("slave_compensation_claims")
-        .select("*")
-        .order("id", { ascending: false })
-        .limit(50);
-
-      const shuffled = allClaims?.sort(() => 0.5 - Math.random());
-      setClaims(shuffled?.slice(0, 4) || []);
-    };
-
-    fetchClaims();
-  }, []);
 
   const handleSearch = async (query: string, forceFullSearch = false) => {
     console.log('[CLIENT] Search initiated for:', query, 'forceFullSearch:', forceFullSearch);
@@ -591,34 +574,9 @@ const CollectionPage = () => {
           {/* Sidebar */}
           {user && (
             <aside className="w-full lg:w-1/4">
-              <div className="sticky top-24">
+              <div className="sticky top-24 space-y-6">
                 {/* Recent Activity */}
-                <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 mb-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <TrendingUp className="w-5 h-5 text-brand-green" />
-                    <h2 className="text-xl font-bold text-brand-brown">Recent Activity</h2>
-                  </div>
-
-                  <div className="space-y-3">
-                    {claims?.map((claim) => (
-                      <div
-                        key={claim.id}
-                        className="cursor-pointer hover:bg-brand-beige p-3 rounded-lg transition-colors border border-transparent hover:border-brand-green/20"
-                        onClick={() => setSelectedClaim(claim)}
-                      >
-                        <h3 className="font-semibold text-brand-brown text-sm">{`${claim.first_name} ${claim.last_name}`}</h3>
-                        <p className="text-xs text-gray-600">Age: {claim.age}</p>
-                        <p className="text-xs text-gray-600 truncate">
-                          {claim.place_of_birth}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-
-                  <Button className="w-full mt-4 bg-brand-green hover:bg-brand-darkgreen">
-                    View All Records
-                  </Button>
-                </div>
+                <RecentActivitySidebar />
 
                 {/* Upgrade CTA */}
                 {!hasPremiumAccess && (
@@ -642,10 +600,6 @@ const CollectionPage = () => {
         )}
       </div>
 
-      <ClaimModal
-        claim={selectedClaim}
-        onClose={() => setSelectedClaim(null)}
-      />
     </div>
   );
 };

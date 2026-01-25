@@ -9,6 +9,8 @@ import { BookmarkButton } from "@/components/ui/BookmarkButton";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, ScrollText, Loader2 } from "lucide-react";
+import { RecordCitation } from "@/components/ui/RecordCitation";
+import { RelatedRecords } from "@/components/ui/RelatedRecords";
 
 interface RegisterPage {
   id: string;
@@ -109,15 +111,18 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
           <h2 className="text-2xl font-bold text-brand-brown">
             Record Details - Book {page.book_no}, Page {page.page_no}
           </h2>
-          <button
-            onClick={() => {
-              onClose();
-              handleResetZoom();
-            }}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <X className="w-6 h-6" />
-          </button>
+          <div className="flex items-center gap-2">
+            <BookmarkButton pageId={page.id} />
+            <button
+              onClick={() => {
+                onClose();
+                handleResetZoom();
+              }}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
         </div>
 
         <div className="p-6">
@@ -212,6 +217,16 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
                     </div>
                   </div>
                 ) : null}
+
+                {/* Citation */}
+                <RecordCitation
+                  collectionName="Register of Free Persons - Thomas County"
+                  recordIdentifier={page.id}
+                  recordDetails={{
+                    bookNo: page.book_no,
+                    pageNo: page.page_no
+                  }}
+                />
               </div>
             </div>
           </div>

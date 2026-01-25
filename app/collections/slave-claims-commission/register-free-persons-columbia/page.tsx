@@ -9,6 +9,8 @@ import { BookmarkButton } from "@/components/ui/BookmarkButton";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, ScrollText, Loader2 } from "lucide-react";
+import { RecordCitation } from "@/components/ui/RecordCitation";
+import { RelatedRecords } from "@/components/ui/RelatedRecords";
 
 interface RegisterRecord {
   id: string;
@@ -90,15 +92,18 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
           <h2 className="text-2xl font-bold text-brand-brown">
             {record.name || `Record - Book ${record.book_no}, Page ${record.page_label || record.page_no}, Row ${record.row_no}`}
           </h2>
-          <button
-            onClick={() => {
-              onClose();
-              handleResetZoom();
-            }}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <X className="w-6 h-6" />
-          </button>
+          <div className="flex items-center gap-2">
+            <BookmarkButton pageId={record.id} />
+            <button
+              onClick={() => {
+                onClose();
+                handleResetZoom();
+              }}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
         </div>
 
         <div className="p-6">
@@ -251,6 +256,30 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
                     </div>
                   </div>
                 )}
+
+                {/* Citation */}
+                <RecordCitation
+                  collectionName="Register of Free Persons - Columbia County"
+                  recordIdentifier={record.id}
+                  recordDetails={{
+                    bookNo: record.book_no,
+                    pageNo: record.page_no,
+                    name: record.name || undefined,
+                    date: record.date_registered || undefined
+                  }}
+                />
+
+                {/* Related Records */}
+                <RelatedRecords
+                  currentRecordId={record.id}
+                  currentTable="register_free_persons_colombia"
+                  searchTerms={{
+                    name: record.name || undefined,
+                    location: record.residence || undefined,
+                    occupation: record.occupation || undefined
+                  }}
+                  collectionSlug="slave-claims-commission/register-free-persons-columbia"
+                />
               </div>
             </div>
           </div>
