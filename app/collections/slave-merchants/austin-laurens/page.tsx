@@ -10,23 +10,18 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, ScrollText, Loader2 } from "lucide-react";
 
-interface CensusRecord {
+interface SaleRecord {
   id: string;
   book_no: number;
   page_no: number;
   entry_no: number;
-  head_of_family: string;
-  residence: string | null;
-  cherokee_males_under_18: number | null;
-  cherokee_males_above_18: number | null;
-  cherokee_females_under_18: number | null;
-  cherokee_females_above_18: number | null;
-  cherokees: number | null;
-  male_slaves: number | null;
-  female_slaves: number | null;
-  total_slaves: number | null;
-  whites_connected_by_marriage: number | null;
-  household_total: number | null;
+  date_sold: string | null;
+  to_whom_sold: string | null;
+  location: string | null;
+  men: number | null;
+  women: number | null;
+  boys: number | null;
+  girls: number | null;
   image_path: string;
   ocr_text: string;
   slug: string;
@@ -34,10 +29,10 @@ interface CensusRecord {
 }
 
 interface RecordModalProps {
-  record: CensusRecord | null;
+  record: SaleRecord | null;
   onClose: () => void;
-  allRecords: CensusRecord[];
-  onNavigate: (record: CensusRecord) => void;
+  allRecords: SaleRecord[];
+  onNavigate: (record: SaleRecord) => void;
 }
 
 const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, onClose, allRecords, onNavigate }) {
@@ -58,7 +53,7 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
       setLoadingOcr(true);
       try {
         const { data, error } = await supabase
-          .from("cherokee_henderson")
+          .from("slave_merchants_austin_laurens")
           .select("ocr_text")
           .eq("id", record.id)
           .single();
@@ -115,12 +110,15 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
 
   if (!record) return null;
 
+  // Calculate total persons sold
+  const totalPersons = (record.men || 0) + (record.women || 0) + (record.boys || 0) + (record.girls || 0);
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between">
           <h2 className="text-2xl font-bold text-brand-brown">
-            Record Details - {record.head_of_family}
+            Sale Record - Entry {record.entry_no}
           </h2>
           <button
             onClick={() => {
@@ -181,7 +179,7 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
                   )}
                   <Image
                     src={record.image_path}
-                    alt={`Record for ${record.head_of_family}`}
+                    alt={`Sale record entry ${record.entry_no}`}
                     width={800}
                     height={1000}
                     className="w-full"
@@ -194,16 +192,9 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
             {/* Record Information */}
             <div>
               <h3 className="text-lg font-semibold text-brand-brown mb-4">
-                Household Information
+                Sale Information
               </h3>
               <div className="space-y-4">
-                <div className="border-b border-gray-200 pb-3">
-                  <p className="text-sm text-gray-600 mb-1">Head of Family</p>
-                  <p className="text-lg font-medium text-brand-brown">
-                    {record.head_of_family}
-                  </p>
-                </div>
-
                 <div className="grid grid-cols-3 gap-4">
                   <div className="border-b border-gray-200 pb-3">
                     <p className="text-sm text-gray-600 mb-1">Book No.</p>
@@ -219,74 +210,55 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
                   </div>
                 </div>
 
-                {record.residence && (
+                {record.date_sold && (
                   <div className="border-b border-gray-200 pb-3">
-                    <p className="text-sm text-gray-600 mb-1">Residence</p>
-                    <p className="text-base text-gray-900">{record.residence}</p>
+                    <p className="text-sm text-gray-600 mb-1">Date Sold</p>
+                    <p className="text-lg font-medium text-brand-brown">{record.date_sold}</p>
                   </div>
                 )}
 
-                {/* Cherokee Population */}
+                {record.to_whom_sold && (
+                  <div className="border-b border-gray-200 pb-3">
+                    <p className="text-sm text-gray-600 mb-1">To Whom Sold</p>
+                    <p className="text-base text-gray-900">{record.to_whom_sold}</p>
+                  </div>
+                )}
+
+                {record.location && (
+                  <div className="border-b border-gray-200 pb-3">
+                    <p className="text-sm text-gray-600 mb-1">Location</p>
+                    <p className="text-base text-gray-900">{record.location}</p>
+                  </div>
+                )}
+
+                {/* Persons Sold */}
                 <div className="border-b border-gray-200 pb-3">
-                  <p className="text-sm text-gray-600 mb-2 font-medium">Cherokee Population</p>
+                  <p className="text-sm text-gray-600 mb-2 font-medium">Persons Sold</p>
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Males Under 18:</span>
-                      <span className="text-gray-900">{record.cherokee_males_under_18 ?? '-'}</span>
+                      <span className="text-gray-600">Men:</span>
+                      <span className="text-gray-900">{record.men ?? '-'}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Males Above 18:</span>
-                      <span className="text-gray-900">{record.cherokee_males_above_18 ?? '-'}</span>
+                      <span className="text-gray-600">Women:</span>
+                      <span className="text-gray-900">{record.women ?? '-'}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Females Under 18:</span>
-                      <span className="text-gray-900">{record.cherokee_females_under_18 ?? '-'}</span>
+                      <span className="text-gray-600">Boys:</span>
+                      <span className="text-gray-900">{record.boys ?? '-'}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Females Above 18:</span>
-                      <span className="text-gray-900">{record.cherokee_females_above_18 ?? '-'}</span>
+                      <span className="text-gray-600">Girls:</span>
+                      <span className="text-gray-900">{record.girls ?? '-'}</span>
                     </div>
-                    <div className="flex justify-between col-span-2 font-medium">
-                      <span className="text-gray-600">Total Cherokees:</span>
-                      <span className="text-gray-900">{record.cherokees ?? '-'}</span>
-                    </div>
+                    {totalPersons > 0 && (
+                      <div className="flex justify-between col-span-2 font-medium pt-2 border-t border-gray-100">
+                        <span className="text-gray-600">Total:</span>
+                        <span className="text-brand-brown">{totalPersons}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
-
-                {/* Enslaved Population */}
-                {(record.male_slaves !== null || record.female_slaves !== null || record.total_slaves !== null) && (
-                  <div className="border-b border-gray-200 pb-3">
-                    <p className="text-sm text-gray-600 mb-2 font-medium">Enslaved Population</p>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Male Slaves:</span>
-                        <span className="text-gray-900">{record.male_slaves ?? '-'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Female Slaves:</span>
-                        <span className="text-gray-900">{record.female_slaves ?? '-'}</span>
-                      </div>
-                      <div className="flex justify-between col-span-2 font-medium">
-                        <span className="text-gray-600">Total Slaves:</span>
-                        <span className="text-gray-900">{record.total_slaves ?? '-'}</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {record.whites_connected_by_marriage !== null && (
-                  <div className="border-b border-gray-200 pb-3">
-                    <p className="text-sm text-gray-600 mb-1">Whites Connected by Marriage</p>
-                    <p className="text-base text-gray-900">{record.whites_connected_by_marriage}</p>
-                  </div>
-                )}
-
-                {record.household_total !== null && (
-                  <div className="border-b border-gray-200 pb-3">
-                    <p className="text-sm text-gray-600 mb-1">Household Total</p>
-                    <p className="text-lg font-medium text-brand-brown">{record.household_total}</p>
-                  </div>
-                )}
 
                 {loadingOcr ? (
                   <div className="border-b border-gray-200 pb-3">
@@ -333,13 +305,13 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
   );
 });
 
-const CherokeeHendersonPage = () => {
+const AustinLaurensPage = () => {
   const searchParams = useSearchParams();
-  const [records, setRecords] = useState<CensusRecord[]>([]);
-  const [filteredRecords, setFilteredRecords] = useState<CensusRecord[]>([]);
+  const [records, setRecords] = useState<SaleRecord[]>([]);
+  const [filteredRecords, setFilteredRecords] = useState<SaleRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedRecord, setSelectedRecord] = useState<CensusRecord | null>(null);
+  const [selectedRecord, setSelectedRecord] = useState<SaleRecord | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [bookFilter, setBookFilter] = useState<number | null>(null);
   const itemsPerPage = 20;
@@ -368,27 +340,27 @@ const CherokeeHendersonPage = () => {
       setLoading(true);
       try {
         // Fetch all records in batches (without ocr_text for performance)
-        let allRecords: CensusRecord[] = [];
+        let allRecords: SaleRecord[] = [];
         let from = 0;
         const batchSize = 1000;
         let hasMore = true;
 
         while (hasMore) {
           const { data, error } = await supabase
-            .from("cherokee_henderson")
-            .select("id, book_no, page_no, entry_no, head_of_family, residence, cherokee_males_under_18, cherokee_males_above_18, cherokee_females_under_18, cherokee_females_above_18, cherokees, male_slaves, female_slaves, total_slaves, whites_connected_by_marriage, household_total, image_path, slug, created_at")
+            .from("slave_merchants_austin_laurens")
+            .select("id, book_no, page_no, entry_no, date_sold, to_whom_sold, location, men, women, boys, girls, image_path, slug, created_at")
             .order("book_no", { ascending: true })
             .order("page_no", { ascending: true })
             .order("entry_no", { ascending: true })
             .range(from, from + batchSize - 1);
 
           if (error) {
-            console.error("Error fetching Cherokee Henderson Census:", error);
+            console.error("Error fetching Austin & Laurens records:", error);
             break;
           }
 
           if (data && data.length > 0) {
-            allRecords = [...allRecords, ...data as CensusRecord[]];
+            allRecords = [...allRecords, ...data as SaleRecord[]];
             from += batchSize;
 
             if (data.length < batchSize) {
@@ -417,11 +389,12 @@ const CherokeeHendersonPage = () => {
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
       filtered = filtered.filter(record =>
-        record.head_of_family.toLowerCase().includes(searchLower) ||
         record.book_no.toString().includes(searchTerm) ||
         record.page_no.toString().includes(searchTerm) ||
         record.entry_no.toString().includes(searchTerm) ||
-        (record.residence && record.residence.toLowerCase().includes(searchLower))
+        (record.date_sold && record.date_sold.toLowerCase().includes(searchLower)) ||
+        (record.to_whom_sold && record.to_whom_sold.toLowerCase().includes(searchLower)) ||
+        (record.location && record.location.toLowerCase().includes(searchLower))
       );
     }
 
@@ -440,7 +413,7 @@ const CherokeeHendersonPage = () => {
 
   const uniqueBooks = [...new Set(records.map(r => r.book_no))].sort((a, b) => a - b);
 
-  const handleRecordClick = useCallback((record: CensusRecord) => {
+  const handleRecordClick = useCallback((record: SaleRecord) => {
     setSelectedRecord(record);
   }, []);
 
@@ -462,11 +435,11 @@ const CherokeeHendersonPage = () => {
           <div className="max-w-4xl mx-auto text-center">
             <ScrollText className="w-16 h-16 mx-auto mb-4" />
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Cherokee Census - Henderson Roll
+              Austin & Laurens Slave Merchant Records
             </h1>
             <p className="text-lg text-white/90">
-              Historical census records from the Cherokee Nation Henderson Roll.
-              Browse household entries with population counts for Cherokee members, enslaved persons, and connected whites.
+              Historical records from the Austin & Laurens slave trading firm.
+              Browse sale entries documenting dates, buyers, locations, and persons sold.
             </p>
           </div>
         </div>
@@ -478,7 +451,7 @@ const CherokeeHendersonPage = () => {
           <div className="flex flex-col sm:flex-row gap-4 items-center">
             <Input
               type="search"
-              placeholder="Search by head of family, residence..."
+              placeholder="Search by date, buyer, location..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full max-w-md"
@@ -519,46 +492,57 @@ const CherokeeHendersonPage = () => {
                   <thead className="bg-brand-green text-white sticky top-0">
                     <tr>
                       <th className="px-4 py-3 text-left text-sm font-semibold">Entry</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold">Head of Family</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold">Residence</th>
-                      <th className="px-4 py-3 text-center text-sm font-semibold">Cherokees</th>
-                      <th className="px-4 py-3 text-center text-sm font-semibold">Slaves</th>
-                      <th className="px-4 py-3 text-center text-sm font-semibold">Whites</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold">Date Sold</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold">To Whom Sold</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold">Location</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold">Men</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold">Women</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold">Boys</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold">Girls</th>
                       <th className="px-4 py-3 text-center text-sm font-semibold">Total</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {currentPageData.map((record, index) => (
-                      <tr
-                        key={record.id}
-                        onClick={() => handleRecordClick(record)}
-                        className={`hover:bg-brand-tan/30 cursor-pointer transition-colors ${
-                          index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
-                        }`}
-                      >
-                        <td className="px-4 py-3 text-sm text-gray-900">
-                          {record.book_no}-{record.page_no}-{record.entry_no}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-900 font-medium">
-                          {record.head_of_family}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-900">
-                          {record.residence || '-'}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-900 text-center">
-                          {record.cherokees ?? '-'}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-900 text-center">
-                          {record.total_slaves ?? '-'}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-900 text-center">
-                          {record.whites_connected_by_marriage ?? '-'}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-900 text-center font-medium">
-                          {record.household_total ?? '-'}
-                        </td>
-                      </tr>
-                    ))}
+                    {currentPageData.map((record, index) => {
+                      const total = (record.men || 0) + (record.women || 0) + (record.boys || 0) + (record.girls || 0);
+                      return (
+                        <tr
+                          key={record.id}
+                          onClick={() => handleRecordClick(record)}
+                          className={`hover:bg-brand-tan/30 cursor-pointer transition-colors ${
+                            index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                          }`}
+                        >
+                          <td className="px-4 py-3 text-sm text-gray-900">
+                            {record.book_no}-{record.page_no}-{record.entry_no}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900 font-medium">
+                            {record.date_sold || '-'}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900">
+                            {record.to_whom_sold || '-'}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900">
+                            {record.location || '-'}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900 text-center">
+                            {record.men ?? '-'}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900 text-center">
+                            {record.women ?? '-'}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900 text-center">
+                            {record.boys ?? '-'}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900 text-center">
+                            {record.girls ?? '-'}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900 text-center font-medium">
+                            {total > 0 ? total : '-'}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -606,7 +590,7 @@ const CherokeeHendersonPage = () => {
   );
 };
 
-const WrappedCherokeeHendersonPage = () => {
+const WrappedAustinLaurensPage = () => {
   return (
     <ProtectedRoute requiresPaid={true}>
       <Suspense fallback={
@@ -614,10 +598,10 @@ const WrappedCherokeeHendersonPage = () => {
           <Loader2 className="w-8 h-8 animate-spin text-brand-green" />
         </div>
       }>
-        <CherokeeHendersonPage />
+        <AustinLaurensPage />
       </Suspense>
     </ProtectedRoute>
   );
 };
 
-export default WrappedCherokeeHendersonPage;
+export default WrappedAustinLaurensPage;
