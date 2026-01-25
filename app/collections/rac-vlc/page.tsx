@@ -8,6 +8,12 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const subcollections = [
   {
+    slug: 'austin-laurens',
+    title: 'Austin & Laurens',
+    description: 'Sale records documenting transactions, buyers, locations, and persons sold',
+    available: true
+  },
+  {
     slug: 'samuel-william-vernon',
     title: 'Samuel and William Vernon Co.',
     description: 'Slave merchant trade records and vessel documentation',
