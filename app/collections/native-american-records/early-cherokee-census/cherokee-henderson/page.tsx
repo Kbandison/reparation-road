@@ -9,6 +9,8 @@ import { BookmarkButton } from "@/components/ui/BookmarkButton";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, ScrollText, Loader2 } from "lucide-react";
+import { RecordCitation } from "@/components/ui/RecordCitation";
+import { RelatedRecords } from "@/components/ui/RelatedRecords";
 
 interface CensusRecord {
   id: string;
@@ -113,6 +115,16 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handlePrevRecord, handleNextRecord, onClose]);
 
+  // Prevent body scroll when modal is open
+  React.useEffect(() => {
+    if (record) {
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [record]);
+
   if (!record) return null;
 
   return (
@@ -122,15 +134,18 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
           <h2 className="text-2xl font-bold text-brand-brown">
             Record Details - {record.head_of_family}
           </h2>
-          <button
-            onClick={() => {
-              onClose();
-              handleResetZoom();
-            }}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <X className="w-6 h-6" />
-          </button>
+          <div className="flex items-center gap-2">
+            <BookmarkButton pageId={record.id} />
+            <button
+              onClick={() => {
+                onClose();
+                handleResetZoom();
+              }}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
         </div>
 
         <div className="p-6">
@@ -304,6 +319,29 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
                     </div>
                   </div>
                 ) : null}
+
+                {/* Citation */}
+                <RecordCitation
+                  collectionName="Cherokee Census - Henderson Roll"
+                  recordIdentifier={record.id}
+                  recordDetails={{
+                    bookNo: record.book_no,
+                    pageNo: record.page_no,
+                    entryNo: record.entry_no,
+                    name: record.head_of_family
+                  }}
+                />
+
+                {/* Related Records */}
+                <RelatedRecords
+                  currentRecordId={record.id}
+                  currentTable="cherokee_henderson"
+                  searchTerms={{
+                    name: record.head_of_family,
+                    location: record.residence || undefined
+                  }}
+                  collectionSlug="native-american-records/early-cherokee-census/cherokee-henderson"
+                />
               </div>
 
               {/* Navigation buttons */}
