@@ -83,6 +83,16 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handlePrevRecord, handleNextRecord, onClose]);
 
+  // Prevent body scroll when modal is open
+  React.useEffect(() => {
+    if (record) {
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [record]);
+
   if (!record) return null;
 
   return (

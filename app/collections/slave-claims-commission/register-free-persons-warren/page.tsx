@@ -102,6 +102,16 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handlePrevPage, handleNextPage, onClose]);
 
+  // Prevent body scroll when modal is open
+  React.useEffect(() => {
+    if (page) {
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [page]);
+
   if (!page) return null;
 
   return (
