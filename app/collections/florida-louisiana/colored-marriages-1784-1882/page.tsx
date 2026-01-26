@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { BookmarkButton } from "@/components/ui/BookmarkButton";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { ChevronLeft, ChevronRight, X, ZoomIn, Heart } from "lucide-react";
+import { RecordCitation } from "@/components/ui/RecordCitation";
 import { GridSkeleton } from "@/components/ui/GridSkeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 
@@ -74,6 +75,16 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handlePrevRecord, handleNextRecord, isImageZoomed, onClose]);
+
+  // Prevent body scroll when modal is open
+  React.useEffect(() => {
+    if (record) {
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [record]);
 
   if (!record) return null;
 
@@ -200,6 +211,15 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
                   </div>
                 </div>
               )}
+
+              {/* Citation */}
+              <RecordCitation
+                collectionName="Colored Marriages 1784-1882"
+                recordIdentifier={record.id}
+                recordDetails={{
+                  pageNo: record.page_number
+                }}
+              />
             </div>
           </div>
         </div>

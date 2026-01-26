@@ -6,6 +6,8 @@ import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { BookmarkButton } from "@/components/ui/BookmarkButton";
+import { RecordCitation } from "@/components/ui/RecordCitation";
+import { RelatedRecords } from "@/components/ui/RelatedRecords";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, ScrollText, Loader2 } from "lucide-react";
@@ -108,6 +110,16 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handlePrevRecord, handleNextRecord, onClose]);
 
+  // Prevent body scroll when modal is open
+  React.useEffect(() => {
+    if (record) {
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [record]);
+
   if (!record) return null;
 
   // Calculate total persons sold
@@ -120,15 +132,18 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
           <h2 className="text-2xl font-bold text-brand-brown">
             Sale Record - Entry {record.entry_no}
           </h2>
-          <button
-            onClick={() => {
-              onClose();
-              handleResetZoom();
-            }}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <X className="w-6 h-6" />
-          </button>
+          <div className="flex items-center gap-3">
+            <BookmarkButton pageId={record.id} size={24} showLabel={true} />
+            <button
+              onClick={() => {
+                onClose();
+                handleResetZoom();
+              }}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
         </div>
 
         <div className="p-6">
@@ -276,6 +291,30 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
                     </div>
                   </div>
                 ) : null}
+
+                {/* Citation */}
+                <RecordCitation
+                  collectionName="Austin & Laurens Slave Merchant Records"
+                  recordIdentifier={`Entry ${record.entry_no}`}
+                  recordDetails={{
+                    bookNo: record.book_no,
+                    pageNo: record.page_no,
+                    entryNo: record.entry_no,
+                    name: record.to_whom_sold || undefined,
+                    date: record.date_sold || undefined
+                  }}
+                />
+
+                {/* Related Records */}
+                <RelatedRecords
+                  currentRecordId={record.id}
+                  currentTable="slave_merchants_austin_laurens"
+                  searchTerms={{
+                    name: record.to_whom_sold || undefined,
+                    location: record.location || undefined
+                  }}
+                  collectionSlug="rac-vlc/austin-laurens"
+                />
               </div>
 
               {/* Navigation buttons */}

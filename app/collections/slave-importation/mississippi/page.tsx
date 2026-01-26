@@ -9,6 +9,7 @@ import { BookmarkButton } from "@/components/ui/BookmarkButton";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, X, ZoomIn, ScrollText, Loader2 } from "lucide-react";
+import { RecordCitation } from "@/components/ui/RecordCitation";
 
 interface RegisterPage {
   id: string;
@@ -71,6 +72,16 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handlePrevPage, handleNextPage, isImageZoomed, onClose]);
+
+  // Prevent body scroll when modal is open
+  React.useEffect(() => {
+    if (page) {
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [page]);
 
   if (!page) return null;
 
@@ -166,6 +177,16 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
                   </div>
                 </div>
               )}
+
+              {/* Citation */}
+              <RecordCitation
+                collectionName="Slave Importation - Mississippi"
+                recordIdentifier={page.id}
+                recordDetails={{
+                  bookNo: page.book_no,
+                  pageNo: page.page_no
+                }}
+              />
             </div>
           </div>
         </div>

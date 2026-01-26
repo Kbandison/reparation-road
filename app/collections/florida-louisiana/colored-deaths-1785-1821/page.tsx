@@ -6,6 +6,8 @@ import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { BookmarkButton } from "@/components/ui/BookmarkButton";
+import { RecordCitation } from "@/components/ui/RecordCitation";
+import { RelatedRecords } from "@/components/ui/RelatedRecords";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, FileText } from "lucide-react";
 import { GridSkeleton } from "@/components/ui/GridSkeleton";
@@ -75,6 +77,16 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handlePrevRecord, handleNextRecord, isImageZoomed, onClose]);
+
+  // Prevent body scroll when modal is open
+  React.useEffect(() => {
+    if (record) {
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [record]);
 
   if (!record) return null;
 
@@ -201,6 +213,23 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
                   </div>
                 </div>
               )}
+
+              {/* Citation */}
+              <RecordCitation
+                collectionName="Colored Deaths (1785-1821)"
+                recordIdentifier={`Page ${record.page_number}`}
+                recordDetails={{
+                  pageNo: record.page_number
+                }}
+              />
+
+              {/* Related Records */}
+              <RelatedRecords
+                currentRecordId={record.id}
+                currentTable="colored-deaths"
+                searchTerms={{}}
+                collectionSlug="florida-louisiana/colored-deaths-1785-1821"
+              />
             </div>
           </div>
         </div>

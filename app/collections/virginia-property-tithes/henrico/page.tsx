@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { BookmarkButton } from "@/components/ui/BookmarkButton";
 import { RecordCitation } from "@/components/ui/RecordCitation";
+import { RelatedRecords } from "@/components/ui/RelatedRecords";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, ScrollText, Loader2 } from "lucide-react";
@@ -72,6 +73,16 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handlePrevPage, handleNextPage, onClose]);
+
+  // Prevent body scroll when modal is open
+  React.useEffect(() => {
+    if (page) {
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [page]);
 
   if (!page) return null;
 
@@ -210,6 +221,14 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
                   bookNo: page.book_no,
                   pageNo: page.page_no
                 }}
+              />
+
+              {/* Related Records */}
+              <RelatedRecords
+                currentRecordId={page.id}
+                currentTable="va_personal_henrico"
+                searchTerms={{}}
+                collectionSlug="virginia-property-tithes/henrico"
               />
 
               {/* Navigation buttons */}

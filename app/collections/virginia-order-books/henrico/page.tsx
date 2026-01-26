@@ -6,6 +6,8 @@ import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { BookmarkButton } from "@/components/ui/BookmarkButton";
+import { RecordCitation } from "@/components/ui/RecordCitation";
+import { RelatedRecords } from "@/components/ui/RelatedRecords";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, ScrollText, Loader2 } from "lucide-react";
@@ -75,6 +77,16 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handlePrevPage, handleNextPage, onClose]);
 
+  // Prevent body scroll when modal is open
+  React.useEffect(() => {
+    if (page) {
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [page]);
+
   if (!page) return null;
 
   return (
@@ -84,15 +96,18 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
           <h2 className="text-2xl font-bold text-brand-brown">
             Record Details - Page {page.page_no}
           </h2>
-          <button
-            onClick={() => {
-              onClose();
-              handleResetZoom();
-            }}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <X className="w-6 h-6" />
-          </button>
+          <div className="flex items-center gap-3">
+            <BookmarkButton pageId={page.id} size={24} showLabel={true} />
+            <button
+              onClick={() => {
+                onClose();
+                handleResetZoom();
+              }}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
         </div>
 
         <div className="p-6">
@@ -198,6 +213,28 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
                     <p className="text-base text-gray-900">{new Date(page.judgement_date).toLocaleDateString()}</p>
                   </div>
                 )}
+
+                {/* Citation */}
+                <RecordCitation
+                  collectionName="Virginia Order Books - Henrico County"
+                  recordIdentifier={`Page ${page.page_no}`}
+                  recordDetails={{
+                    pageNo: page.page_no,
+                    name: page.enslaved_person || undefined,
+                    date: page.judgement_date || undefined
+                  }}
+                />
+
+                {/* Related Records */}
+                <RelatedRecords
+                  currentRecordId={page.id}
+                  currentTable="va_books_henrico"
+                  searchTerms={{
+                    name: page.enslaved_person || undefined,
+                    location: page.county || undefined
+                  }}
+                  collectionSlug="virginia-order-books/henrico"
+                />
               </div>
             </div>
           </div>

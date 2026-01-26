@@ -6,6 +6,8 @@ import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { BookmarkButton } from "@/components/ui/BookmarkButton";
+import { RecordCitation } from "@/components/ui/RecordCitation";
+import { RelatedRecords } from "@/components/ui/RelatedRecords";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, X, ZoomIn, Ship, Loader2 } from "lucide-react";
@@ -101,6 +103,16 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handlePrevPage, handleNextPage, isImageZoomed, onClose]);
+
+  // Prevent body scroll when modal is open
+  React.useEffect(() => {
+    if (page) {
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [page]);
 
   if (!page) return null;
 
@@ -205,6 +217,24 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
                   </div>
                 )}
               </div>
+
+              {/* Citation */}
+              <RecordCitation
+                collectionName="Brig Othello - Samuel & William Vernon"
+                recordIdentifier={`Book ${page.book_no}, Page ${page.page_no}`}
+                recordDetails={{
+                  bookNo: page.book_no,
+                  pageNo: page.page_no
+                }}
+              />
+
+              {/* Related Records */}
+              <RelatedRecords
+                currentRecordId={page.id}
+                currentTable="slave_merchants_othello"
+                searchTerms={{}}
+                collectionSlug="rac-vlc/samuel-william-vernon/brig-othello"
+              />
             </div>
           </div>
         </div>

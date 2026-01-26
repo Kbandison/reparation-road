@@ -9,6 +9,7 @@ import { BookmarkButton } from "@/components/ui/BookmarkButton";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, X, ZoomIn, Ship, Loader2 } from "lucide-react";
+import { RecordCitation } from "@/components/ui/RecordCitation";
 import { GridSkeleton } from "@/components/ui/GridSkeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 
@@ -101,6 +102,16 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handlePrevPage, handleNextPage, isImageZoomed, onClose]);
+
+  // Prevent body scroll when modal is open
+  React.useEffect(() => {
+    if (page) {
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [page]);
 
   if (!page) return null;
 
@@ -205,6 +216,16 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
                   </div>
                 )}
               </div>
+
+              {/* Citation */}
+              <RecordCitation
+                collectionName="Slave Merchant Trade Records - Schooner Sally"
+                recordIdentifier={page.id}
+                recordDetails={{
+                  bookNo: page.book_no,
+                  pageNo: page.page_no
+                }}
+              />
             </div>
           </div>
         </div>
