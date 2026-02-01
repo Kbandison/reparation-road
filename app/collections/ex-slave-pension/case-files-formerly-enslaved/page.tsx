@@ -147,7 +147,14 @@ const LetterModal = React.memo<LetterModalProps>(function LetterModal({
               Next
               <ChevronRight className="w-4 h-4" />
             </Button>
-            <BookmarkButton pageId={letter.id} size={24} showLabel={true} />
+            <BookmarkButton
+              pageId={letter.id}
+              collectionName="Ex-Slave Pension Case Files"
+              collectionSlug="ex-slave-pension/case-files-formerly-enslaved"
+              recordTitle={letter.recipient_name || `Case #${letter.id}`}
+              size={24}
+              showLabel={true}
+            />
             <Button onClick={onClose} variant="outline" size="sm">
               Close
             </Button>
@@ -634,7 +641,13 @@ const ExSlavePensionPage = () => {
                         className="absolute top-3 right-3 z-10 bg-white rounded-full p-2 shadow-md"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <BookmarkButton pageId={letter.id} size={18} />
+                        <BookmarkButton
+                        pageId={letter.id}
+                        collectionName="Ex-Slave Pension Case Files"
+                        collectionSlug="ex-slave-pension/case-files-formerly-enslaved"
+                        recordTitle={letter.recipient_name || `Case #${letter.id}`}
+                        size={18}
+                      />
                       </div>
                     </div>
                   )}

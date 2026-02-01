@@ -135,7 +135,12 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
             Record Details - {record.head_of_family}
           </h2>
           <div className="flex items-center gap-2">
-            <BookmarkButton pageId={record.id} />
+            <BookmarkButton
+              pageId={record.id}
+              collectionName="Cherokee Census - Henderson Roll"
+              collectionSlug="native-american-records/early-cherokee-census/cherokee-henderson"
+              recordTitle={record.head_of_family}
+            />
             <button
               onClick={() => {
                 onClose();

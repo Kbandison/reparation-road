@@ -7,6 +7,9 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface BookmarkButtonProps {
   pageId: string;
+  collectionName?: string;
+  collectionSlug?: string;
+  recordTitle?: string;
   className?: string;
   size?: number;
   showLabel?: boolean;
@@ -14,6 +17,9 @@ interface BookmarkButtonProps {
 
 export const BookmarkButton: React.FC<BookmarkButtonProps> = ({
   pageId,
+  collectionName,
+  collectionSlug,
+  recordTitle,
   className = '',
   size = 20,
   showLabel = false,
@@ -24,7 +30,7 @@ export const BookmarkButton: React.FC<BookmarkButtonProps> = ({
 
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click when clicking bookmark
-    await toggleBookmark(pageId);
+    await toggleBookmark(pageId, { collectionName, collectionSlug, recordTitle });
   };
 
   if (!user) {

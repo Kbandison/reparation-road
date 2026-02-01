@@ -158,7 +158,14 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
               Next
               <ChevronRight className="w-4 h-4" />
             </Button>
-            <BookmarkButton pageId={page.id} size={24} showLabel={true} />
+            <BookmarkButton
+              pageId={page.id}
+              collectionName="Inspection Roll of Negroes"
+              collectionSlug="inspection-roll"
+              recordTitle={`Book ${page.book_no}, Page ${page.page_no}`}
+              size={24}
+              showLabel={true}
+            />
             <Button onClick={onClose} variant="outline" size="sm">
               Close
             </Button>

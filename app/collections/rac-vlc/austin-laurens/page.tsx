@@ -133,7 +133,14 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
             Sale Record - Entry {record.entry_no}
           </h2>
           <div className="flex items-center gap-3">
-            <BookmarkButton pageId={record.id} size={24} showLabel={true} />
+            <BookmarkButton
+              pageId={record.id}
+              collectionName="Austin & Laurens Slave Merchant Records"
+              collectionSlug="rac-vlc/austin-laurens"
+              recordTitle={record.to_whom_sold || `Entry ${record.entry_no}`}
+              size={24}
+              showLabel={true}
+            />
             <button
               onClick={() => {
                 onClose();

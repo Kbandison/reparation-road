@@ -122,7 +122,12 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
             Record Details - Book {page.book_no}, Page {page.page_no}
           </h2>
           <div className="flex items-center gap-2">
-            <BookmarkButton pageId={page.id} />
+            <BookmarkButton
+              pageId={page.id}
+              collectionName="Register of Free Persons - Warren"
+              collectionSlug="slave-claims-commission/register-free-persons-warren"
+              recordTitle={`Book ${page.book_no}, Page ${page.page_no}`}
+            />
             <button
               onClick={() => {
                 onClose();

@@ -123,7 +123,14 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
               Next
               <ChevronRight className="w-4 h-4" />
             </Button>
-            <BookmarkButton pageId={record.id} size={24} showLabel={true} />
+            <BookmarkButton
+              pageId={record.id}
+              collectionName="Colored Deaths (1785-1821)"
+              collectionSlug="florida-louisiana/colored-deaths-1785-1821"
+              recordTitle={`Page ${record.page_number}`}
+              size={24}
+              showLabel={true}
+            />
             <Button onClick={onClose} variant="outline" size="sm">
               Close
             </Button>
@@ -517,7 +524,13 @@ const ColoredDeathsPage = () => {
                         className="absolute top-3 right-3 z-10 bg-white rounded-full p-2 shadow-md"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <BookmarkButton pageId={record.id} size={18} />
+                        <BookmarkButton
+                        pageId={record.id}
+                        collectionName="Colored Deaths (1785-1821)"
+                        collectionSlug="florida-louisiana/colored-deaths-1785-1821"
+                        recordTitle={`Page ${record.page_number}`}
+                        size={18}
+                      />
                       </div>
                     </div>
                   )}

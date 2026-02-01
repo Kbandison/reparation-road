@@ -148,7 +148,14 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
               Next
               <ChevronRight className="w-4 h-4" />
             </Button>
-            <BookmarkButton pageId={page.id} size={24} showLabel={true} />
+            <BookmarkButton
+              pageId={page.id}
+              collectionName="Schooner Sally"
+              collectionSlug="rac-vlc/samuel-william-vernon/schooner-sally"
+              recordTitle={`Book ${page.book_no}, Page ${page.page_no}`}
+              size={24}
+              showLabel={true}
+            />
             <Button onClick={onClose} variant="outline" size="sm">
               Close
             </Button>
@@ -521,7 +528,13 @@ const SchoonerSallyPage = () => {
                       className="absolute top-3 right-3 z-10 bg-white rounded-full p-2 shadow-md"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <BookmarkButton pageId={page.id} size={18} />
+                      <BookmarkButton
+                      pageId={page.id}
+                      collectionName="Schooner Sally"
+                      collectionSlug="rac-vlc/samuel-william-vernon/schooner-sally"
+                      recordTitle={`Book ${page.book_no}, Page ${page.page_no}`}
+                      size={18}
+                    />
                     </div>
                   </div>
                   <div className="p-3">
