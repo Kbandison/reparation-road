@@ -6,6 +6,8 @@ import { Analytics } from "@vercel/analytics/next";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { BookmarkProvider } from "@/contexts/BookmarkContext";
 import { RecentActivityProvider } from "@/contexts/RecentActivityContext";
+import { CartProvider } from "@/contexts/CartContext";
+import { CartDrawer } from "@/components/cart";
 import { StructuredData } from "@/components/StructuredData";
 import { generateStructuredData } from "@/lib/metadata";
 
@@ -86,7 +88,10 @@ export default function RootLayout({
         <AuthProvider>
           <BookmarkProvider>
             <RecentActivityProvider>
-              <LayoutWrapper>{children}</LayoutWrapper>
+              <CartProvider>
+                <LayoutWrapper>{children}</LayoutWrapper>
+                <CartDrawer />
+              </CartProvider>
             </RecentActivityProvider>
           </BookmarkProvider>
         </AuthProvider>

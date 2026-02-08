@@ -15,6 +15,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<any>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<any>;
+  refreshProfile: () => Promise<void>;
   resetInactivityTimer: () => void;
 }
 
@@ -368,6 +369,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const refreshProfile = useCallback(async () => {
+    if (user) {
+      await fetchProfile(user.id);
+    }
+  }, [user, fetchProfile]);
+
   // Check if user has premium access (paid subscription OR admin role)
   const hasPremiumAccess = Boolean(
     profile && (profile.subscription_status === 'paid' || profile.role === 'admin')
@@ -383,6 +390,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signIn,
     signOut,
     updateProfile,
+    refreshProfile,
     resetInactivityTimer,
   };
 

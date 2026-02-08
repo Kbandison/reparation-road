@@ -6,7 +6,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ChangePasswordForm } from '@/components/auth/ChangePasswordForm';
-import { User, Settings, Star, Calendar, BookOpen } from 'lucide-react';
+import { User, Settings, Star, Calendar, BookOpen, CreditCard } from 'lucide-react';
+import { SubscriptionManagement, PaymentMethodList, AddPaymentMethod } from '@/components/stripe';
 
 const ProfilePage = () => {
   const router = useRouter();
@@ -18,6 +19,8 @@ const ProfilePage = () => {
   });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [showAddPayment, setShowAddPayment] = useState(false);
+  const [paymentMethodsKey, setPaymentMethodsKey] = useState(0);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -343,7 +346,33 @@ const ProfilePage = () => {
             </div>
           </div>
         </div>
+
+        {/* Subscription Management Section - Only show for paid users */}
+        {profile.subscription_status === 'paid' && (
+          <div className="mt-8">
+            <SubscriptionManagement />
+          </div>
+        )}
+
+        {/* Payment Methods Section - Show for users with Stripe customer ID */}
+        {profile.stripe_customer_id && (
+          <div className="mt-8 bg-white rounded-lg shadow-lg p-6">
+            <PaymentMethodList
+              key={paymentMethodsKey}
+              onAddNew={() => setShowAddPayment(true)}
+            />
+          </div>
+        )}
       </div>
+
+      {/* Add Payment Method Modal */}
+      <AddPaymentMethod
+        isOpen={showAddPayment}
+        onClose={() => setShowAddPayment(false)}
+        onSuccess={() => {
+          setPaymentMethodsKey(prev => prev + 1);
+        }}
+      />
     </div>
   );
 };

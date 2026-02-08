@@ -1,16 +1,38 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { SignupForm } from "@/components/auth/SignupForm";
-import { Check, X, Star } from "lucide-react";
+import { SubscriptionCheckout } from "@/components/stripe";
+import { Check, X, Star, CheckCircle, Loader2 } from "lucide-react";
 
-const MembershipPage = () => {
+function MembershipContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [showLogin, setShowLogin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
-  const { user, profile } = useAuth();
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const { user, profile, refreshProfile } = useAuth();
+
+  // Handle success/cancel from Stripe checkout
+  useEffect(() => {
+    const success = searchParams.get("success");
+    const canceled = searchParams.get("canceled");
+
+    if (success === "true") {
+      setSuccessMessage("Your subscription is now active! Welcome to Premium.");
+      refreshProfile();
+      // Clean up URL
+      router.replace("/membership");
+    } else if (canceled === "true") {
+      // Just clean up URL
+      router.replace("/membership");
+    }
+  }, [searchParams, refreshProfile, router]);
 
   const freeFeatures = [
     "Browse collection landing pages",
@@ -39,16 +61,27 @@ const MembershipPage = () => {
     if (!user) {
       setShowSignup(true);
     } else if (tier === "paid" && profile?.subscription_status === "free") {
-      // TODO: Integrate with payment processor
-      alert(
-        "Premium upgrade functionality will be integrated with payment processing"
-      );
+      setShowCheckout(true);
     }
   };
 
   return (
     <div className="min-h-screen bg-brand-beige">
       <div className="container mx-auto px-4 py-16">
+        {/* Success Message */}
+        {successMessage && (
+          <div className="max-w-2xl mx-auto mb-8 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center">
+            <CheckCircle className="w-6 h-6 text-green-500 mr-3 flex-shrink-0" />
+            <p className="text-green-800">{successMessage}</p>
+            <button
+              onClick={() => setSuccessMessage(null)}
+              className="ml-auto text-green-600 hover:text-green-800"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        )}
+
         {/* Header */}
         <div className="text-center mb-16">
           <h1 className="text-5xl font-bold text-brand-brown mb-6">
@@ -134,6 +167,9 @@ const MembershipPage = () => {
                 $7.99
               </div>
               <p className="text-gray-600">per month</p>
+              <p className="text-sm text-brand-green mt-2">
+                or $79.99/year (save ~17%)
+              </p>
             </div>
 
             <div className="space-y-4 mb-8">
@@ -268,9 +304,19 @@ const MembershipPage = () => {
                 What payment methods do you accept?
               </h3>
               <p className="text-gray-600">
-                We accept all major credit cards, PayPal, and bank transfers.
-                All payments are processed securely through our payment
-                partners.
+                We accept all major credit cards (Visa, Mastercard, American
+                Express, Discover). All payments are processed securely through
+                Stripe.
+              </p>
+            </div>
+
+            <div className="bg-white rounded-lg p-6 shadow-sm">
+              <h3 className="font-semibold text-brand-brown mb-2">
+                Can I switch between monthly and yearly billing?
+              </h3>
+              <p className="text-gray-600">
+                Yes! You can switch from monthly to yearly billing at any time
+                to save ~17%. You can also switch back to monthly if needed.
               </p>
             </div>
 
@@ -307,8 +353,32 @@ const MembershipPage = () => {
           }}
         />
       )}
+
+      {/* Checkout Modal */}
+      {showCheckout && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="max-w-md w-full">
+            <SubscriptionCheckout
+              onSuccess={() => setShowCheckout(false)}
+              onCancel={() => setShowCheckout(false)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
-};
+}
 
-export default MembershipPage;
+export default function MembershipPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-brand-beige flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-brand-green" />
+        </div>
+      }
+    >
+      <MembershipContent />
+    </Suspense>
+  );
+}
