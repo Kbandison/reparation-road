@@ -96,6 +96,13 @@ const RELATED_TABLES = [
     slug: 'native-american-records/early-cherokee-census/cherokee-henderson',
     nameField: 'head_of_family',
     locationField: 'residence'
+  },
+  {
+    table: 'slave-importation-ga',
+    collection: 'Georgia Slave Importation Records',
+    slug: 'slave-importation/georgia',
+    nameField: 'name',
+    locationField: 'location'
   }
 ];
 
