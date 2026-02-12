@@ -14,7 +14,8 @@ import {
   Shield,
   Calendar,
   Star,
-  MessageSquare
+  MessageSquare,
+  Link2
 } from 'lucide-react';
 
 interface AdminStats {
@@ -364,6 +365,23 @@ const AdminDashboard = () => {
                   variant="outline"
                 >
                   Manage Collections
+                </Button>
+              </div>
+
+              <div className="p-4 border border-brand-green rounded-lg">
+                <h3 className="font-semibold text-brand-brown mb-2 flex items-center">
+                  <Link2 className="w-4 h-4 mr-2" />
+                  Related Records
+                </h3>
+                <p className="text-sm text-gray-600 mb-3">
+                  Link records across collections to show relationships.
+                </p>
+                <Button
+                  onClick={() => router.push('/admin/related-records')}
+                  className="w-full"
+                  variant="outline"
+                >
+                  Manage Relationships
                 </Button>
               </div>
 

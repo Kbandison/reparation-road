@@ -11,6 +11,7 @@ interface RelatedRecord {
   collection: string;
   collectionSlug: string;
   details: string;
+  isAdminDefined?: boolean;
 }
 
 interface RelatedRecordsProps {
@@ -115,17 +116,12 @@ export function RelatedRecords({
 }: RelatedRecordsProps) {
   const [relatedRecords, setRelatedRecords] = useState<RelatedRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [adminRelated, setAdminRelated] = useState<RelatedRecord[]>([]);
 
   useEffect(() => {
     const fetchRelatedRecords = async () => {
-      if (!searchTerms.name && !searchTerms.location) {
-        setLoading(false);
-        return;
-      }
-
       setLoading(true);
-      const results: RelatedRecord[] = [];
+      const adminResults: RelatedRecord[] = [];
+      const autoResults: RelatedRecord[] = [];
 
       // First, check for admin-defined related records
       try {
@@ -136,74 +132,101 @@ export function RelatedRecords({
           .limit(maxResults);
 
         if (adminData && adminData.length > 0) {
-          // Process admin-defined relationships
+          // Process admin-defined relationships (bidirectional)
           for (const relation of adminData) {
-            const targetId = relation.source_record_id === currentRecordId
-              ? relation.target_record_id
-              : relation.source_record_id;
+            // Determine if current record is source or target
+            const isSource = relation.source_record_id === currentRecordId;
 
-            setAdminRelated(prev => [...prev, {
-              id: targetId,
-              name: relation.target_name || 'Related Record',
-              collection: relation.target_collection,
-              collectionSlug: relation.target_collection_slug,
-              details: relation.relationship_note || ''
-            }]);
+            // Get the OTHER record's info (the one we want to display)
+            const relatedId = isSource ? relation.target_record_id : relation.source_record_id;
+            const relatedName = isSource ? relation.target_name : relation.source_name;
+            const relatedCollection = isSource ? relation.target_collection : relation.source_collection;
+            const relatedSlug = isSource ? relation.target_collection_slug : relation.source_collection_slug;
+
+            // Build details string with relationship type and note
+            let details = '';
+            if (relation.relationship_type && relation.relationship_type !== 'custom') {
+              const typeLabels: Record<string, string> = {
+                'family': 'Family Member',
+                'same_enslaver': 'Same Enslaver',
+                'same_location': 'Same Location',
+                'same_voyage': 'Same Voyage',
+                'same_transaction': 'Same Transaction',
+                'mentioned_together': 'Mentioned Together'
+              };
+              details = typeLabels[relation.relationship_type] || relation.relationship_type;
+            }
+            if (relation.relationship_note) {
+              details = details ? `${details} - ${relation.relationship_note}` : relation.relationship_note;
+            }
+
+            adminResults.push({
+              id: relatedId,
+              name: relatedName || 'Related Record',
+              collection: relatedCollection,
+              collectionSlug: relatedSlug,
+              details,
+              isAdminDefined: true
+            });
           }
         }
       } catch {
         // Table may not exist yet, continue with auto-matching
       }
 
-      // Search for related records by name similarity
-      if (searchTerms.name) {
-        const nameParts = searchTerms.name.toLowerCase().split(' ').filter(p => p.length > 2);
+      // Search for related records by name similarity (only if we have search terms)
+      if (searchTerms.name || searchTerms.location) {
+        if (searchTerms.name) {
+          const nameParts = searchTerms.name.toLowerCase().split(' ').filter(p => p.length > 2);
 
-        for (const tableConfig of RELATED_TABLES) {
-          // Skip current table
-          if (tableConfig.table === currentTable) continue;
+          for (const tableConfig of RELATED_TABLES) {
+            // Skip current table
+            if (tableConfig.table === currentTable) continue;
 
-          try {
-            for (const namePart of nameParts.slice(0, 2)) { // Search by first 2 name parts
-              const { data, error } = await supabase
-                .from(tableConfig.table)
-                .select('id, ' + tableConfig.nameField + ', ' + tableConfig.locationField)
-                .ilike(tableConfig.nameField, `%${namePart}%`)
-                .neq('id', currentRecordId)
-                .limit(3);
+            try {
+              for (const namePart of nameParts.slice(0, 2)) { // Search by first 2 name parts
+                const { data, error } = await supabase
+                  .from(tableConfig.table)
+                  .select('id, ' + tableConfig.nameField + ', ' + tableConfig.locationField)
+                  .ilike(tableConfig.nameField, `%${namePart}%`)
+                  .neq('id', currentRecordId)
+                  .limit(3);
 
-              if (!error && data && Array.isArray(data)) {
-                for (const rawRecord of data) {
-                  const record = rawRecord as unknown as { id: string; [key: string]: unknown };
-                  const recordId = record.id;
-                  // Avoid duplicates
-                  if (recordId && !results.find(r => r.id === recordId)) {
-                    results.push({
-                      id: recordId,
-                      name: String(record[tableConfig.nameField] || 'Unknown'),
-                      collection: tableConfig.collection,
-                      collectionSlug: tableConfig.slug,
-                      details: String(record[tableConfig.locationField] || '')
-                    });
+                if (!error && data && Array.isArray(data)) {
+                  for (const rawRecord of data) {
+                    const record = rawRecord as unknown as { id: string; [key: string]: unknown };
+                    const recordId = record.id;
+                    // Avoid duplicates (check both auto and admin results)
+                    if (recordId &&
+                        !autoResults.find(r => r.id === recordId) &&
+                        !adminResults.find(r => r.id === recordId)) {
+                      autoResults.push({
+                        id: recordId,
+                        name: String(record[tableConfig.nameField] || 'Unknown'),
+                        collection: tableConfig.collection,
+                        collectionSlug: tableConfig.slug,
+                        details: String(record[tableConfig.locationField] || '')
+                      });
+                    }
                   }
                 }
               }
+            } catch (err) {
+              // Table might not exist or have different schema
+              console.debug(`Skipping ${tableConfig.table}:`, err);
             }
-          } catch (err) {
-            // Table might not exist or have different schema
-            console.debug(`Skipping ${tableConfig.table}:`, err);
           }
         }
       }
 
-      setRelatedRecords(results.slice(0, maxResults));
+      // Combine results: admin-defined first, then auto-matched
+      const combined = [...adminResults, ...autoResults.slice(0, maxResults - adminResults.length)];
+      setRelatedRecords(combined);
       setLoading(false);
     };
 
     fetchRelatedRecords();
-  }, [currentRecordId, currentTable, searchTerms, maxResults]);
-
-  const allRelated = [...adminRelated, ...relatedRecords];
+  }, [currentRecordId, currentTable, searchTerms, maxResults, collectionSlug]);
 
   if (loading) {
     return (
@@ -219,7 +242,7 @@ export function RelatedRecords({
     );
   }
 
-  if (allRelated.length === 0) {
+  if (relatedRecords.length === 0) {
     return null; // Don't show section if no related records found
   }
 
@@ -230,7 +253,7 @@ export function RelatedRecords({
         <h4 className="text-sm font-semibold text-brand-brown">Related Records</h4>
       </div>
       <div className="space-y-2">
-        {allRelated.map((record) => (
+        {relatedRecords.map((record) => (
           <Link
             key={record.id}
             href={`/collections/${record.collectionSlug}?record=${record.id}`}
@@ -238,10 +261,17 @@ export function RelatedRecords({
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium text-brand-brown text-sm">{record.name}</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-medium text-brand-brown text-sm">{record.name}</p>
+                  {record.isAdminDefined && (
+                    <span className="px-1.5 py-0.5 bg-brand-green/10 text-brand-green text-[10px] rounded font-medium">
+                      Linked
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-gray-500">{record.collection}</p>
                 {record.details && (
-                  <p className="text-xs text-gray-400">{record.details}</p>
+                  <p className="text-xs text-gray-400 italic">{record.details}</p>
                 )}
               </div>
               <ChevronRight className="w-4 h-4 text-gray-400" />
