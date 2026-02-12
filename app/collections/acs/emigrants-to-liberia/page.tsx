@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { SignupForm } from "@/components/auth/SignupForm";
 import { Ship } from "lucide-react";
@@ -126,6 +126,7 @@ interface Emigrant {
 }
 
 const EmigrantsToLiberiaPage = () => {
+  const searchParams = useSearchParams();
   const [emigrants, setEmigrants] = useState<Emigrant[]>([]);
   const [filteredEmigrants, setFilteredEmigrants] = useState<Emigrant[]>([]);
   const [loading, setLoading] = useState(true);
@@ -134,6 +135,17 @@ const EmigrantsToLiberiaPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
   const itemsPerPage = 25;
+
+  // Open modal for specific record from URL params
+  useEffect(() => {
+    const recordId = searchParams.get('record');
+    if (recordId && emigrants.length > 0) {
+      const emigrant = emigrants.find(e => String(e.id) === recordId);
+      if (emigrant) {
+        setSelectedEmigrant(emigrant);
+      }
+    }
+  }, [searchParams, emigrants]);
 
   useEffect(() => {
     const fetchEmigrants = async () => {
@@ -459,7 +471,16 @@ const EmigrantsToLiberiaPage = () => {
 const WrappedEmigrantsToLiberiaPage = () => {
   return (
     <ProtectedRoute requiresPaid={true} fallback={<UpgradePrompt />}>
-      <EmigrantsToLiberiaPage />
+      <Suspense fallback={
+        <div className="min-h-screen bg-brand-beige flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-brand-green border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-brand-brown">Loading records...</p>
+          </div>
+        </div>
+      }>
+        <EmigrantsToLiberiaPage />
+      </Suspense>
     </ProtectedRoute>
   );
 };

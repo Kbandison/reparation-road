@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { SignupForm } from "@/components/auth/SignupForm";
-import { Search, MapPin, Shield, X } from "lucide-react";
+import { Search, MapPin, Shield, X, Loader2 } from "lucide-react";
 import Image from "next/image";
 
 const UpgradePrompt = () => {
@@ -165,6 +165,7 @@ const SoldierImage = ({
 };
 
 const RevolutionarySoldiersPage = () => {
+  const searchParams = useSearchParams();
   const [soldiers, setSoldiers] = useState<Soldier[]>([]);
   const [filteredSoldiers, setFilteredSoldiers] = useState<Soldier[]>([]);
   const [loading, setLoading] = useState(true);
@@ -172,6 +173,17 @@ const RevolutionarySoldiersPage = () => {
   const [selectedSoldier, setSelectedSoldier] = useState<Soldier | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
+
+  // Open modal for specific record from URL params
+  useEffect(() => {
+    const recordId = searchParams.get('record');
+    if (recordId && soldiers.length > 0) {
+      const record = soldiers.find(r => String(r.id) === recordId);
+      if (record) {
+        setSelectedSoldier(record);
+      }
+    }
+  }, [searchParams, soldiers]);
 
   useEffect(() => {
     const fetchSoldiers = async () => {
@@ -457,7 +469,13 @@ const RevolutionarySoldiersPage = () => {
 const WrappedRevolutionarySoldiersPage = () => {
   return (
     <ProtectedRoute requiresPaid={false} fallback={<UpgradePrompt />}>
-      <RevolutionarySoldiersPage />
+      <Suspense fallback={
+        <div className="min-h-screen bg-brand-beige flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-brand-green" />
+        </div>
+      }>
+        <RevolutionarySoldiersPage />
+      </Suspense>
     </ProtectedRoute>
   );
 };
