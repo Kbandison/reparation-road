@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Link2, ChevronRight, Loader2 } from 'lucide-react';
+import { Link2, ChevronRight, Loader2, Star } from 'lucide-react';
 import Link from 'next/link';
 
 interface RelatedRecord {
@@ -12,6 +12,9 @@ interface RelatedRecord {
   collectionSlug: string;
   details: string;
   isAdminDefined?: boolean;
+  isFeatured?: boolean;
+  customBadge?: string | null;
+  priority?: number;
 }
 
 interface RelatedRecordsProps {
@@ -129,6 +132,7 @@ export function RelatedRecords({
           .from('related_records')
           .select('*')
           .or(`source_record_id.eq.${currentRecordId},target_record_id.eq.${currentRecordId}`)
+          .order('display_priority', { ascending: false })
           .limit(maxResults);
 
         if (adminData && adminData.length > 0) {
@@ -136,6 +140,11 @@ export function RelatedRecords({
           for (const relation of adminData) {
             // Determine if current record is source or target
             const isSource = relation.source_record_id === currentRecordId;
+
+            // Check if this relationship should be shown (bidirectional check)
+            if (!isSource && !relation.is_bidirectional) {
+              continue; // Skip one-way relationships when viewing target
+            }
 
             // Get the OTHER record's info (the one we want to display)
             const relatedId = isSource ? relation.target_record_id : relation.source_record_id;
@@ -166,7 +175,10 @@ export function RelatedRecords({
               collection: relatedCollection,
               collectionSlug: relatedSlug,
               details,
-              isAdminDefined: true
+              isAdminDefined: true,
+              isFeatured: relation.is_featured || false,
+              customBadge: relation.custom_badge,
+              priority: relation.display_priority || 5
             });
           }
         }
@@ -205,7 +217,8 @@ export function RelatedRecords({
                         name: String(record[tableConfig.nameField] || 'Unknown'),
                         collection: tableConfig.collection,
                         collectionSlug: tableConfig.slug,
-                        details: String(record[tableConfig.locationField] || '')
+                        details: String(record[tableConfig.locationField] || ''),
+                        priority: 0 // Auto-matched have lowest priority
                       });
                     }
                   }
@@ -219,7 +232,14 @@ export function RelatedRecords({
         }
       }
 
-      // Combine results: admin-defined first, then auto-matched
+      // Sort admin results by priority (featured first, then by priority number)
+      adminResults.sort((a, b) => {
+        if (a.isFeatured && !b.isFeatured) return -1;
+        if (!a.isFeatured && b.isFeatured) return 1;
+        return (b.priority || 0) - (a.priority || 0);
+      });
+
+      // Combine results: admin-defined first (sorted), then auto-matched
       const combined = [...adminResults, ...autoResults.slice(0, maxResults - adminResults.length)];
       setRelatedRecords(combined);
       setLoading(false);
@@ -257,13 +277,25 @@ export function RelatedRecords({
           <Link
             key={record.id}
             href={`/collections/${record.collectionSlug}?record=${record.id}`}
-            className="block bg-white rounded-lg p-3 border border-gray-200 hover:border-brand-green hover:shadow-sm transition-all"
+            className={`block bg-white rounded-lg p-3 border transition-all ${
+              record.isFeatured
+                ? 'border-yellow-300 bg-yellow-50/30 hover:border-yellow-400 hover:shadow-sm'
+                : 'border-gray-200 hover:border-brand-green hover:shadow-sm'
+            }`}
           >
             <div className="flex items-center justify-between">
-              <div>
-                <div className="flex items-center gap-2">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
                   <p className="font-medium text-brand-brown text-sm">{record.name}</p>
-                  {record.isAdminDefined && (
+                  {record.isFeatured && (
+                    <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
+                  )}
+                  {record.customBadge && (
+                    <span className="px-1.5 py-0.5 bg-brand-green/10 text-brand-green text-[10px] rounded font-medium">
+                      {record.customBadge}
+                    </span>
+                  )}
+                  {record.isAdminDefined && !record.customBadge && (
                     <span className="px-1.5 py-0.5 bg-brand-green/10 text-brand-green text-[10px] rounded font-medium">
                       Linked
                     </span>
