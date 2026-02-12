@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Copy, Check, Quote } from 'lucide-react';
-import { Button } from './button';
+import { Copy, Check } from 'lucide-react';
 
 interface RecordCitationProps {
   collectionName: string;
@@ -59,32 +58,32 @@ export function RecordCitation({
   };
 
   return (
-    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-      <div className="flex items-center gap-2 mb-2">
-        <Quote className="w-4 h-4 text-brand-green" />
-        <h4 className="text-sm font-semibold text-brand-brown">How to Cite This Record</h4>
+    <div className="mt-6 pt-6 border-t border-gray-200">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex-1">
+          <p className="text-xs text-gray-500 mb-1 font-medium">Cite this record:</p>
+          <p className="text-xs text-gray-500 italic">
+            {citation}
+          </p>
+        </div>
+        <button
+          onClick={handleCopy}
+          className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors shrink-0"
+          title="Copy citation"
+        >
+          {copied ? (
+            <>
+              <Check className="w-3 h-3 text-green-500" />
+              <span className="text-green-500">Copied</span>
+            </>
+          ) : (
+            <>
+              <Copy className="w-3 h-3" />
+              <span>Copy</span>
+            </>
+          )}
+        </button>
       </div>
-      <p className="text-sm text-gray-700 italic mb-3">
-        {citation}
-      </p>
-      <Button
-        onClick={handleCopy}
-        variant="outline"
-        size="sm"
-        className="flex items-center gap-2"
-      >
-        {copied ? (
-          <>
-            <Check className="w-4 h-4 text-green-600" />
-            Copied!
-          </>
-        ) : (
-          <>
-            <Copy className="w-4 h-4" />
-            Copy Citation
-          </>
-        )}
-      </Button>
     </div>
   );
 }

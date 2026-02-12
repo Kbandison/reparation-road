@@ -17,10 +17,22 @@ interface RegisterPage {
   book_no: number;
   page_no: number;
   slug: string;
-  image_path: string;
-  ocr_text: string;
+  image_path: string | null;
+  ocr_text: string | null;
   created_at: string;
 }
+
+// Helper to check if image_path is a valid URL
+const isValidImageUrl = (path: string | null | undefined): boolean => {
+  if (!path) return false;
+  try {
+    new URL(path);
+    return true;
+  } catch {
+    // Check if it's a relative path that starts with /
+    return path.startsWith('/');
+  }
+};
 
 interface PageModalProps {
   page: RegisterPage | null;
@@ -181,19 +193,28 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
                     transition: "transform 0.2s",
                   }}
                 >
-                  {!imageLoaded && (
+                  {!imageLoaded && isValidImageUrl(page.image_path) && (
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-brand-green"></div>
                     </div>
                   )}
-                  <Image
-                    src={page.image_path}
-                    alt={`Book ${page.book_no}, Page ${page.page_no}`}
-                    width={800}
-                    height={1000}
-                    className="w-full"
-                    onLoad={() => setImageLoaded(true)}
-                  />
+                  {isValidImageUrl(page.image_path) ? (
+                    <Image
+                      src={page.image_path!}
+                      alt={`Book ${page.book_no}, Page ${page.page_no}`}
+                      width={800}
+                      height={1000}
+                      className="w-full"
+                      onLoad={() => setImageLoaded(true)}
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-64 bg-gray-100 rounded-lg">
+                      <div className="text-center text-gray-500">
+                        <ScrollText className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                        <p>Image not available</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

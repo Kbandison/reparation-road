@@ -24,11 +24,23 @@ interface RegisterRecord {
   date_entered_state: string | null;
   occupation: string | null;
   date_registered: number | null;
-  image_path: string;
-  ocr_text: string;
+  image_path: string | null;
+  ocr_text: string | null;
   slug: string;
   created_at: string;
 }
+
+// Helper to check if image_path is a valid URL
+const isValidImageUrl = (path: string | null | undefined): boolean => {
+  if (!path) return false;
+  try {
+    new URL(path);
+    return true;
+  } catch {
+    // Check if it's a relative path that starts with /
+    return path.startsWith('/');
+  }
+};
 
 interface RecordModalProps {
   record: RegisterRecord | null;
@@ -161,19 +173,28 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
                     transition: "transform 0.2s",
                   }}
                 >
-                  {!imageLoaded && (
+                  {!imageLoaded && isValidImageUrl(record.image_path) && (
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-brand-green"></div>
                     </div>
                   )}
-                  <Image
-                    src={record.image_path}
-                    alt={`${record.name} - Book ${record.book_no}, Page ${record.page_no}, Entry ${record.entry_no}`}
-                    width={800}
-                    height={1000}
-                    className="w-full"
-                    onLoad={() => setImageLoaded(true)}
-                  />
+                  {isValidImageUrl(record.image_path) ? (
+                    <Image
+                      src={record.image_path!}
+                      alt={`${record.name} - Book ${record.book_no}, Page ${record.page_no}, Entry ${record.entry_no}`}
+                      width={800}
+                      height={1000}
+                      className="w-full"
+                      onLoad={() => setImageLoaded(true)}
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-64 bg-gray-100 rounded-lg">
+                      <div className="text-center text-gray-500">
+                        <ScrollText className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                        <p>Image not available</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -255,19 +276,6 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
                   </div>
                 )}
 
-                {/* Citation */}
-                <RecordCitation
-                  collectionName="Register of Free Persons - Lumpkin County"
-                  recordIdentifier={record.id}
-                  recordDetails={{
-                    bookNo: record.book_no,
-                    pageNo: record.page_no,
-                    entryNo: record.entry_no,
-                    name: record.name || undefined,
-                    date: record.date_registered?.toString() || undefined
-                  }}
-                />
-
                 {/* Related Records */}
                 <RelatedRecords
                   currentRecordId={record.id}
@@ -278,6 +286,19 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
                     occupation: record.occupation || undefined
                   }}
                   collectionSlug="slave-claims-commission/register-free-persons-lumpkin"
+                />
+
+                {/* Citation - at very bottom */}
+                <RecordCitation
+                  collectionName="Register of Free Persons - Lumpkin County"
+                  recordIdentifier={record.id}
+                  recordDetails={{
+                    bookNo: record.book_no,
+                    pageNo: record.page_no,
+                    entryNo: record.entry_no,
+                    name: record.name || undefined,
+                    date: record.date_registered?.toString() || undefined
+                  }}
                 />
               </div>
             </div>

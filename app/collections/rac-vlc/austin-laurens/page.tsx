@@ -24,11 +24,23 @@ interface SaleRecord {
   women: number | null;
   boys: number | null;
   girls: number | null;
-  image_path: string;
+  image_path: string | null;
   ocr_text: string;
   slug: string;
   created_at: string;
 }
+
+// Helper to check if image_path is a valid URL
+const isValidImageUrl = (path: string | null | undefined): boolean => {
+  if (!path) return false;
+  try {
+    new URL(path);
+    return true;
+  } catch {
+    // Check if it's a relative path that starts with /
+    return path.startsWith('/');
+  }
+};
 
 interface RecordModalProps {
   record: SaleRecord | null;
@@ -199,14 +211,21 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
                       <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-brand-green"></div>
                     </div>
                   )}
-                  <Image
-                    src={record.image_path}
-                    alt={`Sale record entry ${record.entry_no}`}
-                    width={800}
-                    height={1000}
-                    className="w-full"
-                    onLoad={() => setImageLoaded(true)}
-                  />
+                  {isValidImageUrl(record.image_path) ? (
+                    <Image
+                      src={record.image_path!}
+                      alt={`Sale record entry ${record.entry_no}`}
+                      width={800}
+                      height={1000}
+                      className="w-full"
+                      onLoad={() => setImageLoaded(true)}
+                    />
+                  ) : (
+                    <div className="w-full h-[400px] flex flex-col items-center justify-center bg-gray-100 text-gray-500">
+                      <ScrollText className="w-16 h-16 mb-4" />
+                      <p className="text-sm">No image available</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -299,7 +318,18 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
                   </div>
                 ) : null}
 
-                {/* Citation */}
+                {/* Related Records */}
+                <RelatedRecords
+                  currentRecordId={record.id}
+                  currentTable="slave_merchants_austin_laurens"
+                  searchTerms={{
+                    name: record.to_whom_sold || undefined,
+                    location: record.location || undefined
+                  }}
+                  collectionSlug="rac-vlc/austin-laurens"
+                />
+
+                {/* Citation - at very bottom */}
                 <RecordCitation
                   collectionName="Austin & Laurens Slave Merchant Records"
                   recordIdentifier={`Entry ${record.entry_no}`}
@@ -310,17 +340,6 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
                     name: record.to_whom_sold || undefined,
                     date: record.date_sold || undefined
                   }}
-                />
-
-                {/* Related Records */}
-                <RelatedRecords
-                  currentRecordId={record.id}
-                  currentTable="slave_merchants_austin_laurens"
-                  searchTerms={{
-                    name: record.to_whom_sold || undefined,
-                    location: record.location || undefined
-                  }}
-                  collectionSlug="rac-vlc/austin-laurens"
                 />
               </div>
 

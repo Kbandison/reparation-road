@@ -17,10 +17,22 @@ interface RegisterPage {
   book_no: number;
   page_no: number;
   slug: string;
-  image_path: string;
+  image_path: string | null;
   ocr_text: string;
   created_at: string;
 }
+
+// Helper to check if image_path is a valid URL
+const isValidImageUrl = (path: string | null | undefined): boolean => {
+  if (!path) return false;
+  try {
+    new URL(path);
+    return true;
+  } catch {
+    // Check if it's a relative path that starts with /
+    return path.startsWith('/');
+  }
+};
 
 interface PageModalProps {
   page: RegisterPage | null;
@@ -181,14 +193,21 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
                       <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-brand-green"></div>
                     </div>
                   )}
-                  <Image
-                    src={page.image_path}
-                    alt={`Book ${page.book_no}, Page ${page.page_no}`}
-                    width={800}
-                    height={1000}
-                    className="w-full"
-                    onLoad={() => setImageLoaded(true)}
-                  />
+                  {isValidImageUrl(page.image_path) ? (
+                    <Image
+                      src={page.image_path!}
+                      alt={`Book ${page.book_no}, Page ${page.page_no}`}
+                      width={800}
+                      height={1000}
+                      className="w-full"
+                      onLoad={() => setImageLoaded(true)}
+                    />
+                  ) : (
+                    <div className="w-full h-[400px] flex flex-col items-center justify-center bg-gray-100 text-gray-500">
+                      <ScrollText className="w-16 h-16 mb-4" />
+                      <p className="text-sm">No image available</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -220,7 +239,15 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
                 </div>
               )}
 
-              {/* Citation */}
+              {/* Related Records */}
+              <RelatedRecords
+                currentRecordId={page.id}
+                currentTable="va_personal_hanover"
+                searchTerms={{}}
+                collectionSlug="virginia-property-tithes/hanover"
+              />
+
+              {/* Citation - at very bottom */}
               <RecordCitation
                 collectionName="Virginia Personal Property - Hanover County"
                 recordIdentifier={`Book ${page.book_no}, Page ${page.page_no}`}
@@ -228,14 +255,6 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
                   bookNo: page.book_no,
                   pageNo: page.page_no
                 }}
-              />
-
-              {/* Related Records */}
-              <RelatedRecords
-                currentRecordId={page.id}
-                currentTable="va_personal_hanover"
-                searchTerms={{}}
-                collectionSlug="virginia-property-tithes/hanover"
               />
 
               {/* Navigation buttons */}
@@ -463,15 +482,19 @@ const VirginiaPersonalPropertyHanoverPage = () => {
                           {page.page_no}
                         </td>
                         <td className="px-4 py-3">
-                          {page.image_path && (
+                          {isValidImageUrl(page.image_path) ? (
                             <div className="w-16 h-20 relative rounded overflow-hidden bg-gray-100">
                               <Image
-                                src={page.image_path}
+                                src={page.image_path!}
                                 alt={`Book ${page.book_no}, Page ${page.page_no}`}
                                 fill
                                 className="object-cover"
                                 sizes="64px"
                               />
+                            </div>
+                          ) : (
+                            <div className="w-16 h-20 rounded bg-gray-100 flex items-center justify-center">
+                              <ScrollText className="w-6 h-6 text-gray-400" />
                             </div>
                           )}
                         </td>

@@ -19,10 +19,22 @@ interface RegisterPage {
   book_no: number;
   page_no: number;
   slug: string;
-  image_path: string;
+  image_path: string | null;
   ocr_text: string;
   created_at: string;
 }
+
+// Helper to check if image_path is a valid URL
+const isValidImageUrl = (path: string | null | undefined): boolean => {
+  if (!path) return false;
+  try {
+    new URL(path);
+    return true;
+  } catch {
+    // Check if it's a relative path that starts with /
+    return path.startsWith('/');
+  }
+};
 
 interface PageModalProps {
   page: RegisterPage | null;
@@ -165,7 +177,7 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
 
         <div className="p-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {page.image_path && (
+            {isValidImageUrl(page.image_path) ? (
               <div className="space-y-2">
                 <h4 className="font-semibold text-brand-brown flex items-center gap-2">
                   Document Image
@@ -181,7 +193,7 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
                     </div>
                   )}
                   <Image
-                    src={page.image_path}
+                    src={page.image_path!}
                     alt={`Book ${page.book_no}, Page ${page.page_no}`}
                     fill
                     className={`object-contain transition-opacity ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
@@ -194,6 +206,14 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
                       <ZoomIn className="w-6 h-6 text-gray-700" />
                     </div>
                   </div>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <h4 className="font-semibold text-brand-brown">Document Image</h4>
+                <div className="border rounded-lg h-96 bg-gray-100 flex flex-col items-center justify-center text-gray-500">
+                  <Ship className="w-16 h-16 mb-4" />
+                  <p className="text-sm">No image available</p>
                 </div>
               </div>
             )}
@@ -225,7 +245,15 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
                 )}
               </div>
 
-              {/* Citation */}
+              {/* Related Records */}
+              <RelatedRecords
+                currentRecordId={page.id}
+                currentTable="slave_merchants_othello"
+                searchTerms={{}}
+                collectionSlug="rac-vlc/samuel-william-vernon/brig-othello"
+              />
+
+              {/* Citation - at very bottom */}
               <RecordCitation
                 collectionName="Brig Othello - Samuel & William Vernon"
                 recordIdentifier={`Book ${page.book_no}, Page ${page.page_no}`}
@@ -234,21 +262,13 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
                   pageNo: page.page_no
                 }}
               />
-
-              {/* Related Records */}
-              <RelatedRecords
-                currentRecordId={page.id}
-                currentTable="slave_merchants_othello"
-                searchTerms={{}}
-                collectionSlug="rac-vlc/samuel-william-vernon/brig-othello"
-              />
             </div>
           </div>
         </div>
       </div>
 
       {/* Zoomed Image Overlay */}
-      {isImageZoomed && page.image_path && (
+      {isImageZoomed && isValidImageUrl(page.image_path) && (
         <div
           className="fixed inset-0 bg-black bg-opacity-90 z-[60] flex items-center justify-center"
           onClick={() => setIsImageZoomed(false)}
@@ -294,7 +314,7 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
             onClick={(e) => e.stopPropagation()}
           >
             <Image
-              src={page.image_path}
+              src={page.image_path!}
               alt={`Book ${page.book_no}, Page ${page.page_no}`}
               fill
               className="object-contain"
@@ -513,9 +533,9 @@ const BrigOthelloPage = () => {
                   className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-xl transition-shadow group"
                 >
                   <div className="relative h-40 bg-gray-100">
-                    {page.image_path ? (
+                    {isValidImageUrl(page.image_path) ? (
                       <Image
-                        src={page.image_path}
+                        src={page.image_path!}
                         alt={`Book ${page.book_no}, Page ${page.page_no}`}
                         fill
                         className="object-cover group-hover:scale-105 transition-transform"

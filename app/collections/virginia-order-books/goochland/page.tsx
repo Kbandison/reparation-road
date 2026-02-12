@@ -18,7 +18,7 @@ interface RegisterPage {
   page_no: number | null;
   page_no_2: number | null;
   page_label: string | null;
-  image_path: string;
+  image_path: string | null;
   county: string | null;
   enslaver: string | null;
   enslaved_person: string | null;
@@ -34,6 +34,18 @@ interface PageModalProps {
   allPages: RegisterPage[];
   onNavigate: (page: RegisterPage) => void;
 }
+
+// Helper to check if image_path is a valid URL
+const isValidImageUrl = (path: string | null | undefined): boolean => {
+  if (!path) return false;
+  try {
+    new URL(path);
+    return true;
+  } catch {
+    // Check if it's a relative path that starts with /
+    return path.startsWith('/');
+  }
+};
 
 const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose, allPages, onNavigate }) {
   const [imageLoaded, setImageLoaded] = React.useState(false);
@@ -194,14 +206,21 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
                       <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-brand-green"></div>
                     </div>
                   )}
-                  <Image
-                    src={page.image_path}
-                    alt={page.page_label || `Page ${page.page_no || page.page_no_2 || 'Unknown'}`}
-                    width={800}
-                    height={1000}
-                    className="w-full"
-                    onLoad={() => setImageLoaded(true)}
-                  />
+                  {isValidImageUrl(page.image_path) ? (
+                    <Image
+                      src={page.image_path!}
+                      alt={page.page_label || `Page ${page.page_no || page.page_no_2 || 'Unknown'}`}
+                      width={800}
+                      height={1000}
+                      className="w-full"
+                      onLoad={() => setImageLoaded(true)}
+                    />
+                  ) : (
+                    <div className="w-full h-[400px] flex flex-col items-center justify-center bg-gray-100 text-gray-500">
+                      <ScrollText className="w-16 h-16 mb-4" />
+                      <p className="text-sm">No image available</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -285,17 +304,6 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
                   </div>
                 ) : null}
 
-                {/* Citation */}
-                <RecordCitation
-                  collectionName="Virginia Order Books - Goochland County"
-                  recordIdentifier={page.page_label || `Page ${page.page_no || page.page_no_2 || 'Unknown'}`}
-                  recordDetails={{
-                    pageNo: page.page_no || undefined,
-                    name: page.enslaved_person || undefined,
-                    date: page.judgement_date || undefined
-                  }}
-                />
-
                 {/* Related Records */}
                 <RelatedRecords
                   currentRecordId={page.id}
@@ -305,6 +313,17 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
                     location: page.county || undefined
                   }}
                   collectionSlug="virginia-order-books/goochland"
+                />
+
+                {/* Citation - at very bottom */}
+                <RecordCitation
+                  collectionName="Virginia Order Books - Goochland County"
+                  recordIdentifier={page.page_label || `Page ${page.page_no || page.page_no_2 || 'Unknown'}`}
+                  recordDetails={{
+                    pageNo: page.page_no || undefined,
+                    name: page.enslaved_person || undefined,
+                    date: page.judgement_date || undefined
+                  }}
                 />
               </div>
             </div>

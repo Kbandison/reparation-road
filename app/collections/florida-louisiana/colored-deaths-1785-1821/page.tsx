@@ -16,7 +16,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 interface ColoredDeathRecord {
   id: string;
   page_number: number;
-  image_url: string;
+  image_url: string | null;
   has_transcription: boolean;
   latin_transcription: string | null;
   english_transcription: string | null;
@@ -29,6 +29,18 @@ interface RecordModalProps {
   allRecords: ColoredDeathRecord[];
   onNavigate: (record: ColoredDeathRecord) => void;
 }
+
+// Helper to check if image_url is a valid URL
+const isValidImageUrl = (path: string | null | undefined): boolean => {
+  if (!path) return false;
+  try {
+    new URL(path);
+    return true;
+  } catch {
+    // Check if it's a relative path that starts with /
+    return path.startsWith('/');
+  }
+};
 
 const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, onClose, allRecords, onNavigate }) {
   const [imageLoaded, setImageLoaded] = React.useState(false);
@@ -139,7 +151,7 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
 
         <div className="p-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {record.image_url && (
+            {isValidImageUrl(record.image_url) ? (
               <div className="space-y-2">
                 <h4 className="font-semibold text-brand-brown flex items-center gap-2">
                   Document Image
@@ -155,7 +167,7 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
                     </div>
                   )}
                   <Image
-                    src={record.image_url}
+                    src={record.image_url!}
                     alt={`Page ${record.page_number}`}
                     fill
                     className={`object-contain transition-opacity ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
@@ -168,6 +180,14 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
                       <ZoomIn className="w-6 h-6 text-brand-green" />
                     </div>
                   </div>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <h4 className="font-semibold text-brand-brown">Document Image</h4>
+                <div className="border rounded-lg h-96 bg-gray-100 flex flex-col items-center justify-center text-gray-500">
+                  <FileText className="w-16 h-16 mb-4" />
+                  <p className="text-sm">No image available</p>
                 </div>
               </div>
             )}
@@ -221,15 +241,6 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
                 </div>
               )}
 
-              {/* Citation */}
-              <RecordCitation
-                collectionName="Colored Deaths (1785-1821)"
-                recordIdentifier={`Page ${record.page_number}`}
-                recordDetails={{
-                  pageNo: record.page_number
-                }}
-              />
-
               {/* Related Records */}
               <RelatedRecords
                 currentRecordId={record.id}
@@ -237,13 +248,22 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
                 searchTerms={{}}
                 collectionSlug="florida-louisiana/colored-deaths-1785-1821"
               />
+
+              {/* Citation - at very bottom */}
+              <RecordCitation
+                collectionName="Colored Deaths (1785-1821)"
+                recordIdentifier={`Page ${record.page_number}`}
+                recordDetails={{
+                  pageNo: record.page_number
+                }}
+              />
             </div>
           </div>
         </div>
       </div>
 
       {/* Fullscreen Image Zoom Overlay */}
-      {isImageZoomed && record.image_url && (
+      {isImageZoomed && isValidImageUrl(record.image_url) && (
         <div
           className="fixed inset-0 bg-black bg-opacity-95 z-[60] flex items-center justify-center p-4"
           onClick={() => setIsImageZoomed(false)}
@@ -293,7 +313,7 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
             onClick={(e) => e.stopPropagation()}
           >
             <Image
-              src={record.image_url}
+              src={record.image_url!}
               alt={`Page ${record.page_number}`}
               fill
               className="object-contain"
@@ -509,10 +529,10 @@ const ColoredDeathsPage = () => {
                     </div>
                   )}
 
-                  {record.image_url && (
+                  {isValidImageUrl(record.image_url) ? (
                     <div className="relative h-40 bg-gray-100">
                       <Image
-                        src={record.image_url}
+                        src={record.image_url!}
                         alt={`Page ${record.page_number}`}
                         fill
                         className="object-cover group-hover:scale-105 transition-transform"
@@ -520,6 +540,22 @@ const ColoredDeathsPage = () => {
                         unoptimized
                         loading="lazy"
                       />
+                      <div
+                        className="absolute top-3 right-3 z-10 bg-white rounded-full p-2 shadow-md"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <BookmarkButton
+                        pageId={record.id}
+                        collectionName="Colored Deaths (1785-1821)"
+                        collectionSlug="florida-louisiana/colored-deaths-1785-1821"
+                        recordTitle={`Page ${record.page_number}`}
+                        size={18}
+                      />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="relative h-40 bg-gray-100 flex items-center justify-center">
+                      <FileText className="w-12 h-12 text-gray-400" />
                       <div
                         className="absolute top-3 right-3 z-10 bg-white rounded-full p-2 shadow-md"
                         onClick={(e) => e.stopPropagation()}
