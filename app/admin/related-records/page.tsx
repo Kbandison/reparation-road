@@ -157,7 +157,10 @@ const RelatedRecordsAdmin = () => {
         .eq('key', 'related_records_config')
         .single();
 
-      if (!error && data?.value) {
+      if (error) {
+        // Table might not exist or no record found - use defaults
+        console.log('Settings not found, using defaults. Error:', error.message);
+      } else if (data?.value) {
         setSettings(data.value as AutoMatchSettings);
       }
     } catch (err) {
@@ -176,16 +179,23 @@ const RelatedRecordsAdmin = () => {
         .upsert({
           key: 'related_records_config',
           value: settings,
+          description: 'Configuration for automatic related records matching',
           updated_by: user?.id,
           updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'key'
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error.message, error.details, error.hint);
+        throw new Error(error.message || 'Unknown database error');
+      }
       setSettingsChanged(false);
       alert('Settings saved successfully!');
     } catch (err) {
-      console.error('Error saving settings:', err);
-      alert('Failed to save settings. Make sure the migration has been run.');
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      console.error('Error saving settings:', errorMessage);
+      alert(`Failed to save settings: ${errorMessage}\n\nMake sure:\n1. Migration 005_related_records_settings.sql has been run\n2. You are logged in as an admin`);
     } finally {
       setSettingsSaving(false);
     }
@@ -449,10 +459,18 @@ const RelatedRecordsAdmin = () => {
               <Sliders className="w-6 h-6 mr-2" />
               Auto-Match Settings
             </h2>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-600 mb-4">
               Configure how related records are automatically found based on matching criteria.
               These settings affect all collection pages.
             </p>
+
+            <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800">
+                <strong>Note:</strong> If you get an error saving, run the migration{' '}
+                <code className="bg-blue-100 px-1 rounded">005_related_records_settings.sql</code>{' '}
+                in your Supabase SQL Editor.
+              </p>
+            </div>
 
             {settingsLoading ? (
               <div className="flex items-center justify-center py-8">
