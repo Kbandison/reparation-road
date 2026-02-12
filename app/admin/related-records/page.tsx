@@ -148,15 +148,15 @@ const RelatedRecordsAdmin = () => {
       try {
         const { data, error } = await supabase
           .from(collection.table)
-          .select(`id, ${collection.nameField}, ${collection.secondaryField}`)
+          .select('*')
           .or(`${collection.nameField}.ilike.%${query}%,${collection.secondaryField}.ilike.%${query}%`)
           .limit(5);
 
         if (!error && data) {
           for (const record of data) {
-            const r = record as Record<string, unknown>;
+            const r = record as unknown as Record<string, unknown>;
             results.push({
-              id: r.id as string,
+              id: String(r.id || ''),
               name: String(r[collection.nameField] || 'Unknown'),
               secondary: String(r[collection.secondaryField] || ''),
               table: collection.table,
