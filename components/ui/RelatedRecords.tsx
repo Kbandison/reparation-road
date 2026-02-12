@@ -17,6 +17,26 @@ interface RelatedRecord {
   priority?: number;
 }
 
+interface AutoMatchSettings {
+  auto_match_enabled: boolean;
+  match_by_name: boolean;
+  match_by_location: boolean;
+  match_by_enslaver: boolean;
+  match_by_date: boolean;
+  max_auto_results: number;
+  min_name_length: number;
+}
+
+const DEFAULT_SETTINGS: AutoMatchSettings = {
+  auto_match_enabled: true,
+  match_by_name: true,
+  match_by_location: true,
+  match_by_enslaver: false,
+  match_by_date: false,
+  max_auto_results: 5,
+  min_name_length: 3
+};
+
 interface RelatedRecordsProps {
   currentRecordId: string;
   currentTable: string;
@@ -24,6 +44,8 @@ interface RelatedRecordsProps {
     name?: string;
     location?: string;
     occupation?: string;
+    enslaver?: string;
+    date?: string;
   };
   collectionSlug: string;
   maxResults?: number;
@@ -119,6 +141,27 @@ export function RelatedRecords({
 }: RelatedRecordsProps) {
   const [relatedRecords, setRelatedRecords] = useState<RelatedRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [settings, setSettings] = useState<AutoMatchSettings>(DEFAULT_SETTINGS);
+
+  // Fetch admin settings on mount
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const { data } = await supabase
+          .from('app_settings')
+          .select('value')
+          .eq('key', 'related_records_config')
+          .single();
+
+        if (data?.value) {
+          setSettings(data.value as AutoMatchSettings);
+        }
+      } catch {
+        // Table may not exist yet, use defaults
+      }
+    };
+    fetchSettings();
+  }, []);
 
   useEffect(() => {
     const fetchRelatedRecords = async () => {
@@ -186,10 +229,14 @@ export function RelatedRecords({
         // Table may not exist yet, continue with auto-matching
       }
 
-      // Search for related records by name similarity (only if we have search terms)
-      if (searchTerms.name || searchTerms.location) {
-        if (searchTerms.name) {
-          const nameParts = searchTerms.name.toLowerCase().split(' ').filter(p => p.length > 2);
+      // Auto-matching: Only run if enabled in admin settings
+      if (settings.auto_match_enabled) {
+        const effectiveMaxResults = settings.max_auto_results || maxResults;
+        const minNameLength = settings.min_name_length || 3;
+
+        // Search by name if enabled and we have a name
+        if (settings.match_by_name && searchTerms.name) {
+          const nameParts = searchTerms.name.toLowerCase().split(' ').filter(p => p.length >= minNameLength);
 
           for (const tableConfig of RELATED_TABLES) {
             // Skip current table
@@ -210,6 +257,7 @@ export function RelatedRecords({
                     const recordId = record.id;
                     // Avoid duplicates (check both auto and admin results)
                     if (recordId &&
+                        autoResults.length < effectiveMaxResults &&
                         !autoResults.find(r => r.id === recordId) &&
                         !adminResults.find(r => r.id === recordId)) {
                       autoResults.push({
@@ -230,6 +278,133 @@ export function RelatedRecords({
             }
           }
         }
+
+        // Search by location if enabled and we have a location
+        if (settings.match_by_location && searchTerms.location) {
+          for (const tableConfig of RELATED_TABLES) {
+            if (tableConfig.table === currentTable) continue;
+            if (!tableConfig.locationField) continue;
+
+            try {
+              const { data, error } = await supabase
+                .from(tableConfig.table)
+                .select('id, ' + tableConfig.nameField + ', ' + tableConfig.locationField)
+                .ilike(tableConfig.locationField, `%${searchTerms.location}%`)
+                .neq('id', currentRecordId)
+                .limit(3);
+
+              if (!error && data && Array.isArray(data)) {
+                for (const rawRecord of data) {
+                  const record = rawRecord as unknown as { id: string; [key: string]: unknown };
+                  const recordId = record.id;
+                  if (recordId &&
+                      autoResults.length < effectiveMaxResults &&
+                      !autoResults.find(r => r.id === recordId) &&
+                      !adminResults.find(r => r.id === recordId)) {
+                    autoResults.push({
+                      id: recordId,
+                      name: String(record[tableConfig.nameField] || 'Unknown'),
+                      collection: tableConfig.collection,
+                      collectionSlug: tableConfig.slug,
+                      details: `Location: ${String(record[tableConfig.locationField] || '')}`,
+                      priority: 0
+                    });
+                  }
+                }
+              }
+            } catch (err) {
+              console.debug(`Skipping ${tableConfig.table} location search:`, err);
+            }
+          }
+        }
+
+        // Search by enslaver if enabled and we have an enslaver
+        if (settings.match_by_enslaver && searchTerms.enslaver) {
+          for (const tableConfig of RELATED_TABLES) {
+            if (tableConfig.table === currentTable) continue;
+            // Check if table has an enslaver-like field
+            const enslaverFields = ['enslaver', 'owner', 'owner_name', 'master', 'claimant'];
+
+            for (const enslaverField of enslaverFields) {
+              try {
+                const { data, error } = await supabase
+                  .from(tableConfig.table)
+                  .select('id, ' + tableConfig.nameField + ', ' + tableConfig.locationField)
+                  .ilike(enslaverField, `%${searchTerms.enslaver}%`)
+                  .neq('id', currentRecordId)
+                  .limit(3);
+
+                if (!error && data && Array.isArray(data)) {
+                  for (const rawRecord of data) {
+                    const record = rawRecord as unknown as { id: string; [key: string]: unknown };
+                    const recordId = record.id;
+                    if (recordId &&
+                        autoResults.length < effectiveMaxResults &&
+                        !autoResults.find(r => r.id === recordId) &&
+                        !adminResults.find(r => r.id === recordId)) {
+                      autoResults.push({
+                        id: recordId,
+                        name: String(record[tableConfig.nameField] || 'Unknown'),
+                        collection: tableConfig.collection,
+                        collectionSlug: tableConfig.slug,
+                        details: `Same Enslaver: ${searchTerms.enslaver}`,
+                        priority: 0
+                      });
+                    }
+                  }
+                }
+              } catch {
+                // Field doesn't exist on this table, continue
+              }
+            }
+          }
+        }
+
+        // Search by date if enabled and we have a date
+        if (settings.match_by_date && searchTerms.date) {
+          // Extract year from date for broader matching
+          const yearMatch = searchTerms.date.match(/\d{4}/);
+          if (yearMatch) {
+            const year = yearMatch[0];
+            for (const tableConfig of RELATED_TABLES) {
+              if (tableConfig.table === currentTable) continue;
+              const dateFields = ['date', 'year', 'date_registered', 'registration_date', 'created_at'];
+
+              for (const dateField of dateFields) {
+                try {
+                  const { data, error } = await supabase
+                    .from(tableConfig.table)
+                    .select('id, ' + tableConfig.nameField + ', ' + tableConfig.locationField)
+                    .ilike(dateField, `%${year}%`)
+                    .neq('id', currentRecordId)
+                    .limit(3);
+
+                  if (!error && data && Array.isArray(data)) {
+                    for (const rawRecord of data) {
+                      const record = rawRecord as unknown as { id: string; [key: string]: unknown };
+                      const recordId = record.id;
+                      if (recordId &&
+                          autoResults.length < effectiveMaxResults &&
+                          !autoResults.find(r => r.id === recordId) &&
+                          !adminResults.find(r => r.id === recordId)) {
+                        autoResults.push({
+                          id: recordId,
+                          name: String(record[tableConfig.nameField] || 'Unknown'),
+                          collection: tableConfig.collection,
+                          collectionSlug: tableConfig.slug,
+                          details: `Same Time Period: ${year}`,
+                          priority: 0
+                        });
+                      }
+                    }
+                  }
+                } catch {
+                  // Field doesn't exist on this table, continue
+                }
+              }
+            }
+          }
+        }
       }
 
       // Sort admin results by priority (featured first, then by priority number)
@@ -240,13 +415,14 @@ export function RelatedRecords({
       });
 
       // Combine results: admin-defined first (sorted), then auto-matched
-      const combined = [...adminResults, ...autoResults.slice(0, maxResults - adminResults.length)];
+      const effectiveMaxResults = settings.max_auto_results || maxResults;
+      const combined = [...adminResults, ...autoResults.slice(0, effectiveMaxResults - adminResults.length)];
       setRelatedRecords(combined);
       setLoading(false);
     };
 
     fetchRelatedRecords();
-  }, [currentRecordId, currentTable, searchTerms, maxResults, collectionSlug]);
+  }, [currentRecordId, currentTable, searchTerms, maxResults, collectionSlug, settings]);
 
   if (loading) {
     return (
