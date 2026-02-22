@@ -12,13 +12,21 @@ import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, ScrollText, Loader2 } fr
 import { RecordCitation } from "@/components/ui/RecordCitation";
 import { RelatedRecords } from "@/components/ui/RelatedRecords";
 
-interface RegisterPage {
+interface RegisterRecord {
   id: string;
   book_no: number;
   page_no: number;
-  slug: string;
+  entry_no: number;
+  name: string;
+  age: string | null;
+  place_of_nativity: string | null;
+  residence: string | null;
+  date_entered_state: string | null;
+  occupation: string | null;
+  date_registered: string | null;
   image_path: string | null;
   ocr_text: string | null;
+  slug: string;
   created_at: string;
 }
 
@@ -29,69 +37,36 @@ const isValidImageUrl = (path: string | null | undefined): boolean => {
     new URL(path);
     return true;
   } catch {
-    // Check if it's a relative path that starts with /
     return path.startsWith('/');
   }
 };
 
-interface PageModalProps {
-  page: RegisterPage | null;
+interface RecordModalProps {
+  record: RegisterRecord | null;
   onClose: () => void;
-  allPages: RegisterPage[];
-  onNavigate: (page: RegisterPage) => void;
+  allRecords: RegisterRecord[];
+  onNavigate: (record: RegisterRecord) => void;
 }
 
-const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose, allPages, onNavigate }) {
+const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, onClose, allRecords, onNavigate }) {
   const [imageLoaded, setImageLoaded] = React.useState(false);
   const [imageZoom, setImageZoom] = React.useState(1);
-  const [ocrText, setOcrText] = React.useState<string | null>(null);
-  const [loadingOcr, setLoadingOcr] = React.useState(false);
 
   React.useEffect(() => {
     setImageLoaded(false);
-  }, [page]);
+  }, [record]);
 
-  // Fetch OCR text when page changes
-  React.useEffect(() => {
-    const fetchOcrText = async () => {
-      if (!page) return;
-
-      setLoadingOcr(true);
-      try {
-        const { data, error } = await supabase
-          .from("register_free_persons_thomas")
-          .select("ocr_text")
-          .eq("id", page.id)
-          .single();
-
-        if (data && !error) {
-          setOcrText(data.ocr_text || null);
-        }
-      } catch (error) {
-        console.error("Error fetching OCR text:", error);
-      } finally {
-        setLoadingOcr(false);
-      }
-    };
-
-    fetchOcrText();
-  }, [page]);
-
-  const currentIndex = allPages.findIndex(p => p.id === page?.id);
+  const currentIndex = allRecords.findIndex(r => r.id === record?.id);
   const hasPrev = currentIndex > 0;
-  const hasNext = currentIndex < allPages.length - 1;
+  const hasNext = currentIndex < allRecords.length - 1;
 
-  const handlePrevPage = React.useCallback(() => {
-    if (hasPrev) {
-      onNavigate(allPages[currentIndex - 1]);
-    }
-  }, [hasPrev, currentIndex, allPages, onNavigate]);
+  const handlePrevRecord = React.useCallback(() => {
+    if (hasPrev) onNavigate(allRecords[currentIndex - 1]);
+  }, [hasPrev, currentIndex, allRecords, onNavigate]);
 
-  const handleNextPage = React.useCallback(() => {
-    if (hasNext) {
-      onNavigate(allPages[currentIndex + 1]);
-    }
-  }, [hasNext, currentIndex, allPages, onNavigate]);
+  const handleNextRecord = React.useCallback(() => {
+    if (hasNext) onNavigate(allRecords[currentIndex + 1]);
+  }, [hasNext, currentIndex, allRecords, onNavigate]);
 
   const handleZoomIn = () => setImageZoom((prev) => Math.min(prev + 0.25, 3));
   const handleZoomOut = () => setImageZoom((prev) => Math.max(prev - 0.25, 0.5));
@@ -99,52 +74,51 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
 
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        handlePrevPage();
-      } else if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        handleNextPage();
-      } else if (e.key === 'Escape') {
-        onClose();
-      }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); handlePrevRecord(); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); handleNextRecord(); }
+      else if (e.key === 'Escape') { onClose(); }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handlePrevPage, handleNextPage, onClose]);
+  }, [handlePrevRecord, handleNextRecord, onClose]);
 
-  // Prevent body scroll when modal is open
   React.useEffect(() => {
-    if (page) {
-      document.body.style.overflow = 'hidden';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [page]);
+    if (record) document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [record]);
 
-  if (!page) return null;
+  if (!record) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-brand-brown">
-            Record Details - Book {page.book_no}, Page {page.page_no}
-          </h2>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={handlePrevRecord}
+              disabled={!hasPrev}
+              className="p-1 rounded hover:bg-gray-100 disabled:opacity-30"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <h2 className="text-2xl font-bold text-brand-brown">{record.name}</h2>
+            <button
+              onClick={handleNextRecord}
+              disabled={!hasNext}
+              className="p-1 rounded hover:bg-gray-100 disabled:opacity-30"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
           <div className="flex items-center gap-2">
             <BookmarkButton
-              pageId={page.id}
+              pageId={record.id}
               collectionName="Register of Free Persons - Thomas"
               collectionSlug="slave-claims-commission/register-free-persons-thomas"
-              recordTitle={`Book ${page.book_no}, Page ${page.page_no}`}
+              recordTitle={record.name || `Book ${record.book_no}, Page ${record.page_no}`}
             />
             <button
-              onClick={() => {
-                onClose();
-                handleResetZoom();
-              }}
+              onClick={() => { onClose(); handleResetZoom(); }}
               className="text-gray-400 hover:text-gray-600"
             >
               <X className="w-6 h-6" />
@@ -157,51 +131,31 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
             {/* Document Image */}
             <div>
               <div className="mb-4 flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-brand-brown">
-                  Document Image
-                </h3>
+                <h3 className="text-lg font-semibold text-brand-brown">Document Image</h3>
                 <div className="flex items-center gap-2">
-                  <Button
-                    onClick={handleZoomOut}
-                    size="sm"
-                    variant="outline"
-                    disabled={imageZoom <= 0.5}
-                  >
+                  <Button onClick={handleZoomOut} size="sm" variant="outline" disabled={imageZoom <= 0.5}>
                     <ZoomOut className="w-4 h-4" />
                   </Button>
                   <span className="text-sm text-gray-600 min-w-[60px] text-center">
                     {Math.round(imageZoom * 100)}%
                   </span>
-                  <Button
-                    onClick={handleZoomIn}
-                    size="sm"
-                    variant="outline"
-                    disabled={imageZoom >= 3}
-                  >
+                  <Button onClick={handleZoomIn} size="sm" variant="outline" disabled={imageZoom >= 3}>
                     <ZoomIn className="w-4 h-4" />
                   </Button>
-                  <Button onClick={handleResetZoom} size="sm" variant="outline">
-                    Reset
-                  </Button>
+                  <Button onClick={handleResetZoom} size="sm" variant="outline">Reset</Button>
                 </div>
               </div>
               <div className="border border-gray-200 rounded-lg overflow-auto max-h-[600px] bg-gray-50">
-                <div
-                  style={{
-                    transform: `scale(${imageZoom})`,
-                    transformOrigin: "top left",
-                    transition: "transform 0.2s",
-                  }}
-                >
-                  {!imageLoaded && isValidImageUrl(page.image_path) && (
+                <div style={{ transform: `scale(${imageZoom})`, transformOrigin: "top left", transition: "transform 0.2s" }}>
+                  {!imageLoaded && isValidImageUrl(record.image_path) && (
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-brand-green"></div>
                     </div>
                   )}
-                  {isValidImageUrl(page.image_path) ? (
+                  {isValidImageUrl(record.image_path) ? (
                     <Image
-                      src={page.image_path!}
-                      alt={`Book ${page.book_no}, Page ${page.page_no}`}
+                      src={record.image_path!}
+                      alt={`${record.name} - Book ${record.book_no}, Page ${record.page_no}, Entry ${record.entry_no}`}
                       width={800}
                       height={1000}
                       className="w-full"
@@ -221,46 +175,91 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
 
             {/* Record Information */}
             <div>
-              <h3 className="text-lg font-semibold text-brand-brown mb-4">
-                Record Information
-              </h3>
+              <h3 className="text-lg font-semibold text-brand-brown mb-4">Record Information</h3>
               <div className="space-y-4">
                 <div className="border-b border-gray-200 pb-3">
-                  <p className="text-sm text-gray-600 mb-1">Book Number</p>
-                  <p className="text-lg font-medium text-brand-brown">
-                    {page.book_no}
-                  </p>
+                  <p className="text-sm text-gray-600 mb-1">Name</p>
+                  <p className="text-lg font-medium text-brand-brown">{record.name}</p>
                 </div>
+
+                {record.age && (
+                  <div className="border-b border-gray-200 pb-3">
+                    <p className="text-sm text-gray-600 mb-1">Age</p>
+                    <p className="text-base text-gray-900">{record.age}</p>
+                  </div>
+                )}
+
+                {record.place_of_nativity && (
+                  <div className="border-b border-gray-200 pb-3">
+                    <p className="text-sm text-gray-600 mb-1">Place of Nativity</p>
+                    <p className="text-base text-gray-900">{record.place_of_nativity}</p>
+                  </div>
+                )}
+
+                {record.residence && (
+                  <div className="border-b border-gray-200 pb-3">
+                    <p className="text-sm text-gray-600 mb-1">Residence</p>
+                    <p className="text-base text-gray-900">{record.residence}</p>
+                  </div>
+                )}
+
+                {record.date_entered_state && (
+                  <div className="border-b border-gray-200 pb-3">
+                    <p className="text-sm text-gray-600 mb-1">Date Entered State</p>
+                    <p className="text-base text-gray-900">{record.date_entered_state}</p>
+                  </div>
+                )}
+
+                {record.occupation && (
+                  <div className="border-b border-gray-200 pb-3">
+                    <p className="text-sm text-gray-600 mb-1">Occupation</p>
+                    <p className="text-base text-gray-900">{record.occupation}</p>
+                  </div>
+                )}
+
+                {record.date_registered && (
+                  <div className="border-b border-gray-200 pb-3">
+                    <p className="text-sm text-gray-600 mb-1">Date Registered</p>
+                    <p className="text-base text-gray-900">{record.date_registered}</p>
+                  </div>
+                )}
 
                 <div className="border-b border-gray-200 pb-3">
-                  <p className="text-sm text-gray-600 mb-1">Page Number</p>
-                  <p className="text-base text-gray-900">{page.page_no}</p>
+                  <p className="text-sm text-gray-600 mb-1">Book / Page / Entry</p>
+                  <p className="text-base text-gray-900">Book {record.book_no}, Page {record.page_no}, Entry {record.entry_no}</p>
                 </div>
 
-                {loadingOcr ? (
-                  <div className="border-b border-gray-200 pb-3">
-                    <p className="text-sm text-gray-600 mb-1">Transcription</p>
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin text-brand-green" />
-                      <p className="text-sm text-gray-500">Loading...</p>
-                    </div>
-                  </div>
-                ) : ocrText ? (
+                {record.ocr_text && (
                   <div className="border-b border-gray-200 pb-3">
                     <p className="text-sm text-gray-600 mb-1">Transcription</p>
                     <div className="bg-gray-50 p-3 rounded-md max-h-64 overflow-y-auto">
-                      <p className="text-sm whitespace-pre-wrap">{ocrText}</p>
+                      <p className="text-sm whitespace-pre-wrap">{record.ocr_text}</p>
                     </div>
                   </div>
-                ) : null}
+                )}
+
+                {/* Related Records */}
+                <RelatedRecords
+                  currentRecordId={record.id}
+                  currentTable="register_free_persons_thomas"
+                  searchTerms={{
+                    name: record.name || undefined,
+                    location: record.residence || undefined,
+                    occupation: record.occupation || undefined
+                  }}
+                  collectionSlug="slave-claims-commission/register-free-persons-thomas"
+                />
 
                 {/* Citation */}
                 <RecordCitation
                   collectionName="Register of Free Persons - Thomas County"
-                  recordIdentifier={page.id}
+                  recordIdentifier={record.id}
                   recordDetails={{
-                    bookNo: page.book_no,
-                    pageNo: page.page_no
+                    bookNo: record.book_no,
+                    pageNo: record.page_no,
+                    entryNo: record.entry_no,
+                    name: record.name || undefined,
+                    date: record.date_registered || undefined
                   }}
                 />
               </div>
@@ -274,11 +273,11 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
 
 const RegisterFreePersonsThomasPage = () => {
   const searchParams = useSearchParams();
-  const [pages, setPages] = useState<RegisterPage[]>([]);
-  const [filteredPages, setFilteredPages] = useState<RegisterPage[]>([]);
+  const [records, setRecords] = useState<RegisterRecord[]>([]);
+  const [filteredRecords, setFilteredRecords] = useState<RegisterRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedPage, setSelectedPage] = useState<RegisterPage | null>(null);
+  const [selectedRecord, setSelectedRecord] = useState<RegisterRecord | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [bookFilter, setBookFilter] = useState<number | null>(null);
   const itemsPerPage = 20;
@@ -286,28 +285,23 @@ const RegisterFreePersonsThomasPage = () => {
   // Initialize search from URL params
   useEffect(() => {
     const urlSearch = searchParams.get('search');
-    if (urlSearch) {
-      setSearchTerm(urlSearch);
-    }
+    if (urlSearch) setSearchTerm(urlSearch);
   }, [searchParams]);
 
   // Open modal for specific record from URL params
   useEffect(() => {
     const recordId = searchParams.get('record');
-    if (recordId && pages.length > 0) {
-      const record = pages.find(p => p.id === recordId);
-      if (record) {
-        setSelectedPage(record);
-      }
+    if (recordId && records.length > 0) {
+      const record = records.find(r => r.id === recordId);
+      if (record) setSelectedRecord(record);
     }
-  }, [searchParams, pages]);
+  }, [searchParams, records]);
 
   useEffect(() => {
-    const fetchPages = async () => {
+    const fetchRecords = async () => {
       setLoading(true);
       try {
-        // Fetch all pages in batches (without ocr_text for performance)
-        let allPages: RegisterPage[] = [];
+        let allRecords: RegisterRecord[] = [];
         let from = 0;
         const batchSize = 1000;
         let hasMore = true;
@@ -315,30 +309,28 @@ const RegisterFreePersonsThomasPage = () => {
         while (hasMore) {
           const { data, error } = await supabase
             .from("register_free_persons_thomas")
-            .select("id, book_no, page_no, slug, image_path, created_at")
+            .select("id, book_no, page_no, entry_no, name, age, place_of_nativity, residence, date_entered_state, occupation, date_registered, image_path, slug, created_at")
             .order("book_no", { ascending: true })
             .order("page_no", { ascending: true })
+            .order("entry_no", { ascending: true })
             .range(from, from + batchSize - 1);
 
           if (error) {
-            console.error("Error fetching Virginia Order Books (Chesterfield):", error);
+            console.error("Error fetching Register Free Persons (Thomas):", error);
             break;
           }
 
           if (data && data.length > 0) {
-            allPages = [...allPages, ...data as RegisterPage[]];
+            allRecords = [...allRecords, ...data as RegisterRecord[]];
             from += batchSize;
-
-            if (data.length < batchSize) {
-              hasMore = false;
-            }
+            if (data.length < batchSize) hasMore = false;
           } else {
             hasMore = false;
           }
         }
 
-        setPages(allPages);
-        setFilteredPages(allPages);
+        setRecords(allRecords);
+        setFilteredRecords(allRecords);
       } catch (error) {
         console.error("Error:", error);
       } finally {
@@ -346,36 +338,45 @@ const RegisterFreePersonsThomasPage = () => {
       }
     };
 
-    fetchPages();
+    fetchRecords();
   }, []);
 
   useEffect(() => {
-    let filtered = pages;
+    let filtered = records;
 
     if (searchTerm) {
-      filtered = filtered.filter(page =>
-        page.book_no.toString().includes(searchTerm) ||
-        page.page_no.toString().includes(searchTerm)
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(record =>
+        record.name.toLowerCase().includes(term) ||
+        record.book_no.toString().includes(searchTerm) ||
+        record.page_no.toString().includes(searchTerm) ||
+        record.entry_no.toString().includes(searchTerm) ||
+        (record.age && record.age.toLowerCase().includes(term)) ||
+        (record.place_of_nativity && record.place_of_nativity.toLowerCase().includes(term)) ||
+        (record.residence && record.residence.toLowerCase().includes(term)) ||
+        (record.date_entered_state && record.date_entered_state.toLowerCase().includes(term)) ||
+        (record.occupation && record.occupation.toLowerCase().includes(term)) ||
+        (record.date_registered && record.date_registered.toLowerCase().includes(term))
       );
     }
 
     if (bookFilter !== null) {
-      filtered = filtered.filter(page => page.book_no === bookFilter);
+      filtered = filtered.filter(record => record.book_no === bookFilter);
     }
 
-    setFilteredPages(filtered);
+    setFilteredRecords(filtered);
     setCurrentPage(1);
-  }, [searchTerm, bookFilter, pages]);
+  }, [searchTerm, bookFilter, records]);
 
-  const totalPages = Math.ceil(filteredPages.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredRecords.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentPageData = filteredPages.slice(startIndex, endIndex);
+  const currentPageData = filteredRecords.slice(startIndex, endIndex);
 
-  const uniqueBooks = [...new Set(pages.map(p => p.book_no))].sort((a, b) => a - b);
+  const uniqueBooks = [...new Set(records.map(r => r.book_no))].sort((a, b) => a - b);
 
-  const handlePageClick = React.useCallback((page: RegisterPage) => {
-    setSelectedPage(page);
+  const handleRecordClick = React.useCallback((record: RegisterRecord) => {
+    setSelectedRecord(record);
   }, []);
 
   if (loading) {
@@ -399,8 +400,8 @@ const RegisterFreePersonsThomasPage = () => {
               Register of Free Persons - Thomas County
             </h1>
             <p className="text-lg text-white/90">
-              Records of free persons of color from Thomas County, Virginia.
-              Browse historical register pages documenting free persons of color.
+              Records of free persons of color from Thomas County, Georgia.
+              Browse historical register entries documenting free persons of color with detailed personal information.
             </p>
           </div>
         </div>
@@ -412,7 +413,7 @@ const RegisterFreePersonsThomasPage = () => {
           <div className="flex flex-col sm:flex-row gap-4 items-center">
             <Input
               type="search"
-              placeholder="Search by book or page number..."
+              placeholder="Search by name, residence, occupation, or other details..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full max-w-md"
@@ -435,40 +436,44 @@ const RegisterFreePersonsThomasPage = () => {
             )}
 
             <p className="text-sm text-gray-600">
-              Showing {filteredPages.length} of {pages.length} pages
+              Showing {filteredRecords.length} of {records.length} records
             </p>
           </div>
         </div>
 
-        {filteredPages.length === 0 ? (
+        {filteredRecords.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-xl text-gray-600">No pages found matching your search.</p>
+            <p className="text-xl text-gray-600">No records found matching your search.</p>
           </div>
         ) : (
           <>
-            {/* Table of Pages */}
+            {/* Table of Records */}
             <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-brand-green text-white">
+                  <thead className="bg-brand-green text-white sticky top-0 z-10">
                     <tr>
-                      <th className="px-4 py-3 text-left text-sm font-semibold">Book</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold">Page</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold">Name</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold">Age</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold">Residence</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold">Occupation</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold">Date Registered</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {currentPageData.map((page) => (
+                    {currentPageData.map((record, index) => (
                       <tr
-                        key={page.id}
-                        onClick={() => handlePageClick(page)}
-                        className="hover:bg-brand-tan/30 cursor-pointer transition-colors"
+                        key={record.id}
+                        onClick={() => handleRecordClick(record)}
+                        className={`hover:bg-brand-tan/30 cursor-pointer transition-colors ${
+                          index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                        }`}
                       >
-                        <td className="px-4 py-3 text-sm text-gray-900">
-                          {page.book_no}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-900">
-                          {page.page_no}
-                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-900">{record.name}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900">{record.age || '-'}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900">{record.residence || '-'}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900">{record.occupation || '-'}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900">{record.date_registered || '-'}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -487,13 +492,9 @@ const RegisterFreePersonsThomasPage = () => {
                   <ChevronLeft className="w-4 h-4" />
                   Previous
                 </Button>
-
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                </div>
-
+                <span className="text-sm text-gray-600">
+                  Page {currentPage} of {totalPages}
+                </span>
                 <Button
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
@@ -507,11 +508,11 @@ const RegisterFreePersonsThomasPage = () => {
           </>
         )}
 
-        <PageModal
-          page={selectedPage}
-          onClose={() => setSelectedPage(null)}
-          allPages={filteredPages}
-          onNavigate={(page) => setSelectedPage(page)}
+        <RecordModal
+          record={selectedRecord}
+          onClose={() => setSelectedRecord(null)}
+          allRecords={filteredRecords}
+          onNavigate={(record) => setSelectedRecord(record)}
         />
       </div>
     </div>
