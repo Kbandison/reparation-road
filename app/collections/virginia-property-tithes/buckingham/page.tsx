@@ -1,0 +1,469 @@
+"use client";
+
+import React, { useState, useEffect, Suspense } from "react";
+import Image from "next/image";
+import { supabase } from "@/lib/supabase";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { BookmarkButton } from "@/components/ui/BookmarkButton";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { useSearchParams } from "next/navigation";
+import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, ScrollText, Loader2 } from "lucide-react";
+import { RecordCitation } from "@/components/ui/RecordCitation";
+import { RelatedRecords } from "@/components/ui/RelatedRecords";
+
+interface PersonalPropertyRecord {
+  id: string;
+  book_no: number;
+  page_no: number;
+  entry_no: number;
+  state_county: string | null;
+  date: string | null;
+  enslaver_family: string;
+  enslaved_persons: string | null;
+  total: number | null;
+  image_path: string | null;
+  ocr_text: string | null;
+  slug: string;
+  created_at: string;
+}
+
+const isValidImageUrl = (path: string | null | undefined): boolean => {
+  if (!path) return false;
+  try {
+    new URL(path);
+    return true;
+  } catch {
+    return path.startsWith('/');
+  }
+};
+
+interface RecordModalProps {
+  record: PersonalPropertyRecord | null;
+  onClose: () => void;
+  allRecords: PersonalPropertyRecord[];
+  onNavigate: (record: PersonalPropertyRecord) => void;
+}
+
+const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, onClose, allRecords, onNavigate }) {
+  const [imageLoaded, setImageLoaded] = React.useState(false);
+  const [imageZoom, setImageZoom] = React.useState(1);
+
+  React.useEffect(() => { setImageLoaded(false); }, [record]);
+
+  const currentIndex = allRecords.findIndex(r => r.id === record?.id);
+  const hasPrev = currentIndex > 0;
+  const hasNext = currentIndex < allRecords.length - 1;
+
+  const handlePrevRecord = React.useCallback(() => {
+    if (hasPrev) onNavigate(allRecords[currentIndex - 1]);
+  }, [hasPrev, currentIndex, allRecords, onNavigate]);
+
+  const handleNextRecord = React.useCallback(() => {
+    if (hasNext) onNavigate(allRecords[currentIndex + 1]);
+  }, [hasNext, currentIndex, allRecords, onNavigate]);
+
+  const handleZoomIn = () => setImageZoom(prev => Math.min(prev + 0.25, 3));
+  const handleZoomOut = () => setImageZoom(prev => Math.max(prev - 0.25, 0.5));
+  const handleResetZoom = () => setImageZoom(1);
+
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') { e.preventDefault(); handlePrevRecord(); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); handleNextRecord(); }
+      else if (e.key === 'Escape') { onClose(); }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handlePrevRecord, handleNextRecord, onClose]);
+
+  React.useEffect(() => {
+    if (record) document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [record]);
+
+  if (!record) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button onClick={handlePrevRecord} disabled={!hasPrev} className="p-1 rounded hover:bg-gray-100 disabled:opacity-30">
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <h2 className="text-2xl font-bold text-brand-brown">{record.enslaver_family}</h2>
+            <button onClick={handleNextRecord} disabled={!hasNext} className="p-1 rounded hover:bg-gray-100 disabled:opacity-30">
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="flex items-center gap-2">
+            <BookmarkButton
+              pageId={record.id}
+              collectionName="Virginia Personal Property & Tithes - Buckingham County"
+              collectionSlug="virginia-property-tithes/buckingham"
+              recordTitle={record.enslaver_family}
+            />
+            <button onClick={() => { onClose(); handleResetZoom(); }} className="text-gray-400 hover:text-gray-600">
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+        </div>
+
+        <div className="p-6">
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Document Image */}
+            <div>
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-brand-brown">Document Image</h3>
+                <div className="flex items-center gap-2">
+                  <Button onClick={handleZoomOut} size="sm" variant="outline" disabled={imageZoom <= 0.5}>
+                    <ZoomOut className="w-4 h-4" />
+                  </Button>
+                  <span className="text-sm text-gray-600 min-w-[60px] text-center">{Math.round(imageZoom * 100)}%</span>
+                  <Button onClick={handleZoomIn} size="sm" variant="outline" disabled={imageZoom >= 3}>
+                    <ZoomIn className="w-4 h-4" />
+                  </Button>
+                  <Button onClick={handleResetZoom} size="sm" variant="outline">Reset</Button>
+                </div>
+              </div>
+              <div className="border border-gray-200 rounded-lg overflow-auto max-h-[600px] bg-gray-50">
+                <div style={{ transform: `scale(${imageZoom})`, transformOrigin: "top left", transition: "transform 0.2s" }}>
+                  {!imageLoaded && isValidImageUrl(record.image_path) && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-brand-green"></div>
+                    </div>
+                  )}
+                  {isValidImageUrl(record.image_path) ? (
+                    <Image
+                      src={record.image_path!}
+                      alt={`${record.enslaver_family} - Personal Property Tax Record`}
+                      width={800}
+                      height={1000}
+                      className="w-full"
+                      onLoad={() => setImageLoaded(true)}
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-64 bg-gray-100 rounded-lg">
+                      <div className="text-center text-gray-500">
+                        <ScrollText className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                        <p>Image not available</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Record Information */}
+            <div>
+              <h3 className="text-lg font-semibold text-brand-brown mb-4">Record Information</h3>
+              <div className="space-y-4">
+                <div className="border-b border-gray-200 pb-3">
+                  <p className="text-sm text-gray-600 mb-1">Enslaver Family</p>
+                  <p className="text-lg font-medium text-brand-brown">{record.enslaver_family}</p>
+                </div>
+
+                {record.enslaved_persons && (
+                  <div className="border-b border-gray-200 pb-3">
+                    <p className="text-sm text-gray-600 mb-1">Enslaved Persons</p>
+                    <p className="text-base text-gray-900 whitespace-pre-wrap">{record.enslaved_persons}</p>
+                  </div>
+                )}
+
+                {record.total !== null && (
+                  <div className="border-b border-gray-200 pb-3">
+                    <p className="text-sm text-gray-600 mb-1">Total Enslaved</p>
+                    <p className="text-base text-gray-900">{record.total}</p>
+                  </div>
+                )}
+
+                {record.state_county && (
+                  <div className="border-b border-gray-200 pb-3">
+                    <p className="text-sm text-gray-600 mb-1">County</p>
+                    <p className="text-base text-gray-900">{record.state_county}</p>
+                  </div>
+                )}
+
+                {record.date && (
+                  <div className="border-b border-gray-200 pb-3">
+                    <p className="text-sm text-gray-600 mb-1">Date</p>
+                    <p className="text-base text-gray-900">{record.date}</p>
+                  </div>
+                )}
+
+                <div className="border-b border-gray-200 pb-3">
+                  <p className="text-sm text-gray-600 mb-1">Book / Page / Entry</p>
+                  <p className="text-base text-gray-900">Book {record.book_no}, Page {record.page_no}, Entry {record.entry_no}</p>
+                </div>
+
+                {record.ocr_text && (
+                  <div className="border-b border-gray-200 pb-3">
+                    <p className="text-sm text-gray-600 mb-1">Transcription</p>
+                    <div className="bg-gray-50 p-3 rounded-md max-h-64 overflow-y-auto">
+                      <p className="text-sm whitespace-pre-wrap">{record.ocr_text}</p>
+                    </div>
+                  </div>
+                )}
+
+                <RelatedRecords
+                  currentRecordId={record.id}
+                  currentTable="va_personal_buckingham"
+                  searchTerms={{
+                    name: record.enslaver_family || undefined,
+                    location: record.state_county || undefined,
+                  }}
+                  collectionSlug="virginia-property-tithes/buckingham"
+                />
+
+                <RecordCitation
+                  collectionName="Virginia Personal Property & Tithes - Buckingham County"
+                  recordIdentifier={record.id}
+                  recordDetails={{
+                    bookNo: record.book_no,
+                    pageNo: record.page_no,
+                    entryNo: record.entry_no,
+                    name: record.enslaver_family,
+                    date: record.date || undefined
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+const VaPersonalBuckinghamPage = () => {
+  const searchParams = useSearchParams();
+  const [records, setRecords] = useState<PersonalPropertyRecord[]>([]);
+  const [filteredRecords, setFilteredRecords] = useState<PersonalPropertyRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedRecord, setSelectedRecord] = useState<PersonalPropertyRecord | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [bookFilter, setBookFilter] = useState<number | null>(null);
+  const itemsPerPage = 20;
+
+  useEffect(() => {
+    const urlSearch = searchParams.get('search');
+    if (urlSearch) setSearchTerm(urlSearch);
+  }, [searchParams]);
+
+  useEffect(() => {
+    const recordId = searchParams.get('record');
+    if (recordId && records.length > 0) {
+      const record = records.find(r => r.id === recordId);
+      if (record) setSelectedRecord(record);
+    }
+  }, [searchParams, records]);
+
+  useEffect(() => {
+    const fetchRecords = async () => {
+      setLoading(true);
+      try {
+        let allRecords: PersonalPropertyRecord[] = [];
+        let from = 0;
+        const batchSize = 1000;
+        let hasMore = true;
+
+        while (hasMore) {
+          const { data, error } = await supabase
+            .from("va_personal_buckingham")
+            .select("id, book_no, page_no, entry_no, state_county, date, enslaver_family, enslaved_persons, total, image_path, slug, created_at")
+            .order("book_no", { ascending: true })
+            .order("page_no", { ascending: true })
+            .order("entry_no", { ascending: true })
+            .range(from, from + batchSize - 1);
+
+          if (error) { console.error("Error fetching records:", error); break; }
+
+          if (data && data.length > 0) {
+            allRecords = [...allRecords, ...data as PersonalPropertyRecord[]];
+            from += batchSize;
+            if (data.length < batchSize) hasMore = false;
+          } else {
+            hasMore = false;
+          }
+        }
+
+        setRecords(allRecords);
+        setFilteredRecords(allRecords);
+      } catch (error) {
+        console.error("Error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRecords();
+  }, []);
+
+  useEffect(() => {
+    let filtered = records;
+
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(record =>
+        record.enslaver_family.toLowerCase().includes(term) ||
+        (record.enslaved_persons && record.enslaved_persons.toLowerCase().includes(term)) ||
+        (record.state_county && record.state_county.toLowerCase().includes(term)) ||
+        (record.date && record.date.toLowerCase().includes(term)) ||
+        record.book_no.toString().includes(searchTerm) ||
+        record.page_no.toString().includes(searchTerm)
+      );
+    }
+
+    if (bookFilter !== null) {
+      filtered = filtered.filter(record => record.book_no === bookFilter);
+    }
+
+    setFilteredRecords(filtered);
+    setCurrentPage(1);
+  }, [searchTerm, bookFilter, records]);
+
+  const totalPages = Math.ceil(filteredRecords.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentPageData = filteredRecords.slice(startIndex, endIndex);
+  const uniqueBooks = [...new Set(records.map(r => r.book_no))].sort((a, b) => a - b);
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin text-brand-green" />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-brand-beige">
+      <div className="bg-gradient-to-r from-brand-green to-brand-darkgreen text-white py-16">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <ScrollText className="w-16 h-16 mx-auto mb-4" />
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+              Virginia Personal Property & Tithes - Buckingham County
+            </h1>
+            <p className="text-lg text-white/90">
+              Historical personal property tax records from Buckingham County, Virginia listing enslaver families
+              and the names of enslaved persons held as taxable property.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8 flex flex-col sm:flex-row gap-4 items-center">
+          <Input
+            type="search"
+            placeholder="Search by enslaver family, enslaved persons, or date..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full max-w-md"
+          />
+
+          {uniqueBooks.length > 1 && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600">Filter by Book:</span>
+              <select
+                value={bookFilter ?? ''}
+                onChange={(e) => setBookFilter(e.target.value ? Number(e.target.value) : null)}
+                className="border rounded-lg px-3 py-2 text-sm"
+              >
+                <option value="">All Books</option>
+                {uniqueBooks.map(book => (
+                  <option key={book} value={book}>Book {book}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <p className="text-sm text-gray-600">
+            Showing {filteredRecords.length} of {records.length} records
+          </p>
+        </div>
+
+        {filteredRecords.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-xl text-gray-600">No records found matching your search.</p>
+          </div>
+        ) : (
+          <>
+            <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-brand-green text-white sticky top-0 z-10">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-sm font-semibold">Enslaver Family</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold">Enslaved Persons</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold">Total</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold">Date</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold">Book / Page</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {currentPageData.map((record, index) => (
+                      <tr
+                        key={record.id}
+                        onClick={() => setSelectedRecord(record)}
+                        className={`hover:bg-brand-tan/30 cursor-pointer transition-colors ${
+                          index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                        }`}
+                      >
+                        <td className="px-4 py-3 text-sm font-medium text-brand-brown">{record.enslaver_family}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900 max-w-[200px] truncate">{record.enslaved_persons || '-'}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900">{record.total ?? '-'}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900">{record.date || '-'}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900">{record.book_no} / {record.page_no}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-4 mb-8">
+                <Button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} variant="outline">
+                  <ChevronLeft className="w-4 h-4" /> Previous
+                </Button>
+                <span className="text-sm text-gray-600">Page {currentPage} of {totalPages}</span>
+                <Button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} variant="outline">
+                  Next <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
+          </>
+        )}
+
+        <RecordModal
+          record={selectedRecord}
+          onClose={() => setSelectedRecord(null)}
+          allRecords={filteredRecords}
+          onNavigate={(record) => setSelectedRecord(record)}
+        />
+      </div>
+    </div>
+  );
+};
+
+const WrappedVaPersonalBuckinghamPage = () => {
+  return (
+    <ProtectedRoute requiresPaid={true}>
+      <Suspense fallback={
+        <div className="min-h-screen bg-brand-beige flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-brand-green" />
+        </div>
+      }>
+        <VaPersonalBuckinghamPage />
+      </Suspense>
+    </ProtectedRoute>
+  );
+};
+
+export default WrappedVaPersonalBuckinghamPage;
