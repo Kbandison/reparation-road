@@ -42,6 +42,18 @@ const subcollections = [
     title: 'Richmond',
     description: 'Personal property and tithe records from Richmond, Virginia',
     available: false
+  },
+  {
+    slug: 'orange',
+    title: 'Orange County',
+    description: 'Personal property tax records from Orange County, Virginia listing enslaver families and enslaved persons',
+    available: true
+  },
+  {
+    slug: 'buckingham',
+    title: 'Buckingham County',
+    description: 'Personal property tax records from Buckingham County, Virginia listing enslaver families and enslaved persons',
+    available: true
   }
 ];
 
