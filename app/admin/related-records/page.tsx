@@ -26,21 +26,6 @@ import {
 } from 'lucide-react';
 
 // All searchable collections
-const COLLECTIONS = [
-  { table: 'slave-importation-ga', name: 'Georgia Slave Importation Records', slug: 'slave-importation/georgia', nameField: 'name', locationField: 'location', secondaryField: 'by_whom_enslaved' },
-  { table: 'slave_merchants_austin_laurens', name: 'Austin & Laurens Slave Merchant Records', slug: 'rac-vlc/austin-laurens', nameField: 'to_whom_sold', locationField: 'location', secondaryField: 'date_sold' },
-  { table: 'slave_compensation_claims', name: 'Slave Compensation Claims', slug: 'slave-compensation', nameField: 'first_name', locationField: 'owner_residence', secondaryField: 'owner_name' },
-  { table: 'register_free_persons_jefferson', name: 'Register of Free Persons - Jefferson', slug: 'slave-claims-commission/register-free-persons-jefferson', nameField: 'name', locationField: 'residence', secondaryField: 'occupation' },
-  { table: 'register_free_persons_baldwin', name: 'Register of Free Persons - Baldwin', slug: 'slave-claims-commission/register-free-persons-baldwin', nameField: 'name', locationField: 'residence', secondaryField: 'occupation' },
-  { table: 'register_free_persons_camden', name: 'Register of Free Persons - Camden', slug: 'slave-claims-commission/register-free-persons-camden', nameField: 'name', locationField: 'residence', secondaryField: 'occupation' },
-  { table: 'register_free_persons_hancock', name: 'Register of Free Persons - Hancock', slug: 'slave-claims-commission/register-free-persons-hancock', nameField: 'name', locationField: 'residence', secondaryField: 'occupation' },
-  { table: 'register_free_persons_lincoln', name: 'Register of Free Persons - Lincoln', slug: 'slave-claims-commission/register-free-persons-lincoln', nameField: 'name', locationField: 'residence', secondaryField: 'occupation' },
-  { table: 'register_free_persons_lumpkin', name: 'Register of Free Persons - Lumpkin', slug: 'slave-claims-commission/register-free-persons-lumpkin', nameField: 'name', locationField: 'residence', secondaryField: 'occupation' },
-  { table: 'register_free_persons_columbia', name: 'Register of Free Persons - Columbia', slug: 'slave-claims-commission/register-free-persons-columbia', nameField: 'name', locationField: 'residence', secondaryField: 'occupation' },
-  { table: 'emmigrants_to_liberia', name: 'Emigrants to Liberia', slug: 'acs/emigrants-to-liberia', nameField: 'name', locationField: 'state_of_origin', secondaryField: 'destination' },
-  { table: 'cherokee_henderson', name: 'Cherokee Henderson Census', slug: 'native-american-records/early-cherokee-census/cherokee-henderson', nameField: 'head_of_family', locationField: 'residence', secondaryField: 'county' },
-  { table: 'aa_revolutionary_soldiers', name: 'Revolutionary Soldiers', slug: 'revolutionary-soldiers', nameField: 'soldier_name', locationField: 'state', secondaryField: 'regiment' },
-];
 
 const RELATIONSHIP_TYPES = [
   { value: 'family', label: 'Family Member', icon: Users },
@@ -238,7 +223,7 @@ const RelatedRecordsAdmin = () => {
     }
   }, [profile, fetchRelationships, fetchSettings]);
 
-  // Search for records
+  // Search for records using the shared search API
   const searchRecords = async (query: string, isSource: boolean) => {
     if (query.length < 2) {
       if (isSource) setSourceResults([]);
@@ -249,44 +234,36 @@ const RelatedRecordsAdmin = () => {
     if (isSource) setSearchingSource(true);
     else setSearchingTarget(true);
 
-    const results: SearchResult[] = [];
+    try {
+      const response = await fetch(`/api/search?q=${encodeURIComponent(query)}&limit=50`);
+      const data = await response.json();
 
-    for (const collection of COLLECTIONS) {
-      try {
-        const { data, error } = await supabase
-          .from(collection.table)
-          .select('*')
-          .or(`${collection.nameField}.ilike.%${query}%,${collection.locationField}.ilike.%${query}%`)
-          .limit(8);
+      const results: SearchResult[] = (data.results || [])
+        .filter((r: Record<string, unknown>) => !r._isCollection && r.id && r._table)
+        .map((r: Record<string, unknown>) => ({
+          id: String(r.id),
+          name: String(r._identifier || r.name || r.soldier_name || r.head_of_family || r.first_name || r.to_whom_sold || r.enslaver_family || 'Unknown'),
+          location: String(r.residence || r.state || r.location || r.state_of_origin || r.owner_residence || r.state_county || ''),
+          secondary: String(r.occupation || r.regiment || r.date_sold || r.by_whom_enslaved || r.date || ''),
+          table: String(r._table),
+          collection: String(r._collection),
+          slug: String(r._collectionSlug),
+        }));
 
-        if (!error && data) {
-          for (const record of data) {
-            const r = record as unknown as Record<string, unknown>;
-            results.push({
-              id: String(r.id || ''),
-              name: String(r[collection.nameField] || 'Unknown'),
-              location: String(r[collection.locationField] || ''),
-              secondary: String(r[collection.secondaryField] || ''),
-              table: collection.table,
-              collection: collection.name,
-              slug: collection.slug,
-            });
-          }
-        }
-      } catch {
-        // Skip collections that error
+      if (isSource) {
+        setSourceResults(results.slice(0, 30));
+        setSearchingSource(false);
+      } else {
+        const filtered = selectedSource
+          ? results.filter(r => r.id !== selectedSource.id)
+          : results;
+        setTargetResults(filtered.slice(0, 30));
+        setSearchingTarget(false);
       }
-    }
-
-    if (isSource) {
-      setSourceResults(results.slice(0, 20));
-      setSearchingSource(false);
-    } else {
-      const filtered = selectedSource
-        ? results.filter(r => r.id !== selectedSource.id)
-        : results;
-      setTargetResults(filtered.slice(0, 20));
-      setSearchingTarget(false);
+    } catch (err) {
+      console.error('Search error:', err);
+      if (isSource) setSearchingSource(false);
+      else setSearchingTarget(false);
     }
   };
 
