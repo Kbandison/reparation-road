@@ -515,7 +515,7 @@ const BrigOthelloPage = () => {
                           }`}
                         >
                           <td className="px-4 py-3 text-sm text-gray-900">
-                            {record.book_no}-{record.page_name}-{record.entry_no}
+                            {record.book_no}-{record.entry_no}
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-900 font-medium">
                             {record.when_sold || '-'}

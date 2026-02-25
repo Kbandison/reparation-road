@@ -15,7 +15,7 @@ import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, ScrollText, Loader2 } fr
 interface SaleRecord {
   id: string;
   book_no: number;
-  page_no: number;
+  page_name: string;
   entry_no: number;
   date_sold: string | null;
   to_whom_sold: string | null;
@@ -242,8 +242,8 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
                     <p className="text-base text-gray-900">{record.book_no}</p>
                   </div>
                   <div className="border-b border-gray-200 pb-3">
-                    <p className="text-sm text-gray-600 mb-1">Page No.</p>
-                    <p className="text-base text-gray-900">{record.page_no}</p>
+                    <p className="text-sm text-gray-600 mb-1">Page</p>
+                    <p className="text-base text-gray-900">{record.page_name}</p>
                   </div>
                   <div className="border-b border-gray-200 pb-3">
                     <p className="text-sm text-gray-600 mb-1">Entry No.</p>
@@ -335,7 +335,6 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
                   recordIdentifier={`Entry ${record.entry_no}`}
                   recordDetails={{
                     bookNo: record.book_no,
-                    pageNo: record.page_no,
                     entryNo: record.entry_no,
                     name: record.to_whom_sold || undefined,
                     date: record.date_sold || undefined
@@ -373,12 +372,14 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
 const AustinLaurensPage = () => {
   const searchParams = useSearchParams();
   const [records, setRecords] = useState<SaleRecord[]>([]);
-  const [filteredRecords, setFilteredRecords] = useState<SaleRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedRecord, setSelectedRecord] = useState<SaleRecord | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [bookFilter, setBookFilter] = useState<number | null>(null);
+  const [uniqueBooks, setUniqueBooks] = useState<number[]>([]);
   const itemsPerPage = 20;
 
   // Initialize search from URL params
@@ -386,6 +387,7 @@ const AustinLaurensPage = () => {
     const urlSearch = searchParams.get('search');
     if (urlSearch) {
       setSearchTerm(urlSearch);
+      setDebouncedSearch(urlSearch);
     }
   }, [searchParams]);
 
@@ -394,50 +396,67 @@ const AustinLaurensPage = () => {
     const recordId = searchParams.get('record');
     if (recordId && records.length > 0) {
       const record = records.find(r => r.id === recordId);
-      if (record) {
-        setSelectedRecord(record);
-      }
+      if (record) setSelectedRecord(record);
     }
   }, [searchParams, records]);
 
+  // Fetch unique book numbers for filter dropdown
+  useEffect(() => {
+    supabase
+      .from("slave_merchants_austin_laurens")
+      .select("book_no")
+      .order("book_no", { ascending: true })
+      .then(({ data }) => {
+        if (data) setUniqueBooks([...new Set(data.map(d => d.book_no))].sort((a, b) => a - b));
+      });
+  }, []);
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setCurrentPage(1);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Reset page when book filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [bookFilter]);
+
+  // Fetch current page with server-side filtering
   useEffect(() => {
     const fetchRecords = async () => {
       setLoading(true);
       try {
-        // Fetch all records in batches (without ocr_text for performance)
-        let allRecords: SaleRecord[] = [];
-        let from = 0;
-        const batchSize = 1000;
-        let hasMore = true;
+        const from = (currentPage - 1) * itemsPerPage;
+        const to = from + itemsPerPage - 1;
 
-        while (hasMore) {
-          const { data, error } = await supabase
-            .from("slave_merchants_austin_laurens")
-            .select("id, book_no, page_no, entry_no, date_sold, to_whom_sold, location, men, women, boys, girls, image_path, slug, created_at")
-            .order("book_no", { ascending: true })
-            .order("page_no", { ascending: true })
-            .order("entry_no", { ascending: true })
-            .range(from, from + batchSize - 1);
+        let query = supabase
+          .from("slave_merchants_austin_laurens")
+          .select("id, book_no, page_name, entry_no, date_sold, to_whom_sold, location, men, women, boys, girls, image_path, slug, created_at", { count: 'exact' })
+          .order("book_no", { ascending: true })
+          .order("page_name", { ascending: true })
+          .order("entry_no", { ascending: true })
+          .range(from, to);
 
-          if (error) {
-            console.error("Error fetching Austin & Laurens records:", error);
-            break;
-          }
-
-          if (data && data.length > 0) {
-            allRecords = [...allRecords, ...data as SaleRecord[]];
-            from += batchSize;
-
-            if (data.length < batchSize) {
-              hasMore = false;
-            }
-          } else {
-            hasMore = false;
-          }
+        if (bookFilter !== null) {
+          query = query.eq("book_no", bookFilter);
         }
 
-        setRecords(allRecords);
-        setFilteredRecords(allRecords);
+        if (debouncedSearch) {
+          query = query.or(`date_sold.ilike.%${debouncedSearch}%,to_whom_sold.ilike.%${debouncedSearch}%,location.ilike.%${debouncedSearch}%,page_name.ilike.%${debouncedSearch}%`);
+        }
+
+        const { data, error, count } = await query;
+
+        if (!error && data) {
+          setRecords(data as SaleRecord[]);
+          setTotalCount(count || 0);
+        } else if (error) {
+          console.error("Error fetching Austin & Laurens records:", error);
+        }
       } catch (error) {
         console.error("Error:", error);
       } finally {
@@ -446,43 +465,17 @@ const AustinLaurensPage = () => {
     };
 
     fetchRecords();
-  }, []);
+  }, [currentPage, bookFilter, debouncedSearch]);
 
-  useEffect(() => {
-    let filtered = records;
-
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter(record =>
-        record.book_no.toString().includes(searchTerm) ||
-        record.page_no.toString().includes(searchTerm) ||
-        record.entry_no.toString().includes(searchTerm) ||
-        (record.date_sold && record.date_sold.toLowerCase().includes(searchLower)) ||
-        (record.to_whom_sold && record.to_whom_sold.toLowerCase().includes(searchLower)) ||
-        (record.location && record.location.toLowerCase().includes(searchLower))
-      );
-    }
-
-    if (bookFilter !== null) {
-      filtered = filtered.filter(record => record.book_no === bookFilter);
-    }
-
-    setFilteredRecords(filtered);
-    setCurrentPage(1);
-  }, [searchTerm, bookFilter, records]);
-
-  const totalPages = Math.ceil(filteredRecords.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentPageData = filteredRecords.slice(startIndex, endIndex);
-
-  const uniqueBooks = [...new Set(records.map(r => r.book_no))].sort((a, b) => a - b);
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage + 1;
+  const endIndex = Math.min(currentPage * itemsPerPage, totalCount);
 
   const handleRecordClick = useCallback((record: SaleRecord) => {
     setSelectedRecord(record);
   }, []);
 
-  if (loading) {
+  if (loading && records.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-center items-center h-64">
@@ -539,12 +532,12 @@ const AustinLaurensPage = () => {
             )}
 
             <p className="text-sm text-gray-600">
-              Showing {filteredRecords.length} of {records.length} records
+              {loading ? 'Loading...' : totalCount === 0 ? 'No records found.' : `Showing ${startIndex}–${endIndex} of ${totalCount} records`}
             </p>
           </div>
         </div>
 
-        {filteredRecords.length === 0 ? (
+        {records.length === 0 && !loading ? (
           <div className="text-center py-12">
             <p className="text-xl text-gray-600">No records found matching your search.</p>
           </div>
@@ -568,7 +561,7 @@ const AustinLaurensPage = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {currentPageData.map((record, index) => {
+                    {records.map((record, index) => {
                       const total = (record.men || 0) + (record.women || 0) + (record.boys || 0) + (record.girls || 0);
                       return (
                         <tr
@@ -579,7 +572,7 @@ const AustinLaurensPage = () => {
                           }`}
                         >
                           <td className="px-4 py-3 text-sm text-gray-900">
-                            {record.book_no}-{record.page_no}-{record.entry_no}
+                            {record.book_no}-{record.entry_no}
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-900 font-medium">
                             {record.date_sold || '-'}
@@ -647,7 +640,7 @@ const AustinLaurensPage = () => {
         <RecordModal
           record={selectedRecord}
           onClose={() => setSelectedRecord(null)}
-          allRecords={filteredRecords}
+          allRecords={records}
           onNavigate={(record) => setSelectedRecord(record)}
         />
       </div>
