@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, Suspense } from "react";
 import Image from "next/image";
-import Head from "next/head";
 import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -144,7 +143,7 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
               <h3 className="text-xl font-bold text-brand-brown">
                 Book {page.book_no}, Page {page.page_no}
               </h3>
-              <p className="text-sm text-gray-500">Page {currentIndex + 1} of {allPages.length}</p>
+              <p className="text-sm text-gray-500">Record {currentIndex + 1} of {allPages.length} on this page</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -275,7 +274,6 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
           className="fixed inset-0 bg-black bg-opacity-95 z-[60] flex items-center justify-center p-4"
           onClick={() => setIsImageZoomed(false)}
         >
-          {/* Close Button */}
           <button
             onClick={() => setIsImageZoomed(false)}
             className="absolute top-4 right-4 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors z-10"
@@ -283,7 +281,6 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
             <X className="w-6 h-6 text-gray-700" />
           </button>
 
-          {/* Navigation Buttons */}
           {hasPrev && (
             <button
               onClick={(e) => {
@@ -307,14 +304,12 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
             </button>
           )}
 
-          {/* Page Counter */}
           <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white px-4 py-2 rounded-full shadow-lg z-10">
             <p className="text-sm font-medium text-gray-700">
-              Page {currentIndex + 1} of {allPages.length}
+              Book {page.book_no}, Page {page.page_no}
             </p>
           </div>
 
-          {/* Zoomed Image */}
           <div
             className="relative w-full h-full flex items-center justify-center"
             onClick={(e) => e.stopPropagation()}
@@ -338,13 +333,15 @@ const InspectionRollPage = () => {
   const searchParams = useSearchParams();
   const { addActivity } = useRecentActivity();
   const [pages, setPages] = useState<ArchivePage[]>([]);
-  const [filteredPages, setFilteredPages] = useState<ArchivePage[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedPage, setSelectedPage] = useState<ArchivePage | null>(null);
   const [clickedPageId, setClickedPageId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [bookFilter, setBookFilter] = useState<number | null>(null);
+  const [uniqueBooks, setUniqueBooks] = useState<number[]>([]);
   const itemsPerPage = 20;
 
   // Initialize search from URL params
@@ -352,6 +349,7 @@ const InspectionRollPage = () => {
     const urlSearch = searchParams.get('search');
     if (urlSearch) {
       setSearchTerm(urlSearch);
+      setDebouncedSearch(urlSearch);
     }
   }, [searchParams]);
 
@@ -366,45 +364,66 @@ const InspectionRollPage = () => {
     }
   }, [searchParams, pages]);
 
-  // Fetch all pages at once (without ocr_text to save bandwidth)
+  // Fetch unique book numbers once on mount for the filter dropdown
+  useEffect(() => {
+    supabase
+      .from("archive_pages")
+      .select("book_no")
+      .eq("collection_slug", "inspection-roll-of-negroes")
+      .order("book_no", { ascending: true })
+      .then(({ data }) => {
+        if (data) {
+          setUniqueBooks([...new Set(data.map(d => d.book_no))].sort((a, b) => a - b));
+        }
+      });
+  }, []);
+
+  // Debounce search input — reset to page 1 when search changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setCurrentPage(1);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Reset to page 1 when book filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [bookFilter]);
+
+  // Fetch current page from Supabase (server-side pagination + filtering)
   useEffect(() => {
     const fetchPages = async () => {
       setLoading(true);
       try {
-        // Fetch all pages in batches to avoid timeout
-        let allPages: ArchivePage[] = [];
-        let from = 0;
-        const batchSize = 1000;
-        let hasMore = true;
+        const from = (currentPage - 1) * itemsPerPage;
+        const to = from + itemsPerPage - 1;
 
-        while (hasMore) {
-          const { data, error } = await supabase
-            .from("archive_pages")
-            .select("id, collection_slug, book_no, page_no, slug, image_path, title, year, location, tags")
-            .eq("collection_slug", "inspection-roll-of-negroes")
-            .order("book_no", { ascending: true })
-            .order("page_no", { ascending: true })
-            .range(from, from + batchSize - 1);
+        let query = supabase
+          .from("archive_pages")
+          .select("id, collection_slug, book_no, page_no, slug, image_path, title, year, location, tags", { count: 'exact' })
+          .eq("collection_slug", "inspection-roll-of-negroes")
+          .order("book_no", { ascending: true })
+          .order("page_no", { ascending: true })
+          .range(from, to);
 
-          if (error) {
-            console.error("Error fetching inspection roll pages:", error);
-            break;
-          }
-
-          if (data && data.length > 0) {
-            allPages = [...allPages, ...data as ArchivePage[]];
-            from += batchSize;
-
-            // If we got less than batchSize, we're done
-            if (data.length < batchSize) {
-              hasMore = false;
-            }
-          } else {
-            hasMore = false;
-          }
+        if (bookFilter !== null) {
+          query = query.eq("book_no", bookFilter);
         }
 
-        setPages(allPages);
+        if (debouncedSearch) {
+          query = query.or(`title.ilike.%${debouncedSearch}%,location.ilike.%${debouncedSearch}%`);
+        }
+
+        const { data, error, count } = await query;
+
+        if (!error && data) {
+          setPages(data as ArchivePage[]);
+          setTotalCount(count || 0);
+        } else if (error) {
+          console.error("Error fetching inspection roll pages:", error);
+        }
       } catch (error) {
         console.error("Error:", error);
       } finally {
@@ -413,47 +432,15 @@ const InspectionRollPage = () => {
     };
 
     fetchPages();
-  }, []);
+  }, [currentPage, bookFilter, debouncedSearch]);
 
-  // Apply filters and pagination client-side
-  useEffect(() => {
-    let filtered = pages;
-
-    // Apply search filter
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(page =>
-        page.book_no.toString().includes(term) ||
-        page.page_no.toString().includes(term) ||
-        (page.title && page.title.toLowerCase().includes(term)) ||
-        (page.location && page.location.toLowerCase().includes(term)) ||
-        (page.year && page.year.toString().includes(term))
-      );
-    }
-
-    // Apply book filter
-    if (bookFilter !== null) {
-      filtered = filtered.filter(page => page.book_no === bookFilter);
-    }
-
-    setFilteredPages(filtered);
-    setCurrentPage(1); // Reset to first page when filters change
-  }, [searchTerm, bookFilter, pages]);
-
-  // Get unique books for filter dropdown
-  const uniqueBooks = React.useMemo(() => {
-    return [...new Set(pages.map(p => p.book_no))].sort((a, b) => a - b);
-  }, [pages]);
-
-  const totalPages = Math.ceil(pages.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = Math.min(startIndex + itemsPerPage, pages.length);
-  const currentPageData = filteredPages;
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage + 1;
+  const endIndex = Math.min(currentPage * itemsPerPage, totalCount);
 
   const handlePageClick = React.useCallback((page: ArchivePage) => {
     setClickedPageId(page.id);
 
-    // Track activity
     addActivity({
       type: 'record',
       title: `Book ${page.book_no}, Page ${page.page_no}`,
@@ -476,21 +463,11 @@ const InspectionRollPage = () => {
     });
   }, [addActivity]);
 
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-center items-center h-64">
-          <p className="text-xl">Loading Inspection Roll pages...</p>
-        </div>
-      </div>
-    );
-  }
-
   const collectionData = generateStructuredData('collection', {
     name: 'Inspection Roll of Negroes',
     description: 'Historical inspection roll documents from the colonial period',
     slug: 'inspection-roll',
-    recordCount: pages.length
+    recordCount: totalCount
   });
 
   return (
@@ -522,7 +499,7 @@ const InspectionRollPage = () => {
               </label>
               <Input
                 type="search"
-                placeholder="Search book, page, title, location..."
+                placeholder="Search title, location..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full"
@@ -565,20 +542,26 @@ const InspectionRollPage = () => {
                 <Loader2 className="w-4 h-4 animate-spin" />
                 Loading...
               </span>
+            ) : totalCount === 0 ? (
+              'No pages found matching your criteria.'
             ) : (
-              `Showing ${startIndex + 1}-${Math.min(endIndex, pages.length)} of ${pages.length} pages`
+              `Showing ${startIndex}–${endIndex} of ${totalCount} pages`
             )}
           </p>
         </div>
 
-        {filteredPages.length === 0 ? (
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <Loader2 className="w-8 h-8 animate-spin text-brand-green" />
+          </div>
+        ) : pages.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-xl text-gray-600">No pages found matching your criteria.</p>
           </div>
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {currentPageData.map((page) => (
+              {pages.map((page) => (
                 <div
                   key={page.id}
                   onClick={() => handlePageClick(page)}
@@ -594,6 +577,7 @@ const InspectionRollPage = () => {
                         fill
                         className="object-cover"
                         sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                        loading="lazy"
                       />
                     )}
                   </div>
@@ -658,8 +642,7 @@ const InspectionRollPage = () => {
             )}
 
             <div className="text-center text-sm text-gray-600 mt-4">
-              Page {currentPage} of {totalPages}
-              ({startIndex + 1}-{Math.min(endIndex, filteredPages.length)} of {filteredPages.length} pages)
+              Page {currentPage} of {totalPages} ({startIndex}–{endIndex} of {totalCount} records)
             </div>
           </>
         )}

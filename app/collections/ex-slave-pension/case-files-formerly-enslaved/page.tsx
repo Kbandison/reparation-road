@@ -358,33 +358,82 @@ const LetterModal = React.memo<LetterModalProps>(function LetterModal({
 
 const ExSlavePensionPage = () => {
   const [letters, setLetters] = useState<ExSlavePensionLetter[]>([]);
-  const [filteredLetters, setFilteredLetters] = useState<
-    ExSlavePensionLetter[]
-  >([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedLetter, setSelectedLetter] =
     useState<ExSlavePensionLetter | null>(null);
   const [clickedLetterId, setClickedLetterId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [bookFilter, setBookFilter] = useState<number | null>(null);
   const [stateFilter, setStateFilter] = useState<string | null>(null);
+  const [uniqueBooks, setUniqueBooks] = useState<number[]>([]);
+  const [uniqueStates, setUniqueStates] = useState<string[]>([]);
   const itemsPerPage = 20;
 
+  // Fetch unique books and states once for filter dropdowns
+  useEffect(() => {
+    supabase
+      .from("ex-slave-pension")
+      .select("book_number, recipient_state")
+      .order("book_number", { ascending: true })
+      .then(({ data }) => {
+        if (data) {
+          setUniqueBooks([...new Set(data.map(d => d.book_number).filter(Boolean) as number[])].sort((a, b) => a - b));
+          setUniqueStates([...new Set(data.map(d => d.recipient_state).filter(Boolean) as string[])].sort());
+        }
+      });
+  }, []);
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setCurrentPage(1);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [bookFilter, stateFilter]);
+
+  // Fetch current page with server-side filtering
   useEffect(() => {
     const fetchLetters = async () => {
+      setLoading(true);
       try {
-        const { data, error } = await supabase
-          .from("ex-slave-pension")
-          .select("*, ex_slave_pension_images(public_url)")
-          .order("book_number", { ascending: true })
-          .order("page_no", { ascending: true });
+        const from = (currentPage - 1) * itemsPerPage;
+        const to = from + itemsPerPage - 1;
 
-        if (error) {
-          console.error("Error fetching letters:", error);
-        } else if (data) {
+        let query = supabase
+          .from("ex-slave-pension")
+          .select("*, ex_slave_pension_images(public_url)", { count: 'exact' })
+          .order("book_number", { ascending: true })
+          .order("page_no", { ascending: true })
+          .range(from, to);
+
+        if (bookFilter !== null) {
+          query = query.eq("book_number", bookFilter);
+        }
+
+        if (stateFilter !== null) {
+          query = query.eq("recipient_state", stateFilter);
+        }
+
+        if (debouncedSearch) {
+          query = query.or(`book_title.ilike.%${debouncedSearch}%,recipient_name.ilike.%${debouncedSearch}%,recipient_town.ilike.%${debouncedSearch}%,recipient_county.ilike.%${debouncedSearch}%`);
+        }
+
+        const { data, error, count } = await query;
+
+        if (!error && data) {
           setLetters(data);
-          setFilteredLetters(data);
+          setTotalCount(count || 0);
+        } else if (error) {
+          console.error("Error fetching letters:", error);
         }
       } catch (error) {
         console.error("Error:", error);
@@ -394,53 +443,12 @@ const ExSlavePensionPage = () => {
     };
 
     fetchLetters();
-  }, []);
+  }, [currentPage, bookFilter, stateFilter, debouncedSearch]);
 
-  useEffect(() => {
-    let filtered = letters;
-
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (letter) =>
-          letter.book_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          letter.recipient_name
-            ?.toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          letter.recipient_town
-            ?.toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          letter.recipient_county
-            ?.toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          letter.letter_body?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    if (bookFilter) {
-      filtered = filtered.filter((letter) => letter.book_number === bookFilter);
-    }
-
-    if (stateFilter) {
-      filtered = filtered.filter(
-        (letter) => letter.recipient_state === stateFilter
-      );
-    }
-
-    setFilteredLetters(filtered);
-    setCurrentPage(1);
-  }, [searchTerm, bookFilter, stateFilter, letters]);
-
-  const totalPages = Math.ceil(filteredLetters.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentPageData = filteredLetters.slice(startIndex, endIndex);
-
-  const uniqueBooks = [
-    ...new Set(letters.map((l) => l.book_number).filter(Boolean)),
-  ].sort((a, b) => a! - b!);
-  const uniqueStates = [
-    ...new Set(letters.map((l) => l.recipient_state).filter(Boolean)),
-  ].sort();
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage + 1;
+  const endIndex = Math.min(currentPage * itemsPerPage, totalCount);
+  const currentPageData = letters;
 
   const handleLetterClick = React.useCallback(
     (letter: ExSlavePensionLetter) => {
@@ -581,11 +589,11 @@ const ExSlavePensionPage = () => {
         </div>
 
         <p className="text-sm text-gray-600">
-          Showing {filteredLetters.length} of {letters.length} letters
+          {loading ? 'Loading...' : totalCount === 0 ? 'No letters found.' : `Showing ${startIndex}–${endIndex} of ${totalCount} letters`}
         </p>
       </div>
 
-      {filteredLetters.length === 0 ? (
+      {!loading && totalCount === 0 ? (
         <div className="container mx-auto px-4">
           <EmptyState
             type="no-results"
@@ -598,6 +606,12 @@ const ExSlavePensionPage = () => {
               setStateFilter(null);
             }}
           />
+        </div>
+      ) : loading ? (
+        <div className="container mx-auto px-4 pb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <GridSkeleton count={20} />
+          </div>
         </div>
       ) : (
         <div className="container mx-auto px-4 pb-8">
@@ -714,9 +728,7 @@ const ExSlavePensionPage = () => {
           )}
 
           <div className="text-center text-sm text-gray-600 mt-4">
-            Page {currentPage} of {totalPages}({startIndex + 1}-
-            {Math.min(endIndex, filteredLetters.length)} of{" "}
-            {filteredLetters.length} letters)
+            Page {currentPage} of {totalPages} ({startIndex}–{endIndex} of {totalCount} letters)
           </div>
         </div>
       )}
@@ -724,7 +736,7 @@ const ExSlavePensionPage = () => {
       <LetterModal
         letter={selectedLetter}
         onClose={() => setSelectedLetter(null)}
-        allLetters={filteredLetters}
+        allLetters={letters}
         onNavigate={(letter) => setSelectedLetter(letter)}
       />
     </div>

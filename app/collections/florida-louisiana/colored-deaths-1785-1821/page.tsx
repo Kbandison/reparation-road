@@ -329,28 +329,59 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
 
 const ColoredDeathsPage = () => {
   const [records, setRecords] = useState<ColoredDeathRecord[]>([]);
-  const [filteredRecords, setFilteredRecords] = useState<ColoredDeathRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedRecord, setSelectedRecord] = useState<ColoredDeathRecord | null>(null);
   const [clickedRecordId, setClickedRecordId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [transcriptionFilter, setTranscriptionFilter] = useState<boolean | null>(null);
   const itemsPerPage = 20;
 
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setCurrentPage(1);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Reset to page 1 when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [transcriptionFilter]);
+
+  // Fetch current page with server-side filtering
   useEffect(() => {
     const fetchRecords = async () => {
+      setLoading(true);
       try {
-        const { data, error } = await supabase
-          .from("colored-deaths")
-          .select("*")
-          .order("page_number", { ascending: true });
+        const from = (currentPage - 1) * itemsPerPage;
+        const to = from + itemsPerPage - 1;
 
-        if (error) {
-          console.error("Error fetching colored deaths records:", error);
-        } else if (data) {
+        let query = supabase
+          .from("colored-deaths")
+          .select("*", { count: 'exact' })
+          .order("page_number", { ascending: true })
+          .range(from, to);
+
+        if (transcriptionFilter !== null) {
+          query = query.eq("has_transcription", transcriptionFilter);
+        }
+
+        if (debouncedSearch) {
+          query = query.or(`latin_transcription.ilike.%${debouncedSearch}%,english_transcription.ilike.%${debouncedSearch}%,notes.ilike.%${debouncedSearch}%`);
+        }
+
+        const { data, error, count } = await query;
+
+        if (!error && data) {
           setRecords(data);
-          setFilteredRecords(data);
+          setTotalCount(count || 0);
+        } else if (error) {
+          console.error("Error fetching colored deaths records:", error);
         }
       } catch (error) {
         console.error("Error:", error);
@@ -360,32 +391,12 @@ const ColoredDeathsPage = () => {
     };
 
     fetchRecords();
-  }, []);
+  }, [currentPage, transcriptionFilter, debouncedSearch]);
 
-  useEffect(() => {
-    let filtered = records;
-
-    if (searchTerm) {
-      filtered = filtered.filter(record =>
-        record.page_number.toString().includes(searchTerm) ||
-        record.latin_transcription?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        record.english_transcription?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        record.notes?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    if (transcriptionFilter !== null) {
-      filtered = filtered.filter(record => record.has_transcription === transcriptionFilter);
-    }
-
-    setFilteredRecords(filtered);
-    setCurrentPage(1);
-  }, [searchTerm, transcriptionFilter, records]);
-
-  const totalPages = Math.ceil(filteredRecords.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentPageData = filteredRecords.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage + 1;
+  const endIndex = Math.min(currentPage * itemsPerPage, totalCount);
+  const currentPageData = records;
 
   const handleRecordClick = React.useCallback((record: ColoredDeathRecord) => {
     setClickedRecordId(record.id);
@@ -496,11 +507,11 @@ const ColoredDeathsPage = () => {
           </div>
 
           <p className="text-sm text-gray-600">
-            Showing {filteredRecords.length} of {records.length} records
+            {loading ? 'Loading...' : totalCount === 0 ? 'No records found.' : `Showing ${startIndex}–${endIndex} of ${totalCount} records`}
           </p>
         </div>
 
-        {filteredRecords.length === 0 ? (
+        {records.length === 0 && !loading ? (
           <EmptyState
             type="no-results"
             title="No Records Found"
@@ -623,8 +634,7 @@ const ColoredDeathsPage = () => {
             )}
 
             <div className="text-center text-sm text-gray-600 mt-4">
-              Page {currentPage} of {totalPages}
-              ({startIndex + 1}-{Math.min(endIndex, filteredRecords.length)} of {filteredRecords.length} records)
+              Page {currentPage} of {totalPages} ({startIndex}–{endIndex} of {totalCount} records)
             </div>
           </>
         )}
@@ -632,7 +642,7 @@ const ColoredDeathsPage = () => {
         <RecordModal
           record={selectedRecord}
           onClose={() => setSelectedRecord(null)}
-          allRecords={filteredRecords}
+          allRecords={records}
           onNavigate={(record) => setSelectedRecord(record)}
         />
       </div>
