@@ -22,13 +22,26 @@ const COLLECTIONS_DIRECTORY = [
   { name: 'Records of the RAC and VOC', slug: 'rac-vlc', keywords: ['rac', 'voc', 'dutch', 'merchant', 'trade', 'slave trade'] },
   { name: 'Slave Compensation Claims', slug: 'slave-compensation', keywords: ['compensation', 'claims', 'post civil war', 'southern claims'] },
   { name: 'Slave Importation Declaration', slug: 'slave-importation', keywords: ['importation', 'declaration', 'manifest', 'trade'] },
-  { name: 'Georgia Slave Importation Records', slug: 'slave-importation/slave-importation-georgia', parent: 'slave-importation', keywords: ['georgia', 'importation', 'declaration'] },
-  { name: 'Kentucky Slave Importation Records', slug: 'slave-importation/slave-importation-kentucky', parent: 'slave-importation', keywords: ['kentucky', 'importation', 'declaration'] },
+  { name: 'Georgia Slave Importation Records', slug: 'slave-importation/georgia', parent: 'slave-importation', keywords: ['georgia', 'importation', 'declaration'] },
+  { name: 'Kentucky Slave Importation Records', slug: 'slave-importation/kentucky', parent: 'slave-importation', keywords: ['kentucky', 'importation', 'declaration'] },
   { name: 'Mississippi Slave Importation Records', slug: 'slave-importation/mississippi', parent: 'slave-importation', keywords: ['mississippi', 'importation', 'declaration'] },
   { name: 'Slave Narratives', slug: 'slave-narratives', keywords: ['narrative', 'testimony', 'interview', 'wpa', 'story'] },
   { name: 'Slave Voyages', slug: 'slave-voyages', keywords: ['voyage', 'ship', 'transatlantic', 'middle passage', 'vessel'] },
   { name: 'Virginia Order Books', slug: 'virginia-order-books', keywords: ['virginia', 'order book', 'court', 'adjudgment', 'legal'] },
-  { name: 'Virginia Personal Property and Tithes Tables', slug: 'virginia-property-tithes', keywords: ['virginia', 'property', 'tithe', 'tax', 'assessment'] }
+  { name: 'Virginia Order Books - Chesterfield County', slug: 'virginia-order-books/chesterfield', parent: 'virginia-order-books', keywords: ['virginia', 'chesterfield', 'order book', 'court'] },
+  { name: 'Virginia Order Books - Goochland County', slug: 'virginia-order-books/goochland', parent: 'virginia-order-books', keywords: ['virginia', 'goochland', 'order book', 'court'] },
+  { name: 'Virginia Order Books - Henrico County', slug: 'virginia-order-books/henrico', parent: 'virginia-order-books', keywords: ['virginia', 'henrico', 'order book', 'court'] },
+  { name: 'Virginia Order Books - Spotsylvania County', slug: 'virginia-order-books/spotsylvania', parent: 'virginia-order-books', keywords: ['virginia', 'spotsylvania', 'order book', 'court'] },
+  { name: 'Virginia Personal Property and Tithes Tables', slug: 'virginia-property-tithes', keywords: ['virginia', 'property', 'tithe', 'tax', 'assessment', 'personal property'] },
+  { name: 'Virginia Personal Property - Hanover County', slug: 'virginia-property-tithes/hanover', parent: 'virginia-property-tithes', keywords: ['virginia', 'hanover', 'property', 'tithe', 'tax'] },
+  { name: 'Virginia Personal Property - Henrico County', slug: 'virginia-property-tithes/henrico', parent: 'virginia-property-tithes', keywords: ['virginia', 'henrico', 'property', 'tithe', 'tax'] },
+  { name: 'Virginia Personal Property - Orange County', slug: 'virginia-property-tithes/orange', parent: 'virginia-property-tithes', keywords: ['virginia', 'orange', 'property', 'tithe', 'tax', 'enslaver'] },
+  { name: 'Virginia Personal Property - Buckingham County', slug: 'virginia-property-tithes/buckingham', parent: 'virginia-property-tithes', keywords: ['virginia', 'buckingham', 'property', 'tithe', 'tax', 'enslaver'] },
+  { name: 'British/Spanish/French Florida and Louisiana - Colored Deaths', slug: 'florida-louisiana/colored-deaths-1785-1821', parent: 'florida-louisiana', keywords: ['florida', 'louisiana', 'death', 'burial', 'colored', 'british', 'spanish', 'french'] },
+  { name: 'British/Spanish/French Florida and Louisiana - Colored Marriages', slug: 'florida-louisiana/colored-marriages-1784-1882', parent: 'florida-louisiana', keywords: ['florida', 'louisiana', 'marriage', 'colored', 'british', 'spanish', 'french'] },
+  { name: 'British/Spanish/French Florida and Louisiana - Colored Baptisms 1784-1793', slug: 'florida-louisiana/colored-baptisms-1784-1793', parent: 'florida-louisiana', keywords: ['florida', 'louisiana', 'baptism', 'colored', 'british', 'spanish', 'french'] },
+  { name: 'British/Spanish/French Florida and Louisiana - Colored Baptisms 1807-1848', slug: 'florida-louisiana/colored-baptisms-1807-1848', parent: 'florida-louisiana', keywords: ['florida', 'louisiana', 'baptism', 'colored', 'british', 'spanish', 'french'] },
+  { name: 'British/Spanish/French Florida and Louisiana - Mixed Baptisms 1793-1807', slug: 'florida-louisiana/mixed-baptisms-1793-1807', parent: 'florida-louisiana', keywords: ['florida', 'louisiana', 'baptism', 'mixed', 'british', 'spanish', 'french'] }
 ];
 
 // Define searchable tables and their key fields - based on actual database schema
@@ -292,18 +305,34 @@ const SEARCHABLE_TABLES = [
   {
     table: 'slave-importation-ga',
     collection: 'Georgia Slave Importation Records',
-    collectionSlug: 'slave-importation/slave-importation-georgia',
+    collectionSlug: 'slave-importation/georgia',
+    searchFields: ['name', 'by_whom_enslaved', 'location', 'where_from', 'where_to', 'ocr_text'],
+    displayFields: ['name', 'by_whom_enslaved', 'location', 'date'],
+    identifierFields: ['name']
+  },
+  {
+    table: 'slave-importation-ky',
+    collection: 'Kentucky Slave Importation Records',
+    collectionSlug: 'slave-importation/kentucky',
     searchFields: ['ocr_text'],
     displayFields: ['book_no', 'page_no'],
     identifierFields: ['book_no', 'page_no']
   },
   {
-    table: 'slave-importation-ky',
-    collection: 'Kentucky Slave Importation Records',
-    collectionSlug: 'slave-importation/slave-importation-kentucky',
-    searchFields: ['ocr_text'],
-    displayFields: ['book_no', 'page_no'],
-    identifierFields: ['book_no', 'page_no']
+    table: 'va_personal_orange',
+    collection: 'Virginia Personal Property - Orange County',
+    collectionSlug: 'virginia-property-tithes/orange',
+    searchFields: ['enslaver_family', 'enslaved_persons', 'state_county', 'date'],
+    displayFields: ['enslaver_family', 'enslaved_persons', 'total', 'date'],
+    identifierFields: ['enslaver_family']
+  },
+  {
+    table: 'va_personal_buckingham',
+    collection: 'Virginia Personal Property - Buckingham County',
+    collectionSlug: 'virginia-property-tithes/buckingham',
+    searchFields: ['enslaver_family', 'enslaved_persons', 'state_county', 'date'],
+    displayFields: ['enslaver_family', 'enslaved_persons', 'total', 'date'],
+    identifierFields: ['enslaver_family']
   }
 ];
 

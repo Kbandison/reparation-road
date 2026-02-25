@@ -271,8 +271,12 @@ const CollectionPage = () => {
     );
   };
 
-  // Group results by collection
-  const groupedResults = searchResults.reduce((acc: any, result: any) => {
+  // Separate collection results from record results
+  const collectionResults = searchResults.filter((r: any) => r._isCollection);
+  const recordResults = searchResults.filter((r: any) => !r._isCollection);
+
+  // Group record results by collection
+  const groupedResults = recordResults.reduce((acc: any, result: any) => {
     const collection = result._collection;
     if (!acc[collection]) {
       acc[collection] = [];
@@ -350,13 +354,13 @@ const CollectionPage = () => {
               </h2>
               {!isSearching && (
                 <p className="text-gray-600 mt-2">
-                  Found {filteredCollections.length} matching collection{filteredCollections.length !== 1 ? 's' : ''} and {searchResults.length} record{searchResults.length !== 1 ? 's' : ''} across {Object.keys(groupedResults).length} collection{Object.keys(groupedResults).length !== 1 ? 's' : ''}
+                  Found {filteredCollections.length + collectionResults.length} matching collection{filteredCollections.length + collectionResults.length !== 1 ? 's' : ''} and {recordResults.length} record{recordResults.length !== 1 ? 's' : ''} across {Object.keys(groupedResults).length} collection{Object.keys(groupedResults).length !== 1 ? 's' : ''}
                 </p>
               )}
             </div>
 
             {/* Matching Collections */}
-            {filteredCollections.length > 0 && (
+            {(filteredCollections.length > 0 || collectionResults.length > 0) && (
               <div className="mb-8">
                 <h3 className="text-2xl font-bold text-brand-brown mb-4">Matching Collections</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -379,6 +383,29 @@ const CollectionPage = () => {
                         </h4>
                         <p className="text-sm text-gray-600 line-clamp-2">
                           {collection.description}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                  {/* Subcollections from API search */}
+                  {collectionResults
+                    .filter((r: any) => !filteredCollections.some(c => c.href === `/collections/${r._collectionSlug}`))
+                    .map((result: any) => (
+                    <Link
+                      href={hasPremiumAccess ? `/collections/${result._collectionSlug}` : "/membership"}
+                      key={result._collectionSlug}
+                      className="group"
+                    >
+                      <div className="relative border border-gray-200 rounded-xl p-4 bg-white hover:shadow-lg hover:border-brand-green transition-all">
+                        <div className="absolute top-3 right-3 px-2 py-1 rounded-full text-xs font-bold bg-amber-500 text-white">
+                          PREMIUM
+                        </div>
+                        <span className="text-xs text-gray-400 uppercase tracking-wide mb-1 block">Subcollection</span>
+                        <h4 className="font-bold text-brand-brown mb-2 pr-16 group-hover:text-brand-green transition-colors">
+                          {result._identifier}
+                        </h4>
+                        <p className="text-sm text-gray-600 line-clamp-2">
+                          {result._snippet}
                         </p>
                       </div>
                     </Link>
