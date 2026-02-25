@@ -10,7 +10,7 @@ import { RecordCitation } from "@/components/ui/RecordCitation";
 import { RelatedRecords } from "@/components/ui/RelatedRecords";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useSearchParams } from "next/navigation";
-import { ChevronLeft, ChevronRight, X, ZoomIn, Ship, Loader2, Users } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, Ship, Loader2 } from "lucide-react";
 
 interface OthelloRecord {
   id: string;
@@ -48,13 +48,14 @@ interface RecordModalProps {
 
 const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, onClose, allRecords, onNavigate }) {
   const [imageLoaded, setImageLoaded] = React.useState(false);
-  const [isImageZoomed, setIsImageZoomed] = React.useState(false);
+  const [imageZoom, setImageZoom] = React.useState(1);
   const [ocrText, setOcrText] = React.useState<string | null>(null);
   const [loadingOcr, setLoadingOcr] = React.useState(false);
 
   React.useEffect(() => {
     setImageLoaded(false);
     setOcrText(null);
+    setImageZoom(1);
   }, [record]);
 
   React.useEffect(() => {
@@ -89,18 +90,19 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
     if (hasNext) onNavigate(allRecords[currentIndex + 1]);
   }, [hasNext, currentIndex, allRecords, onNavigate]);
 
+  const handleZoomIn = () => setImageZoom(prev => Math.min(prev + 0.25, 3));
+  const handleZoomOut = () => setImageZoom(prev => Math.max(prev - 0.25, 0.5));
+  const handleResetZoom = () => setImageZoom(1);
+
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft') { e.preventDefault(); handlePrev(); }
       else if (e.key === 'ArrowRight') { e.preventDefault(); handleNext(); }
-      else if (e.key === 'Escape') {
-        if (isImageZoomed) setIsImageZoomed(false);
-        else onClose();
-      }
+      else if (e.key === 'Escape') { onClose(); }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handlePrev, handleNext, isImageZoomed, onClose]);
+  }, [handlePrev, handleNext, onClose]);
 
   React.useEffect(() => {
     if (record) document.body.style.overflow = 'hidden';
@@ -113,215 +115,199 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <Button onClick={handlePrev} disabled={!hasPrev} variant="outline" size="sm" className="flex items-center gap-1">
-              <ChevronLeft className="w-4 h-4" />Prev
-            </Button>
-            <div>
-              <h3 className="text-xl font-bold text-brand-brown">
-                Book {record.book_no}, {record.page_name} — Entry {record.entry_no}
-              </h3>
-              <p className="text-sm text-gray-500">Record {currentIndex + 1} of {allRecords.length} on this page</p>
-            </div>
-          </div>
+      <div className="bg-white rounded-lg shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-brand-brown">
+            Sale Record — Entry {record.entry_no}
+          </h2>
           <div className="flex items-center gap-3">
-            <Button onClick={handleNext} disabled={!hasNext} variant="outline" size="sm" className="flex items-center gap-1">
-              Next<ChevronRight className="w-4 h-4" />
-            </Button>
             <BookmarkButton
               pageId={record.id}
               collectionName="Brig Othello"
               collectionSlug="rac-vlc/samuel-william-vernon/brig-othello"
-              recordTitle={`${record.page_name} Entry ${record.entry_no}${record.to_whom_sold ? ` — ${record.to_whom_sold}` : ''}`}
+              recordTitle={record.to_whom_sold || `Entry ${record.entry_no}`}
               size={24}
               showLabel={true}
             />
-            <Button onClick={onClose} variant="outline" size="sm">Close</Button>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+              <X className="w-6 h-6" />
+            </button>
           </div>
         </div>
 
         <div className="p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {isValidImageUrl(record.image_path) ? (
-              <div className="space-y-2">
-                <h4 className="font-semibold text-brand-brown flex items-center gap-2">
-                  Document Image
-                  <span className="text-xs text-gray-500 font-normal">(Click to expand)</span>
-                </h4>
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Document Image */}
+            <div>
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-brand-brown">Document Image</h3>
+                <div className="flex items-center gap-2">
+                  <Button onClick={handleZoomOut} size="sm" variant="outline" disabled={imageZoom <= 0.5}>
+                    <ZoomOut className="w-4 h-4" />
+                  </Button>
+                  <span className="text-sm text-gray-600 min-w-[60px] text-center">
+                    {Math.round(imageZoom * 100)}%
+                  </span>
+                  <Button onClick={handleZoomIn} size="sm" variant="outline" disabled={imageZoom >= 3}>
+                    <ZoomIn className="w-4 h-4" />
+                  </Button>
+                  <Button onClick={handleResetZoom} size="sm" variant="outline">Reset</Button>
+                </div>
+              </div>
+              <div className="border border-gray-200 rounded-lg overflow-auto max-h-[600px] bg-gray-50">
                 <div
-                  className="border rounded-lg overflow-hidden relative h-96 bg-gray-100 cursor-zoom-in group"
-                  onClick={() => setIsImageZoomed(true)}
+                  style={{
+                    transform: `scale(${imageZoom})`,
+                    transformOrigin: 'top left',
+                    transition: 'transform 0.2s',
+                  }}
                 >
-                  {!imageLoaded && (
-                    <div className="absolute inset-0 flex items-center justify-center">
+                  {!imageLoaded && isValidImageUrl(record.image_path) && (
+                    <div className="flex items-center justify-center h-64">
                       <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-brand-green"></div>
                     </div>
                   )}
-                  <Image
-                    src={record.image_path}
-                    alt={`${record.page_name}, Entry ${record.entry_no}`}
-                    fill
-                    className={`object-contain transition-opacity ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
-                    priority
-                    sizes="(max-width: 1024px) 100vw, 50vw"
-                    onLoad={() => setImageLoaded(true)}
-                  />
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all flex items-center justify-center">
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white rounded-full p-3 shadow-lg">
-                      <ZoomIn className="w-6 h-6 text-brand-green" />
+                  {isValidImageUrl(record.image_path) ? (
+                    <Image
+                      src={record.image_path}
+                      alt={`Sale record entry ${record.entry_no}`}
+                      width={800}
+                      height={1000}
+                      className="w-full"
+                      onLoad={() => setImageLoaded(true)}
+                    />
+                  ) : (
+                    <div className="w-full h-[400px] flex flex-col items-center justify-center bg-gray-100 text-gray-500">
+                      <Ship className="w-16 h-16 mb-4" />
+                      <p className="text-sm">No image available</p>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
-            ) : (
-              <div className="space-y-2">
-                <h4 className="font-semibold text-brand-brown">Document Image</h4>
-                <div className="border rounded-lg h-96 bg-gray-100 flex flex-col items-center justify-center text-gray-500">
-                  <Ship className="w-16 h-16 mb-4" />
-                  <p className="text-sm">No image available</p>
-                </div>
-              </div>
-            )}
+            </div>
 
-            <div className="space-y-4">
-              <div>
-                <h4 className="font-semibold text-brand-brown mb-3">Sale Record Details</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                    <p className="text-gray-500">Book</p>
-                    <p className="font-medium">{record.book_no}</p>
-                    <p className="text-gray-500">Page</p>
-                    <p className="font-medium">{record.page_name}</p>
-                    <p className="text-gray-500">Entry No.</p>
-                    <p className="font-medium">{record.entry_no}</p>
-                    {record.when_sold && <>
-                      <p className="text-gray-500">Date Sold</p>
-                      <p className="font-medium">{record.when_sold}</p>
-                    </>}
-                    {record.to_whom_sold && <>
-                      <p className="text-gray-500">Sold To</p>
-                      <p className="font-medium">{record.to_whom_sold}</p>
-                    </>}
-                    {record.location && <>
-                      <p className="text-gray-500">Location</p>
-                      <p className="font-medium">{record.location}</p>
-                    </>}
+            {/* Record Information */}
+            <div>
+              <h3 className="text-lg font-semibold text-brand-brown mb-4">Sale Information</h3>
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="border-b border-gray-200 pb-3">
+                    <p className="text-sm text-gray-600 mb-1">Book No.</p>
+                    <p className="text-base text-gray-900">{record.book_no}</p>
+                  </div>
+                  <div className="border-b border-gray-200 pb-3">
+                    <p className="text-sm text-gray-600 mb-1">Page</p>
+                    <p className="text-base text-gray-900">{record.page_name}</p>
+                  </div>
+                  <div className="border-b border-gray-200 pb-3">
+                    <p className="text-sm text-gray-600 mb-1">Entry No.</p>
+                    <p className="text-base text-gray-900">{record.entry_no}</p>
                   </div>
                 </div>
-              </div>
 
-              {/* Persons count breakdown */}
-              {totalPersons > 0 && (
-                <div>
-                  <h4 className="font-semibold text-brand-brown mb-2 flex items-center gap-2">
-                    <Users className="w-4 h-4" />
-                    Persons ({totalPersons} total)
-                  </h4>
-                  <div className="grid grid-cols-4 gap-2 text-center">
-                    {[
-                      { label: 'Men', value: record.men },
-                      { label: 'Women', value: record.women },
-                      { label: 'Boys', value: record.boys },
-                      { label: 'Girls', value: record.girls },
-                    ].map(({ label, value }) => (
-                      <div key={label} className="bg-brand-tan rounded-lg p-3">
-                        <p className="text-2xl font-bold text-brand-brown">{value ?? 0}</p>
-                        <p className="text-xs text-gray-600 mt-1">{label}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <h4 className="font-semibold text-brand-brown mb-2">Transcription</h4>
-                {loadingOcr ? (
-                  <div className="bg-gray-50 p-4 rounded-lg h-32 flex items-center justify-center">
-                    <Loader2 className="w-5 h-5 animate-spin text-brand-green mr-2" />
-                    <p className="text-sm text-gray-500">Loading transcription...</p>
-                  </div>
-                ) : ocrText ? (
-                  <div className="bg-gray-50 p-4 rounded-lg max-h-48 overflow-y-auto">
-                    <p className="text-sm whitespace-pre-wrap font-mono text-xs">{ocrText}</p>
-                  </div>
-                ) : (
-                  <div className="bg-gray-50 p-4 rounded-lg h-20 flex items-center justify-center">
-                    <p className="text-sm text-gray-500">No transcription available</p>
+                {record.when_sold && (
+                  <div className="border-b border-gray-200 pb-3">
+                    <p className="text-sm text-gray-600 mb-1">Date Sold</p>
+                    <p className="text-lg font-medium text-brand-brown">{record.when_sold}</p>
                   </div>
                 )}
+
+                {record.to_whom_sold && (
+                  <div className="border-b border-gray-200 pb-3">
+                    <p className="text-sm text-gray-600 mb-1">To Whom Sold</p>
+                    <p className="text-base text-gray-900">{record.to_whom_sold}</p>
+                  </div>
+                )}
+
+                {record.location && (
+                  <div className="border-b border-gray-200 pb-3">
+                    <p className="text-sm text-gray-600 mb-1">Location</p>
+                    <p className="text-base text-gray-900">{record.location}</p>
+                  </div>
+                )}
+
+                {/* Persons Sold */}
+                <div className="border-b border-gray-200 pb-3">
+                  <p className="text-sm text-gray-600 mb-2 font-medium">Persons Sold</p>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Men:</span>
+                      <span className="text-gray-900">{record.men ?? '-'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Women:</span>
+                      <span className="text-gray-900">{record.women ?? '-'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Boys:</span>
+                      <span className="text-gray-900">{record.boys ?? '-'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Girls:</span>
+                      <span className="text-gray-900">{record.girls ?? '-'}</span>
+                    </div>
+                    {totalPersons > 0 && (
+                      <div className="flex justify-between col-span-2 font-medium pt-2 border-t border-gray-100">
+                        <span className="text-gray-600">Total:</span>
+                        <span className="text-brand-brown">{totalPersons}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {loadingOcr ? (
+                  <div className="border-b border-gray-200 pb-3">
+                    <p className="text-sm text-gray-600 mb-1">Transcription</p>
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin text-brand-green" />
+                      <p className="text-sm text-gray-500">Loading...</p>
+                    </div>
+                  </div>
+                ) : ocrText ? (
+                  <div className="border-b border-gray-200 pb-3">
+                    <p className="text-sm text-gray-600 mb-1">Transcription</p>
+                    <div className="bg-gray-50 p-3 rounded-md max-h-64 overflow-y-auto">
+                      <p className="text-sm whitespace-pre-wrap">{ocrText}</p>
+                    </div>
+                  </div>
+                ) : null}
+
+                <RelatedRecords
+                  currentRecordId={record.id}
+                  currentTable="slave_merchants_othello"
+                  searchTerms={{
+                    name: record.to_whom_sold || undefined,
+                    location: record.location || undefined,
+                  }}
+                  collectionSlug="rac-vlc/samuel-william-vernon/brig-othello"
+                />
+
+                <RecordCitation
+                  collectionName="Brig Othello — Samuel & William Vernon"
+                  recordIdentifier={`Entry ${record.entry_no}`}
+                  recordDetails={{
+                    bookNo: record.book_no,
+                    pageNo: record.entry_no,
+                    name: record.to_whom_sold || undefined,
+                    date: record.when_sold || undefined,
+                  }}
+                />
               </div>
 
-              <RelatedRecords
-                currentRecordId={record.id}
-                currentTable="slave_merchants_othello"
-                searchTerms={{ name: record.to_whom_sold || '', location: record.location || '' }}
-                collectionSlug="rac-vlc/samuel-william-vernon/brig-othello"
-              />
-
-              <RecordCitation
-                collectionName="Brig Othello — Samuel & William Vernon"
-                recordIdentifier={`Book ${record.book_no}, ${record.page_name}, Entry ${record.entry_no}`}
-                recordDetails={{
-                  bookNo: record.book_no,
-                  pageNo: record.entry_no,
-                  name: record.page_name,
-                }}
-              />
+              {/* Navigation */}
+              <div className="flex justify-between mt-6 pt-4 border-t border-gray-200">
+                <Button onClick={handlePrev} disabled={!hasPrev} variant="outline">
+                  <ChevronLeft className="w-4 h-4 mr-2" />Previous Record
+                </Button>
+                <Button onClick={handleNext} disabled={!hasNext} variant="outline">
+                  Next Record<ChevronRight className="w-4 h-4 ml-2" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Zoomed Image Overlay */}
-      {isImageZoomed && isValidImageUrl(record.image_path) && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-90 z-[60] flex items-center justify-center"
-          onClick={() => setIsImageZoomed(false)}
-        >
-          <button
-            onClick={() => setIsImageZoomed(false)}
-            className="absolute top-4 right-4 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors z-10"
-          >
-            <X className="w-6 h-6 text-gray-700" />
-          </button>
-          {hasPrev && (
-            <button
-              onClick={(e) => { e.stopPropagation(); handlePrev(); }}
-              className="absolute left-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-3 shadow-lg hover:bg-gray-100 transition-colors z-10"
-            >
-              <ChevronLeft className="w-8 h-8 text-gray-700" />
-            </button>
-          )}
-          {hasNext && (
-            <button
-              onClick={(e) => { e.stopPropagation(); handleNext(); }}
-              className="absolute right-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-3 shadow-lg hover:bg-gray-100 transition-colors z-10"
-            >
-              <ChevronRight className="w-8 h-8 text-gray-700" />
-            </button>
-          )}
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white px-4 py-2 rounded-full shadow-lg z-10">
-            <p className="text-sm font-medium text-gray-700">
-              {record.page_name}, Entry {record.entry_no}
-            </p>
-          </div>
-          <div
-            className="relative w-full h-full flex items-center justify-center"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Image
-              src={record.image_path}
-              alt={`${record.page_name}, Entry ${record.entry_no}`}
-              fill
-              className="object-contain"
-              priority
-              sizes="100vw"
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 });
@@ -463,26 +449,23 @@ const BrigOthelloPage = () => {
 
       <div className="container mx-auto px-4 py-8">
         {/* Search and Filters */}
-        <div className="mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end mb-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
-              <Input
-                type="search"
-                placeholder="Search buyer, date, location..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full"
-              />
-            </div>
+        <div className="mb-8 space-y-4">
+          <div className="flex flex-col sm:flex-row gap-4 items-center">
+            <Input
+              type="search"
+              placeholder="Search by date, buyer, location..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full max-w-md"
+            />
 
             {uniqueBooks.length > 1 && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Book</label>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">Filter by Book:</span>
                 <select
                   value={bookFilter ?? ''}
                   onChange={(e) => setBookFilter(e.target.value ? Number(e.target.value) : null)}
-                  className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
+                  className="border rounded-lg px-3 py-2 text-sm"
                 >
                   <option value="">All Books</option>
                   {uniqueBooks.map(book => (
@@ -492,123 +475,98 @@ const BrigOthelloPage = () => {
               </div>
             )}
 
-            <div>
-              <Button
-                onClick={() => { setSearchTerm(""); setBookFilter(null); }}
-                variant="outline"
-                className="w-full"
-              >
-                Clear Filters
-              </Button>
-            </div>
+            <p className="text-sm text-gray-600">
+              {loading ? 'Loading...' : totalCount === 0 ? 'No records found.' : `Showing ${startIndex}–${endIndex} of ${totalCount} records`}
+            </p>
           </div>
-
-          <p className="text-sm text-gray-600">
-            {loading ? 'Loading...' : totalCount === 0 ? 'No records found.' : `Showing ${startIndex}–${endIndex} of ${totalCount} records`}
-          </p>
         </div>
 
-        {/* Records Table */}
         {records.length === 0 && !loading ? (
           <div className="text-center py-12">
-            <Ship className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-            <p className="text-xl text-gray-600">No records match your criteria.</p>
-            <Button variant="outline" className="mt-4" onClick={() => { setSearchTerm(""); setBookFilter(null); }}>
-              Clear Filters
-            </Button>
+            <p className="text-xl text-gray-600">No records found matching your search.</p>
           </div>
         ) : (
           <>
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-brand-tan text-brand-brown">
-                  <tr>
-                    <th className="px-4 py-3 text-left font-semibold">Book / Page / Entry</th>
-                    <th className="px-4 py-3 text-left font-semibold">Date Sold</th>
-                    <th className="px-4 py-3 text-left font-semibold">Sold To</th>
-                    <th className="px-4 py-3 text-left font-semibold">Location</th>
-                    <th className="px-4 py-3 text-center font-semibold">Persons</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {records.map((record) => {
-                    const total = (record.men ?? 0) + (record.women ?? 0) + (record.boys ?? 0) + (record.girls ?? 0);
-                    return (
-                      <tr
-                        key={record.id}
-                        onClick={() => setSelectedRecord(record)}
-                        className="hover:bg-brand-beige cursor-pointer transition-colors"
-                      >
-                        <td className="px-4 py-3">
-                          <span className="font-medium text-brand-brown">
-                            Bk {record.book_no} / {record.page_name} / #{record.entry_no}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-gray-700">{record.when_sold || '—'}</td>
-                        <td className="px-4 py-3 text-gray-700">{record.to_whom_sold || '—'}</td>
-                        <td className="px-4 py-3 text-gray-600">{record.location || '—'}</td>
-                        <td className="px-4 py-3 text-center">
-                          {total > 0 ? (
-                            <span className="inline-flex items-center gap-1 bg-brand-tan text-brand-brown text-xs font-semibold px-2 py-1 rounded-full">
-                              <Users className="w-3 h-3" />
-                              {total}
-                            </span>
-                          ) : '—'}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+            <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-brand-green text-white sticky top-0">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-sm font-semibold">Entry</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold">Date Sold</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold">To Whom Sold</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold">Location</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold">Men</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold">Women</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold">Boys</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold">Girls</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {records.map((record, index) => {
+                      const total = (record.men ?? 0) + (record.women ?? 0) + (record.boys ?? 0) + (record.girls ?? 0);
+                      return (
+                        <tr
+                          key={record.id}
+                          onClick={() => setSelectedRecord(record)}
+                          className={`hover:bg-brand-tan/30 cursor-pointer transition-colors ${
+                            index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                          }`}
+                        >
+                          <td className="px-4 py-3 text-sm text-gray-900">
+                            {record.book_no}-{record.page_name}-{record.entry_no}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900 font-medium">
+                            {record.when_sold || '-'}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900">
+                            {record.to_whom_sold || '-'}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900">
+                            {record.location || '-'}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900 text-center">{record.men ?? '-'}</td>
+                          <td className="px-4 py-3 text-sm text-gray-900 text-center">{record.women ?? '-'}</td>
+                          <td className="px-4 py-3 text-sm text-gray-900 text-center">{record.boys ?? '-'}</td>
+                          <td className="px-4 py-3 text-sm text-gray-900 text-center">{record.girls ?? '-'}</td>
+                          <td className="px-4 py-3 text-sm text-gray-900 text-center font-medium">
+                            {total > 0 ? total : '-'}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex justify-center items-center gap-4 mt-8">
+              <div className="flex justify-center items-center gap-4 mb-8">
                 <Button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
                   variant="outline"
                 >
-                  Previous
+                  <ChevronLeft className="w-4 h-4" />Previous
                 </Button>
 
-                <div className="flex gap-2">
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    const pageNum = currentPage <= 3
-                      ? i + 1
-                      : currentPage >= totalPages - 2
-                      ? totalPages - 4 + i
-                      : currentPage - 2 + i;
-
-                    if (pageNum < 1 || pageNum > totalPages) return null;
-
-                    return (
-                      <Button
-                        key={pageNum}
-                        onClick={() => setCurrentPage(pageNum)}
-                        variant={currentPage === pageNum ? "default" : "outline"}
-                        className="w-10 h-10"
-                      >
-                        {pageNum}
-                      </Button>
-                    );
-                  })}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">
+                    Page {currentPage} of {totalPages}
+                  </span>
                 </div>
 
                 <Button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
                   variant="outline"
                 >
-                  Next
+                  Next<ChevronRight className="w-4 h-4" />
                 </Button>
               </div>
             )}
-
-            <div className="text-center text-sm text-gray-600 mt-4">
-              Page {currentPage} of {totalPages} ({startIndex}–{endIndex} of {totalCount} records)
-            </div>
           </>
         )}
 
