@@ -10,40 +10,43 @@ import { RecordCitation } from "@/components/ui/RecordCitation";
 import { RelatedRecords } from "@/components/ui/RelatedRecords";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useSearchParams } from "next/navigation";
-import { ChevronLeft, ChevronRight, X, ZoomIn, Ship, Loader2 } from "lucide-react";
-import { GridSkeleton } from "@/components/ui/GridSkeleton";
-import { EmptyState } from "@/components/ui/EmptyState";
+import { ChevronLeft, ChevronRight, X, ZoomIn, Ship, Loader2, Users } from "lucide-react";
 
-interface RegisterPage {
+interface OthelloRecord {
   id: string;
   book_no: number;
-  page_no: number;
+  page_name: string;
+  entry_no: number;
+  when_sold: string | null;
+  to_whom_sold: string | null;
+  location: string | null;
+  men: number | null;
+  women: number | null;
+  boys: number | null;
+  girls: number | null;
+  image_path: string;
   slug: string;
-  image_path: string | null;
-  ocr_text: string;
   created_at: string;
 }
 
-// Helper to check if image_path is a valid URL
 const isValidImageUrl = (path: string | null | undefined): boolean => {
   if (!path) return false;
   try {
     new URL(path);
     return true;
   } catch {
-    // Check if it's a relative path that starts with /
     return path.startsWith('/');
   }
 };
 
-interface PageModalProps {
-  page: RegisterPage | null;
+interface RecordModalProps {
+  record: OthelloRecord | null;
   onClose: () => void;
-  allPages: RegisterPage[];
-  onNavigate: (page: RegisterPage) => void;
+  allRecords: OthelloRecord[];
+  onNavigate: (record: OthelloRecord) => void;
 }
 
-const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose, allPages, onNavigate }) {
+const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, onClose, allRecords, onNavigate }) {
   const [imageLoaded, setImageLoaded] = React.useState(false);
   const [isImageZoomed, setIsImageZoomed] = React.useState(false);
   const [ocrText, setOcrText] = React.useState<string | null>(null);
@@ -51,133 +54,97 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
 
   React.useEffect(() => {
     setImageLoaded(false);
-  }, [page]);
+    setOcrText(null);
+  }, [record]);
 
-  // Lazy-load OCR text when modal opens
   React.useEffect(() => {
     const fetchOcrText = async () => {
-      if (!page) return;
-
+      if (!record) return;
       setLoadingOcr(true);
       try {
         const { data, error } = await supabase
           .from("slave_merchants_othello")
           .select("ocr_text")
-          .eq("id", page.id)
+          .eq("id", record.id)
           .single();
-
-        if (data && !error) {
-          setOcrText(data.ocr_text || null);
-        }
-      } catch (error) {
-        console.error("Error fetching OCR text:", error);
+        if (data && !error) setOcrText(data.ocr_text || null);
+      } catch (err) {
+        console.error("Error fetching OCR text:", err);
       } finally {
         setLoadingOcr(false);
       }
     };
-
     fetchOcrText();
-  }, [page]);
+  }, [record]);
 
-  const currentIndex = allPages.findIndex(p => p.id === page?.id);
+  const currentIndex = allRecords.findIndex(r => r.id === record?.id);
   const hasPrev = currentIndex > 0;
-  const hasNext = currentIndex < allPages.length - 1;
+  const hasNext = currentIndex < allRecords.length - 1;
 
-  const handlePrevPage = React.useCallback(() => {
-    if (hasPrev) {
-      onNavigate(allPages[currentIndex - 1]);
-    }
-  }, [hasPrev, currentIndex, allPages, onNavigate]);
+  const handlePrev = React.useCallback(() => {
+    if (hasPrev) onNavigate(allRecords[currentIndex - 1]);
+  }, [hasPrev, currentIndex, allRecords, onNavigate]);
 
-  const handleNextPage = React.useCallback(() => {
-    if (hasNext) {
-      onNavigate(allPages[currentIndex + 1]);
-    }
-  }, [hasNext, currentIndex, allPages, onNavigate]);
+  const handleNext = React.useCallback(() => {
+    if (hasNext) onNavigate(allRecords[currentIndex + 1]);
+  }, [hasNext, currentIndex, allRecords, onNavigate]);
 
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        handlePrevPage();
-      } else if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        handleNextPage();
-      } else if (e.key === 'Escape') {
-        if (isImageZoomed) {
-          setIsImageZoomed(false);
-        } else {
-          onClose();
-        }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); handlePrev(); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); handleNext(); }
+      else if (e.key === 'Escape') {
+        if (isImageZoomed) setIsImageZoomed(false);
+        else onClose();
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handlePrevPage, handleNextPage, isImageZoomed, onClose]);
+  }, [handlePrev, handleNext, isImageZoomed, onClose]);
 
-  // Prevent body scroll when modal is open
   React.useEffect(() => {
-    if (page) {
-      document.body.style.overflow = 'hidden';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [page]);
+    if (record) document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [record]);
 
-  if (!page) return null;
+  if (!record) return null;
+
+  const totalPersons = (record.men ?? 0) + (record.women ?? 0) + (record.boys ?? 0) + (record.girls ?? 0);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <Button
-              onClick={handlePrevPage}
-              disabled={!hasPrev}
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-1"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              Prev
+            <Button onClick={handlePrev} disabled={!hasPrev} variant="outline" size="sm" className="flex items-center gap-1">
+              <ChevronLeft className="w-4 h-4" />Prev
             </Button>
             <div>
               <h3 className="text-xl font-bold text-brand-brown">
-                Book {page.book_no}, Page {page.page_no}
+                Book {record.book_no}, {record.page_name} — Entry {record.entry_no}
               </h3>
-              <p className="text-sm text-gray-500">Page {currentIndex + 1} of {allPages.length}</p>
+              <p className="text-sm text-gray-500">Record {currentIndex + 1} of {allRecords.length} on this page</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Button
-              onClick={handleNextPage}
-              disabled={!hasNext}
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-1"
-            >
-              Next
-              <ChevronRight className="w-4 h-4" />
+            <Button onClick={handleNext} disabled={!hasNext} variant="outline" size="sm" className="flex items-center gap-1">
+              Next<ChevronRight className="w-4 h-4" />
             </Button>
             <BookmarkButton
-              pageId={page.id}
+              pageId={record.id}
               collectionName="Brig Othello"
               collectionSlug="rac-vlc/samuel-william-vernon/brig-othello"
-              recordTitle={`Book ${page.book_no}, Page ${page.page_no}`}
+              recordTitle={`${record.page_name} Entry ${record.entry_no}${record.to_whom_sold ? ` — ${record.to_whom_sold}` : ''}`}
               size={24}
               showLabel={true}
             />
-            <Button onClick={onClose} variant="outline" size="sm">
-              Close
-            </Button>
+            <Button onClick={onClose} variant="outline" size="sm">Close</Button>
           </div>
         </div>
 
         <div className="p-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {isValidImageUrl(page.image_path) ? (
+            {isValidImageUrl(record.image_path) ? (
               <div className="space-y-2">
                 <h4 className="font-semibold text-brand-brown flex items-center gap-2">
                   Document Image
@@ -193,8 +160,8 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
                     </div>
                   )}
                   <Image
-                    src={page.image_path!}
-                    alt={`Book ${page.book_no}, Page ${page.page_no}`}
+                    src={record.image_path}
+                    alt={`${record.page_name}, Entry ${record.entry_no}`}
                     fill
                     className={`object-contain transition-opacity ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
                     priority
@@ -203,7 +170,7 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
                   />
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all flex items-center justify-center">
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white rounded-full p-3 shadow-lg">
-                      <ZoomIn className="w-6 h-6 text-gray-700" />
+                      <ZoomIn className="w-6 h-6 text-brand-green" />
                     </div>
                   </div>
                 </div>
@@ -220,12 +187,53 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
 
             <div className="space-y-4">
               <div>
-                <h4 className="font-semibold text-brand-brown mb-2">Document Details</h4>
+                <h4 className="font-semibold text-brand-brown mb-3">Sale Record Details</h4>
                 <div className="space-y-2 text-sm">
-                  <p><span className="font-medium">Book:</span> {page.book_no}</p>
-                  <p><span className="font-medium">Page:</span> {page.page_no}</p>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                    <p className="text-gray-500">Book</p>
+                    <p className="font-medium">{record.book_no}</p>
+                    <p className="text-gray-500">Page</p>
+                    <p className="font-medium">{record.page_name}</p>
+                    <p className="text-gray-500">Entry No.</p>
+                    <p className="font-medium">{record.entry_no}</p>
+                    {record.when_sold && <>
+                      <p className="text-gray-500">Date Sold</p>
+                      <p className="font-medium">{record.when_sold}</p>
+                    </>}
+                    {record.to_whom_sold && <>
+                      <p className="text-gray-500">Sold To</p>
+                      <p className="font-medium">{record.to_whom_sold}</p>
+                    </>}
+                    {record.location && <>
+                      <p className="text-gray-500">Location</p>
+                      <p className="font-medium">{record.location}</p>
+                    </>}
+                  </div>
                 </div>
               </div>
+
+              {/* Persons count breakdown */}
+              {totalPersons > 0 && (
+                <div>
+                  <h4 className="font-semibold text-brand-brown mb-2 flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    Persons ({totalPersons} total)
+                  </h4>
+                  <div className="grid grid-cols-4 gap-2 text-center">
+                    {[
+                      { label: 'Men', value: record.men },
+                      { label: 'Women', value: record.women },
+                      { label: 'Boys', value: record.boys },
+                      { label: 'Girls', value: record.girls },
+                    ].map(({ label, value }) => (
+                      <div key={label} className="bg-brand-tan rounded-lg p-3">
+                        <p className="text-2xl font-bold text-brand-brown">{value ?? 0}</p>
+                        <p className="text-xs text-gray-600 mt-1">{label}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div>
                 <h4 className="font-semibold text-brand-brown mb-2">Transcription</h4>
@@ -235,31 +243,30 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
                     <p className="text-sm text-gray-500">Loading transcription...</p>
                   </div>
                 ) : ocrText ? (
-                  <div className="bg-gray-50 p-4 rounded-lg max-h-64 overflow-y-auto">
-                    <p className="text-sm whitespace-pre-wrap">{ocrText}</p>
+                  <div className="bg-gray-50 p-4 rounded-lg max-h-48 overflow-y-auto">
+                    <p className="text-sm whitespace-pre-wrap font-mono text-xs">{ocrText}</p>
                   </div>
                 ) : (
-                  <div className="bg-gray-50 p-4 rounded-lg h-32 flex items-center justify-center">
+                  <div className="bg-gray-50 p-4 rounded-lg h-20 flex items-center justify-center">
                     <p className="text-sm text-gray-500">No transcription available</p>
                   </div>
                 )}
               </div>
 
-              {/* Related Records */}
               <RelatedRecords
-                currentRecordId={page.id}
+                currentRecordId={record.id}
                 currentTable="slave_merchants_othello"
-                searchTerms={{}}
+                searchTerms={{ name: record.to_whom_sold || '', location: record.location || '' }}
                 collectionSlug="rac-vlc/samuel-william-vernon/brig-othello"
               />
 
-              {/* Citation - at very bottom */}
               <RecordCitation
-                collectionName="Brig Othello - Samuel & William Vernon"
-                recordIdentifier={`Book ${page.book_no}, Page ${page.page_no}`}
+                collectionName="Brig Othello — Samuel & William Vernon"
+                recordIdentifier={`Book ${record.book_no}, ${record.page_name}, Entry ${record.entry_no}`}
                 recordDetails={{
-                  bookNo: page.book_no,
-                  pageNo: page.page_no
+                  bookNo: record.book_no,
+                  pageNo: record.entry_no,
+                  name: record.page_name,
                 }}
               />
             </div>
@@ -268,7 +275,7 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
       </div>
 
       {/* Zoomed Image Overlay */}
-      {isImageZoomed && isValidImageUrl(page.image_path) && (
+      {isImageZoomed && isValidImageUrl(record.image_path) && (
         <div
           className="fixed inset-0 bg-black bg-opacity-90 z-[60] flex items-center justify-center"
           onClick={() => setIsImageZoomed(false)}
@@ -279,13 +286,9 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
           >
             <X className="w-6 h-6 text-gray-700" />
           </button>
-
           {hasPrev && (
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePrevPage();
-              }}
+              onClick={(e) => { e.stopPropagation(); handlePrev(); }}
               className="absolute left-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-3 shadow-lg hover:bg-gray-100 transition-colors z-10"
             >
               <ChevronLeft className="w-8 h-8 text-gray-700" />
@@ -293,29 +296,24 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
           )}
           {hasNext && (
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleNextPage();
-              }}
+              onClick={(e) => { e.stopPropagation(); handleNext(); }}
               className="absolute right-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-3 shadow-lg hover:bg-gray-100 transition-colors z-10"
             >
               <ChevronRight className="w-8 h-8 text-gray-700" />
             </button>
           )}
-
           <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white px-4 py-2 rounded-full shadow-lg z-10">
             <p className="text-sm font-medium text-gray-700">
-              Page {currentIndex + 1} of {allPages.length}
+              {record.page_name}, Entry {record.entry_no}
             </p>
           </div>
-
           <div
             className="relative w-full h-full flex items-center justify-center"
             onClick={(e) => e.stopPropagation()}
           >
             <Image
-              src={page.image_path!}
-              alt={`Book ${page.book_no}, Page ${page.page_no}`}
+              src={record.image_path}
+              alt={`${record.page_name}, Entry ${record.entry_no}`}
               fill
               className="object-contain"
               priority
@@ -330,13 +328,15 @@ const PageModal = React.memo<PageModalProps>(function PageModal({ page, onClose,
 
 const BrigOthelloPage = () => {
   const searchParams = useSearchParams();
-  const [pages, setPages] = useState<RegisterPage[]>([]);
-  const [filteredPages, setFilteredPages] = useState<RegisterPage[]>([]);
+  const [records, setRecords] = useState<OthelloRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedPage, setSelectedPage] = useState<RegisterPage | null>(null);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [selectedRecord, setSelectedRecord] = useState<OthelloRecord | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [bookFilter, setBookFilter] = useState<number | null>(null);
+  const [uniqueBooks, setUniqueBooks] = useState<number[]>([]);
   const itemsPerPage = 20;
 
   // Initialize search from URL params
@@ -344,53 +344,75 @@ const BrigOthelloPage = () => {
     const urlSearch = searchParams.get('search');
     if (urlSearch) {
       setSearchTerm(urlSearch);
+      setDebouncedSearch(urlSearch);
     }
   }, [searchParams]);
 
   // Open modal for specific record from URL params
   useEffect(() => {
     const recordId = searchParams.get('record');
-    if (recordId && pages.length > 0) {
-      const record = pages.find(p => p.id === recordId);
-      if (record) {
-        setSelectedPage(record);
-      }
+    if (recordId && records.length > 0) {
+      const record = records.find(r => r.id === recordId);
+      if (record) setSelectedRecord(record);
     }
-  }, [searchParams, pages]);
+  }, [searchParams, records]);
 
+  // Fetch unique book numbers once for the filter dropdown
   useEffect(() => {
-    const fetchPages = async () => {
+    supabase
+      .from("slave_merchants_othello")
+      .select("book_no")
+      .order("book_no", { ascending: true })
+      .then(({ data }) => {
+        if (data) setUniqueBooks([...new Set(data.map(d => d.book_no))].sort((a, b) => a - b));
+      });
+  }, []);
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setCurrentPage(1);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Reset page when book filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [bookFilter]);
+
+  // Fetch current page with server-side filtering
+  useEffect(() => {
+    const fetchRecords = async () => {
+      setLoading(true);
       try {
-        // Fetch pages in batches without OCR text for better performance
-        let allPages: RegisterPage[] = [];
-        let from = 0;
-        const batchSize = 1000;
-        let hasMore = true;
+        const from = (currentPage - 1) * itemsPerPage;
+        const to = from + itemsPerPage - 1;
 
-        while (hasMore) {
-          const { data, error } = await supabase
-            .from("slave_merchants_othello")
-            .select("id, book_no, page_no, slug, image_path, created_at")
-            .order("book_no", { ascending: true })
-            .order("page_no", { ascending: true })
-            .range(from, from + batchSize - 1);
+        let query = supabase
+          .from("slave_merchants_othello")
+          .select("id, book_no, page_name, entry_no, when_sold, to_whom_sold, location, men, women, boys, girls, image_path, slug, created_at", { count: 'exact' })
+          .order("book_no", { ascending: true })
+          .order("entry_no", { ascending: true })
+          .range(from, to);
 
-          if (error) {
-            console.error("Error fetching Brig Othello records:", error);
-            break;
-          }
-
-          if (data && data.length > 0) {
-            allPages = [...allPages, ...data as RegisterPage[]];
-            from += batchSize;
-            hasMore = data.length === batchSize;
-          } else {
-            hasMore = false;
-          }
+        if (bookFilter !== null) {
+          query = query.eq("book_no", bookFilter);
         }
 
-        setPages(allPages);
-        setFilteredPages(allPages);
+        if (debouncedSearch) {
+          query = query.or(`to_whom_sold.ilike.%${debouncedSearch}%,when_sold.ilike.%${debouncedSearch}%,location.ilike.%${debouncedSearch}%,page_name.ilike.%${debouncedSearch}%`);
+        }
+
+        const { data, error, count } = await query;
+
+        if (!error && data) {
+          setRecords(data as OthelloRecord[]);
+          setTotalCount(count || 0);
+        } else if (error) {
+          console.error("Error fetching Brig Othello records:", error);
+        }
       } catch (error) {
         console.error("Error:", error);
       } finally {
@@ -398,62 +420,27 @@ const BrigOthelloPage = () => {
       }
     };
 
-    fetchPages();
-  }, []);
+    fetchRecords();
+  }, [currentPage, bookFilter, debouncedSearch]);
 
-  useEffect(() => {
-    let filtered = pages;
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage + 1;
+  const endIndex = Math.min(currentPage * itemsPerPage, totalCount);
 
-    if (searchTerm) {
-      filtered = filtered.filter(page =>
-        page.book_no.toString().includes(searchTerm) ||
-        page.page_no.toString().includes(searchTerm)
-      );
-    }
-
-    if (bookFilter !== null) {
-      filtered = filtered.filter(page => page.book_no === bookFilter);
-    }
-
-    setFilteredPages(filtered);
-    setCurrentPage(1);
-  }, [searchTerm, bookFilter, pages]);
-
-  const totalPages = Math.ceil(filteredPages.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentPageData = filteredPages.slice(startIndex, endIndex);
-
-  const uniqueBooks = [...new Set(pages.map(p => p.book_no))].sort((a, b) => a - b);
-
-  const handlePageClick = React.useCallback((page: RegisterPage) => {
-    setSelectedPage(page);
-  }, []);
-
-  if (loading) {
+  if (loading && records.length === 0) {
     return (
       <div className="min-h-screen bg-brand-beige">
         <div className="bg-gradient-to-r from-brand-green to-brand-darkgreen text-white py-16">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto text-center">
               <Ship className="w-16 h-16 mx-auto mb-4" />
-              <h1 className="text-4xl md:text-5xl font-bold mb-4">Brig Othello Register</h1>
-              <p className="text-lg text-white/90">Historical register pages from the Brig Othello ship collection.</p>
+              <h1 className="text-4xl md:text-5xl font-bold mb-4">Brig Othello</h1>
+              <p className="text-lg text-white/90">Slave trade records from the Brig Othello.</p>
             </div>
           </div>
         </div>
-        <div className="container mx-auto px-4 py-8">
-          <div className="mb-8">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
-              <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
-              <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
-            </div>
-            <div className="h-4 bg-gray-200 rounded animate-pulse w-48"></div>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            <GridSkeleton count={20} />
-          </div>
+        <div className="container mx-auto px-4 py-8 flex items-center justify-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin text-brand-green" />
         </div>
       </div>
     );
@@ -466,12 +453,9 @@ const BrigOthelloPage = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
             <Ship className="w-16 h-16 mx-auto mb-4" />
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Brig Othello
-            </h1>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">Brig Othello</h1>
             <p className="text-lg text-white/90">
-              Slave trade records from the Brig Othello, operated by Samuel and William Vernon Co.
-              Browse original manifests, ledgers, and transaction documents.
+              Slave trade sale records from the Brig Othello, operated by Samuel and William Vernon Co.
             </p>
           </div>
         </div>
@@ -479,23 +463,26 @@ const BrigOthelloPage = () => {
 
       <div className="container mx-auto px-4 py-8">
         {/* Search and Filters */}
-        <div className="mb-8 space-y-4">
-          <div className="flex flex-col sm:flex-row gap-4 items-center">
-            <Input
-              type="search"
-              placeholder="Search by book or page number..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full max-w-md"
-            />
+        <div className="mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end mb-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+              <Input
+                type="search"
+                placeholder="Search buyer, date, location..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full"
+              />
+            </div>
 
             {uniqueBooks.length > 1 && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">Filter by Book:</span>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Book</label>
                 <select
                   value={bookFilter ?? ''}
                   onChange={(e) => setBookFilter(e.target.value ? Number(e.target.value) : null)}
-                  className="border rounded-lg px-3 py-2 text-sm"
+                  className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
                 >
                   <option value="">All Books</option>
                   {uniqueBooks.map(book => (
@@ -505,68 +492,74 @@ const BrigOthelloPage = () => {
               </div>
             )}
 
-            <p className="text-sm text-gray-600">
-              Showing {filteredPages.length} of {pages.length} pages
-            </p>
+            <div>
+              <Button
+                onClick={() => { setSearchTerm(""); setBookFilter(null); }}
+                variant="outline"
+                className="w-full"
+              >
+                Clear Filters
+              </Button>
+            </div>
           </div>
+
+          <p className="text-sm text-gray-600">
+            {loading ? 'Loading...' : totalCount === 0 ? 'No records found.' : `Showing ${startIndex}–${endIndex} of ${totalCount} records`}
+          </p>
         </div>
 
-        {filteredPages.length === 0 ? (
-          <EmptyState
-            type="no-results"
-            title="No Pages Found"
-            description="No register pages match your current search or filter criteria. Try adjusting your search terms or book filter."
-            actionLabel="Clear Filters"
-            onAction={() => {
-              setSearchTerm("");
-              setBookFilter(null);
-            }}
-          />
+        {/* Records Table */}
+        {records.length === 0 && !loading ? (
+          <div className="text-center py-12">
+            <Ship className="w-12 h-12 mx-auto text-gray-300 mb-4" />
+            <p className="text-xl text-gray-600">No records match your criteria.</p>
+            <Button variant="outline" className="mt-4" onClick={() => { setSearchTerm(""); setBookFilter(null); }}>
+              Clear Filters
+            </Button>
+          </div>
         ) : (
           <>
-            {/* Grid of Pages */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {currentPageData.map((page) => (
-                <div
-                  key={page.id}
-                  onClick={() => handlePageClick(page)}
-                  className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-xl transition-shadow group"
-                >
-                  <div className="relative h-40 bg-gray-100">
-                    {isValidImageUrl(page.image_path) ? (
-                      <Image
-                        src={page.image_path!}
-                        alt={`Book ${page.book_no}, Page ${page.page_no}`}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform"
-                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center h-full">
-                        <Ship className="w-8 h-8 text-gray-400" />
-                      </div>
-                    )}
-                    <div
-                      className="absolute top-3 right-3 z-10 bg-white rounded-full p-2 shadow-md"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <BookmarkButton
-                      pageId={page.id}
-                      collectionName="Brig Othello"
-                      collectionSlug="rac-vlc/samuel-william-vernon/brig-othello"
-                      recordTitle={`Book ${page.book_no}, Page ${page.page_no}`}
-                      size={18}
-                    />
-                    </div>
-                  </div>
-                  <div className="p-3">
-                    <p className="font-semibold text-sm text-brand-brown">
-                      Book {page.book_no}, Page {page.page_no}
-                    </p>
-                  </div>
-                </div>
-              ))}
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-brand-tan text-brand-brown">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-semibold">Book / Page / Entry</th>
+                    <th className="px-4 py-3 text-left font-semibold">Date Sold</th>
+                    <th className="px-4 py-3 text-left font-semibold">Sold To</th>
+                    <th className="px-4 py-3 text-left font-semibold">Location</th>
+                    <th className="px-4 py-3 text-center font-semibold">Persons</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {records.map((record) => {
+                    const total = (record.men ?? 0) + (record.women ?? 0) + (record.boys ?? 0) + (record.girls ?? 0);
+                    return (
+                      <tr
+                        key={record.id}
+                        onClick={() => setSelectedRecord(record)}
+                        className="hover:bg-brand-beige cursor-pointer transition-colors"
+                      >
+                        <td className="px-4 py-3">
+                          <span className="font-medium text-brand-brown">
+                            Bk {record.book_no} / {record.page_name} / #{record.entry_no}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-gray-700">{record.when_sold || '—'}</td>
+                        <td className="px-4 py-3 text-gray-700">{record.to_whom_sold || '—'}</td>
+                        <td className="px-4 py-3 text-gray-600">{record.location || '—'}</td>
+                        <td className="px-4 py-3 text-center">
+                          {total > 0 ? (
+                            <span className="inline-flex items-center gap-1 bg-brand-tan text-brand-brown text-xs font-semibold px-2 py-1 rounded-full">
+                              <Users className="w-3 h-3" />
+                              {total}
+                            </span>
+                          ) : '—'}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
 
             {/* Pagination */}
@@ -614,17 +607,16 @@ const BrigOthelloPage = () => {
             )}
 
             <div className="text-center text-sm text-gray-600 mt-4">
-              Page {currentPage} of {totalPages}
-              ({startIndex + 1}-{Math.min(endIndex, filteredPages.length)} of {filteredPages.length} pages)
+              Page {currentPage} of {totalPages} ({startIndex}–{endIndex} of {totalCount} records)
             </div>
           </>
         )}
 
-        <PageModal
-          page={selectedPage}
-          onClose={() => setSelectedPage(null)}
-          allPages={filteredPages}
-          onNavigate={(page) => setSelectedPage(page)}
+        <RecordModal
+          record={selectedRecord}
+          onClose={() => setSelectedRecord(null)}
+          allRecords={records}
+          onNavigate={(record) => setSelectedRecord(record)}
         />
       </div>
     </div>
