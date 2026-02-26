@@ -9,6 +9,9 @@ import { useRouter } from "next/navigation";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { SignupForm } from "@/components/auth/SignupForm";
 import { Search, X, Users } from "lucide-react";
+import { BookmarkButton } from "@/components/ui/BookmarkButton";
+import { RecordCitation } from "@/components/ui/RecordCitation";
+import { RelatedRecords } from "@/components/ui/RelatedRecords";
 
 const UpgradePrompt = () => {
   const router = useRouter();
@@ -333,12 +336,22 @@ const FreeBlackCensusPage = () => {
           <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
               <h2 className="text-2xl font-bold text-brand-brown">Household Record Details</h2>
-              <button
-                onClick={() => setSelectedRecord(null)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-6 h-6" />
-              </button>
+              <div className="flex items-center gap-3">
+                <BookmarkButton
+                  pageId={selectedRecord.id}
+                  collectionName="Free Black Heads of Household"
+                  collectionSlug="free-black-census-1790"
+                  recordTitle={selectedRecord.name}
+                  size={24}
+                  showLabel={true}
+                />
+                <button
+                  onClick={() => setSelectedRecord(null)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
             </div>
 
             <div className="p-6 space-y-4">
@@ -366,6 +379,24 @@ const FreeBlackCensusPage = () => {
                   </div>
                 )}
               </div>
+
+              <RelatedRecords
+                currentRecordId={selectedRecord.id}
+                currentTable="free_black_heads_of_household"
+                searchTerms={{
+                  name: selectedRecord.name,
+                  location: selectedRecord.state || undefined,
+                }}
+                collectionSlug="free-black-census-1790"
+              />
+
+              <RecordCitation
+                collectionName="Free Black Heads of Household (1790 Census)"
+                recordIdentifier={selectedRecord.name}
+                recordDetails={{
+                  name: selectedRecord.name,
+                }}
+              />
 
               <div className="mt-6 pt-6 border-t border-gray-200">
                 <p className="text-xs text-gray-500">

@@ -10,6 +10,9 @@ import { LoginForm } from "@/components/auth/LoginForm";
 import { SignupForm } from "@/components/auth/SignupForm";
 import { Search, MapPin, Shield, X, Loader2 } from "lucide-react";
 import Image from "next/image";
+import { BookmarkButton } from "@/components/ui/BookmarkButton";
+import { RecordCitation } from "@/components/ui/RecordCitation";
+import { RelatedRecords } from "@/components/ui/RelatedRecords";
 
 const UpgradePrompt = () => {
   const router = useRouter();
@@ -390,12 +393,22 @@ const RevolutionarySoldiersPage = () => {
           <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
               <h2 className="text-2xl font-bold text-brand-brown">Soldier Details</h2>
-              <button
-                onClick={() => setSelectedSoldier(null)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-6 h-6" />
-              </button>
+              <div className="flex items-center gap-3">
+                <BookmarkButton
+                  pageId={String(selectedSoldier.id)}
+                  collectionName="African-American Revolutionary Soldiers"
+                  collectionSlug="revolutionary-soldiers"
+                  recordTitle={selectedSoldier.soldier_name}
+                  size={24}
+                  showLabel={true}
+                />
+                <button
+                  onClick={() => setSelectedSoldier(null)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
             </div>
 
             <div className="p-6">
@@ -457,6 +470,24 @@ const RevolutionarySoldiersPage = () => {
                     </div>
                   </div>
                 )}
+
+                <RelatedRecords
+                  currentRecordId={String(selectedSoldier.id)}
+                  currentTable="aa_revolutionary_soldiers"
+                  searchTerms={{
+                    name: selectedSoldier.soldier_name,
+                    location: selectedSoldier.state || undefined,
+                  }}
+                  collectionSlug="revolutionary-soldiers"
+                />
+
+                <RecordCitation
+                  collectionName="African-American Revolutionary Soldiers"
+                  recordIdentifier={selectedSoldier.soldier_name}
+                  recordDetails={{
+                    name: selectedSoldier.soldier_name,
+                  }}
+                />
               </div>
             </div>
           </div>
