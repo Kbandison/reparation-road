@@ -170,6 +170,7 @@ const RecordModal = React.memo<RecordModalProps>(function RecordModal({ record, 
                   )}
                   {isValidImageUrl(record.image_path) ? (
                     <Image
+                      key={record.id}
                       src={record.image_path}
                       alt={`Sale record entry ${record.entry_no}`}
                       width={800}
